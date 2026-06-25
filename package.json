@@ -1,0 +1,41 @@
+{
+  "name": "jmcomic-desktop",
+  "version": "1.0.0",
+  "description": "禁漫天堂桌面客户端 — WinUI 3 风格漫画阅读器",
+  "main": "./out/main/index.js",
+  "author": "JMComic Desktop",
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "package": "electron-vite build && electron-builder --win",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "@fluentui/react-components": "^9.54.0",
+    "@tanstack/react-virtual": "^3.11.0",
+    "better-sqlite3": "^11.7.0",
+    "cheerio": "^1.0.0",
+    "got": "^13.0.0",
+    "https-proxy-agent": "^7.0.5",
+    "socks-proxy-agent": "^8.0.4",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@electron-toolkit/preload": "^3.0.1",
+    "@electron-toolkit/utils": "^3.0.0",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^2.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^3.4.15",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.0"
+  }
+}
