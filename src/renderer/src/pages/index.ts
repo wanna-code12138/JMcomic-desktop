@@ -1,0 +1,8 @@
+export { default as HomePage } from './HomePage'
+export { default as CategoriesPage } from './CategoriesPage'
+export { default as SearchPage } from './SearchPage'
+export { default as FavoritesPage } from './FavoritesPage'
+export { default as DownloadsPage } from './DownloadsPage'
+export { default as SettingsPage } from './SettingsPage'
+export { default as MangaDetailPage } from './MangaDetailPage'
+export { default as ReaderPage } from './ReaderPage'
