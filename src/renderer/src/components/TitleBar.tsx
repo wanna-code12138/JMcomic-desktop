@@ -3,8 +3,7 @@ import {
   makeStyles,
   tokens,
   Button,
-  Tooltip,
-  mergeClasses
+  Tooltip
 } from '@fluentui/react-components'
 import {
   WeatherMoon20Regular,
@@ -25,7 +24,8 @@ const useStyles = makeStyles({
     height: TITLE_BAR_HEIGHT,
     paddingLeft: '12px',
     paddingRight: '4px',
-    backgroundColor: tokens.colorNeutralBackground2,
+    // 透明：透出 DWM 的 Mica 材质，与下方实色内容区形成层次差异
+    backgroundColor: 'transparent',
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
     WebkitAppRegion: 'drag',
     userSelect: 'none',
@@ -49,11 +49,10 @@ const useStyles = makeStyles({
 
 interface TitleBarProps {
   darkMode: boolean
-  maximized: boolean
   onToggleDarkMode: () => void
 }
 
-export default function TitleBar({ darkMode, maximized, onToggleDarkMode }: TitleBarProps): JSX.Element {
+export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps): JSX.Element {
   const styles = useStyles()
 
   useEffect(() => {
@@ -66,10 +65,7 @@ export default function TitleBar({ darkMode, maximized, onToggleDarkMode }: Titl
   }
 
   return (
-    <div
-      className={mergeClasses(styles.bar, maximized && 'window-maximized')}
-      data-maximized={maximized}
-    >
+    <div className={styles.bar}>
       <span className={styles.title}>JMComic Desktop</span>
       <div className={styles.actions}>
         <Tooltip content={darkMode ? '浅色模式' : '深色模式'} relationship="label">

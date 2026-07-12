@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import {
   makeStyles,
   tokens,
@@ -32,7 +32,6 @@ import TitleBar from './components/TitleBar'
 
 const NAV_WIDTH = 220
 const STATUS_BAR_HEIGHT = 28
-const WINDOW_RADIUS = '8px'
 
 const useStyles = makeStyles({
   root: {
@@ -40,21 +39,18 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     height: '100vh',
     overflow: 'hidden',
-    backgroundColor: tokens.colorNeutralBackground2,
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-    borderRadius: WINDOW_RADIUS,
-    // Clip content to the rounded corners (transparent window shows desktop in the notch)
-    // — Win11-style rounded window when restored.
-  },
-  rootMaximized: {
-    border: 'none',
-    borderRadius: '0px'
+    // 透明：标题栏区透出 DWM Mica 材质，下方内容区用实色背景，
+    // 两者形成 Win11 风格的层次差异。
+    // 窗口外圆角 + 1px 边框由 DWM 自动绘制（不可设 transparent:true）。
+    backgroundColor: 'transparent'
   },
   body: {
     display: 'flex',
     flex: 1,
     overflow: 'hidden',
-    minHeight: 0
+    minHeight: 0,
+    // 内容区实色，与透明标题栏（Mica）形成差异
+    backgroundColor: tokens.colorNeutralBackground2
   },
   nav: {
     width: `${NAV_WIDTH}px`,
@@ -182,18 +178,6 @@ interface AppProps {
 export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Element {
   const styles = useStyles()
   const { currentPage, setCurrentPage, networkStatus } = useAppStore()
-  const [maximized, setMaximized] = useState(false)
-
-  // Track window maximize state to toggle the window chrome (border + rounded
-  // corners) — DWM already squares maximized windows, so we drop our CSS chrome
-  // to avoid a visible 1px gap / rounded notch at the screen edge.
-  useEffect(() => {
-    const off = window.electronAPI?.onMaximizeChange((max: boolean) => setMaximized(max))
-    window.electronAPI?.windowIsMaximized().then((max) => setMaximized(Boolean(max)))
-    return () => {
-      off?.()
-    }
-  }, [])
 
   const ActivePage = pageComponents[currentPage as PageId] ?? HomePage
 
@@ -214,8 +198,8 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
   }
 
   return (
-    <div className={mergeClasses(styles.root, maximized && styles.rootMaximized)}>
-      <TitleBar darkMode={darkMode} maximized={maximized} onToggleDarkMode={onToggleDarkMode} />
+    <div className={styles.root}>
+      <TitleBar darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />
       <div className={styles.body}>
         {/* Navigation View */}
         <nav className={styles.nav}>

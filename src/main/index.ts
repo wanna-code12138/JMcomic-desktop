@@ -17,9 +17,10 @@ let mainWindow: BrowserWindow | null = null
 registerImageScheme()
 
 // Windows 11 caption overlay 配色 —— 跟随应用主题切换
-// 颜色取自 Fluent UI v9 tokens（colorNeutralBackground2 / colorNeutralForeground1）
-const CAPTION_LIGHT = { color: '#fafafa', symbolColor: '#242424', height: 32 }
-const CAPTION_DARK = { color: '#1f1f1f', symbolColor: '#ffffff', height: 32 }
+// color 用透明，让 Mica 材质透过原生 caption 按钮区显示（与标题栏融为一体）；
+// symbolColor 取自 Fluent UI v9 tokens（colorNeutralForeground1）
+const CAPTION_LIGHT = { color: '#00000000', symbolColor: '#242424', height: 32 }
+const CAPTION_DARK = { color: '#00000000', symbolColor: '#ffffff', height: 32 }
 
 function applyCaptionTheme(dark: boolean): void {
   mainWindow?.setTitleBarOverlay(dark ? CAPTION_DARK : CAPTION_LIGHT)
@@ -35,7 +36,8 @@ function createWindow(): void {
     titleBarStyle: 'hidden',
     titleBarOverlay: CAPTION_LIGHT,
     backgroundColor: '#00000000',
-    transparent: true,
+    // 不设 transparent: true —— 该选项会强制分层合成路径，禁用 DWM 的
+    // Win11 圆角与 Snap 拖拽预览。Mica 由 setBackgroundMaterial 提供。
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
