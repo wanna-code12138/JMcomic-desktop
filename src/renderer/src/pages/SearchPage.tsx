@@ -12,7 +12,7 @@ import { useAppStore } from '../stores/appStore'
 
 const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
-  searchBar: { maxWidth: '600px', marginBottom: '8px' },
+  searchBar: { display: 'flex', gap: '8px', maxWidth: '660px', marginBottom: '8px' },
   hint: {
     fontSize: '12px', color: tokens.colorNeutralForeground3,
     marginTop: '4px', marginBottom: '20px'
@@ -142,8 +142,11 @@ export default function SearchPage(): JSX.Element {
             }
           }}
           size="large"
-          style={{ width: '100%' }}
+          style={{ flex: 1 }}
         />
+        <Button appearance="primary" size="large" icon={<Search20Regular />} onClick={() => handleSubmit(query)}>
+          搜索
+        </Button>
       </div>
       <div className={styles.hint}>
         <NumberSymbol20Regular style={{ width: '12px', height: '12px', verticalAlign: 'middle', marginRight: '4px' }} />
