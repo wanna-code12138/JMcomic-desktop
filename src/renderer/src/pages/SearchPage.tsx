@@ -5,7 +5,8 @@ import {
 } from '@fluentui/react-components'
 import {
   ArrowPrevious20Regular, ArrowNext20Regular,
-  Search20Regular, NumberSymbol20Regular
+  Search20Regular, NumberSymbol20Regular,
+  Dismiss20Regular, History20Regular, Delete20Regular
 } from '@fluentui/react-icons'
 import { MangaCard, type MangaCardData } from '../components'
 import { useAppStore } from '../stores/appStore'
@@ -43,6 +44,57 @@ const useStyles = makeStyles({
   shimmerCard: {
     aspectRatio: '3/4',
     borderRadius: tokens.borderRadiusMedium
+  },
+  historySection: {
+    maxWidth: '660px', marginTop: '8px'
+  },
+  historyHeader: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    marginBottom: '12px'
+  },
+  historyTitle: {
+    display: 'flex', alignItems: 'center', gap: '6px',
+    fontSize: '13px', fontWeight: 600,
+    color: tokens.colorNeutralForeground2
+  },
+  chipList: {
+    display: 'flex', flexWrap: 'wrap', gap: '8px'
+  },
+  chip: {
+    display: 'inline-flex', alignItems: 'center', gap: '4px',
+    height: '32px', padding: '0 4px 0 12px',
+    borderRadius: '16px',
+    backgroundColor: tokens.colorNeutralBackground2,
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    color: tokens.colorNeutralForeground2,
+    fontSize: '13px',
+    cursor: 'pointer',
+    transition: 'background-color 0.1s, border-color 0.1s',
+    ':hover': {
+      backgroundColor: tokens.colorNeutralBackground2Hover,
+      borderColor: tokens.colorNeutralStroke1Hover
+    }
+  },
+  chipText: {
+    maxWidth: '200px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
+  },
+  chipDelete: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    width: '20px', height: '20px',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    color: tokens.colorNeutralForeground3,
+    ':hover': {
+      backgroundColor: tokens.colorNeutralBackground3,
+      color: tokens.colorNeutralForeground1
+    }
+  },
+  historyEmpty: {
+    fontSize: '13px', color: tokens.colorNeutralForeground3,
+    padding: '8px 0'
   }
 })
 
@@ -73,6 +125,25 @@ export default function SearchPage(): JSX.Element {
   const [page, setPage] = React.useState(1)
   const [totalPages, setTotalPages] = React.useState(1)
   const [jumpedCarPlate, setJumpedCarPlate] = React.useState(false)
+  const [history, setHistory] = React.useState<string[]>([])
+
+  const refreshHistory = React.useCallback(async (): Promise<void> => {
+    try {
+      const list = await window.electronAPI?.searchHistoryList()
+      setHistory((list as string[]) || [])
+    } catch { /* ignore */ }
+  }, [])
+
+  React.useEffect(() => {
+    void refreshHistory()
+  }, [refreshHistory])
+
+  const saveToHistory = React.useCallback(async (q: string): Promise<void> => {
+    try {
+      await window.electronAPI?.searchHistoryAdd(q)
+      await refreshHistory()
+    } catch { /* ignore */ }
+  }, [refreshHistory])
 
   const doSearch = React.useCallback(async (q: string, p: number): Promise<void> => {
     setLoading(true)
@@ -102,6 +173,7 @@ export default function SearchPage(): JSX.Element {
   const handleSubmit = React.useCallback((value: string): void => {
     const q = value.trim()
     if (!q) return
+    void saveToHistory(q)
 
     // 严格 6-7 位纯数字 → 视为车牌号，直接跳转详情页
     if (/^\d{6,7}$/.test(q)) {
@@ -116,13 +188,33 @@ export default function SearchPage(): JSX.Element {
     setSubmittedQuery(q)
     setPage(1)
     void doSearch(q, 1)
-  }, [doSearch, setCurrentMangaId])
+  }, [doSearch, setCurrentMangaId, saveToHistory])
 
   const gotoPage = React.useCallback((p: number): void => {
     if (p < 1 || p > totalPages || p === page || loading) return
     setPage(p)
     void doSearch(submittedQuery, p)
   }, [doSearch, submittedQuery, page, totalPages, loading])
+
+  const onChipClick = React.useCallback((q: string): void => {
+    setQuery(q)
+    handleSubmit(q)
+  }, [handleSubmit])
+
+  const onChipDelete = React.useCallback(async (q: string, e: React.MouseEvent): Promise<void> => {
+    e.stopPropagation()
+    try {
+      await window.electronAPI?.searchHistoryRemove(q)
+      await refreshHistory()
+    } catch { /* ignore */ }
+  }, [refreshHistory])
+
+  const onClearHistory = React.useCallback(async (): Promise<void> => {
+    try {
+      await window.electronAPI?.searchHistoryClear()
+      await refreshHistory()
+    } catch { /* ignore */ }
+  }, [refreshHistory])
 
   const hasQuery = submittedQuery.length > 0
   const showEmpty = hasQuery && !loading && !error && results.length === 0 && !jumpedCarPlate
@@ -154,10 +246,49 @@ export default function SearchPage(): JSX.Element {
       </div>
 
       {!hasQuery && (
-        <div className={styles.statusMsg}>
-          <Search20Regular style={{ width: '40px', height: '40px' }} />
-          <Text size={400}>输入关键词开始搜索</Text>
-          <Text size={200}>支持按标题、作者、标签搜索</Text>
+        <div className={styles.historySection}>
+          <div className={styles.historyHeader}>
+            <span className={styles.historyTitle}>
+              <History20Regular style={{ width: '16px', height: '16px' }} />
+              搜索历史
+            </span>
+            {history.length > 0 && (
+              <Button
+                appearance="subtle" size="small"
+                icon={<Delete20Regular />}
+                onClick={onClearHistory}
+              >
+                清空
+              </Button>
+            )}
+          </div>
+          {history.length === 0 ? (
+            <div className={styles.historyEmpty}>暂无搜索记录</div>
+          ) : (
+            <div className={styles.chipList}>
+              {history.map((q) => (
+                <div
+                  key={q}
+                  className={styles.chip}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onChipClick(q)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') onChipClick(q) }}
+                >
+                  <span className={styles.chipText}>{q}</span>
+                  <span
+                    className={styles.chipDelete}
+                    role="button"
+                    tabIndex={-1}
+                    aria-label="删除"
+                    onClick={(e) => { void onChipDelete(q, e) }}
+                  >
+                    <Dismiss20Regular style={{ width: '12px', height: '12px' }} />
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

@@ -83,6 +83,14 @@ function initTables(d: SqlJsDatabase): void {
       value TEXT
     )
   `)
+
+  d.run(`
+    CREATE TABLE IF NOT EXISTS search_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      query TEXT NOT NULL UNIQUE,
+      searched_at INTEGER DEFAULT (strftime('%s','now'))
+    )
+  `)
 }
 
 export function saveDatabase(): void {

@@ -76,6 +76,42 @@ export function registerIpcHandlers(): void {
     })) : []
   })
 
+  // Search history
+  ipcMain.handle('searchHistory:add', async (_event, query: string) => {
+    const q = (query ?? '').trim()
+    if (!q) return
+    const db = await getDatabase()
+    // UNIQUE(query) 冲突时替换 → 刷新时间戳实现置顶
+    db.run(
+      'INSERT OR REPLACE INTO search_history (query, searched_at) VALUES (?, strftime(\'%s\',\'now\'))',
+      [q]
+    )
+    // 修剪到 20 条：保留最新 20 条，删除其余
+    db.run(
+      'DELETE FROM search_history WHERE id NOT IN ' +
+      '(SELECT id FROM search_history ORDER BY searched_at DESC LIMIT 20)'
+    )
+    saveDatabase()
+  })
+
+  ipcMain.handle('searchHistory:list', async () => {
+    const db = await getDatabase()
+    const results = db.exec('SELECT query FROM search_history ORDER BY searched_at DESC LIMIT 20')
+    return results.length > 0 ? results[0].values.map((row) => String(row[0])) : []
+  })
+
+  ipcMain.handle('searchHistory:remove', async (_event, query: string) => {
+    const db = await getDatabase()
+    db.run('DELETE FROM search_history WHERE query = ?', [query])
+    saveDatabase()
+  })
+
+  ipcMain.handle('searchHistory:clear', async () => {
+    const db = await getDatabase()
+    db.run('DELETE FROM search_history')
+    saveDatabase()
+  })
+
   // Auth
   ipcMain.handle('auth:save', async (_event, key: string, value: string) => {
     const db = await getDatabase()

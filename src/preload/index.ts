@@ -27,6 +27,12 @@ const api = {
   favoritesRemove: (mangaId: string) => ipcRenderer.invoke('favorites:remove', mangaId),
   favoritesList: () => ipcRenderer.invoke('favorites:list'),
 
+  // Search history
+  searchHistoryAdd: (query: string) => ipcRenderer.invoke('searchHistory:add', query),
+  searchHistoryList: () => ipcRenderer.invoke('searchHistory:list'),
+  searchHistoryRemove: (query: string) => ipcRenderer.invoke('searchHistory:remove', query),
+  searchHistoryClear: () => ipcRenderer.invoke('searchHistory:clear'),
+
   // Auth
   authSave: (key: string, value: string) => ipcRenderer.invoke('auth:save', key, value),
   authGet: (key: string) => ipcRenderer.invoke('auth:get', key),
