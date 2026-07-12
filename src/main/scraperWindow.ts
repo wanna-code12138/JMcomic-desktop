@@ -625,7 +625,38 @@ export async function extractSearch(query: string, page = 1): Promise<{
     await navigateAndWait(`https://${domain}/search/photos?${params.toString()}`, 1500)
 
     const { cards, debug } = await extractAllCards()
-    const result = { results: cards, totalPages: 1, debug }
+
+    // 提取真实总页数：扫描分页控件里的 page= 参数，取最大值。
+    // 禁漫搜索页分页常见结构：
+    //   .pagination a[href*="page="]  /  .page-item a  /  顶/底部的 上一页/下一页/页码链接
+    const totalPages = await extract<number>(`
+      (function() {
+        var maxPage = 1;
+        var links = document.querySelectorAll('a[href*="page="], .pagination a, .page-item a, .page-link');
+        links.forEach(function(a) {
+          var href = a.getAttribute('href') || '';
+          // 优先匹配 page=NNN 形式（禁漫标准）
+          var m = href.match(/page=(\\d+)/);
+          if (!m) {
+            // 兜底：href 末尾的纯数字段（如 /search/photos?...;2 这种非标准写法）
+            m = href.match(/(\\d+)\\/?$/);
+          }
+          if (m) {
+            var n = parseInt(m[1], 10);
+            if (n > maxPage) maxPage = n;
+          }
+          // 部分主题用按钮文本而非 href 表示页码（"下一页", "2", "3"...）
+          var txt = (a.textContent || '').trim();
+          if (/^\\d+$/.test(txt)) {
+            var tn = parseInt(txt, 10);
+            if (tn > maxPage) maxPage = tn;
+          }
+        });
+        return maxPage;
+      })()
+    `).catch(() => 1)
+
+    const result = { results: cards, totalPages, debug }
     if (cards.length > 0) cacheSet(cacheKey, result)
     return result
   })

@@ -26,6 +26,13 @@ const useStyles = makeStyles({
   cover: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   info: { flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 },
   title: { fontSize: '28px', fontWeight: 700, color: tokens.colorNeutralForeground1, lineHeight: 1.3 },
+  carPlate: {
+    fontSize: '13px',
+    color: tokens.colorNeutralForeground3,
+    letterSpacing: '0.5px',
+    userSelect: 'all',
+    cursor: 'text'
+  },
   author: { fontSize: '15px', color: tokens.colorNeutralForeground2 },
   tags: { display: 'flex', flexWrap: 'wrap', gap: '6px' },
   description: { fontSize: '14px', color: tokens.colorNeutralForeground2, lineHeight: 1.6 },
@@ -143,6 +150,7 @@ export default function MangaDetailPage(): JSX.Element {
         </div>
         <div className={styles.info}>
           <h1 className={styles.title}>{manga.title}</h1>
+          <div className={styles.carPlate}>车牌号: JM{manga.id}</div>
           <div className={styles.author}>✍️ {manga.author || '未知作者'}</div>
           {manga.tags.length > 0 && (
             <div className={styles.tags}>
