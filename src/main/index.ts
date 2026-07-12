@@ -16,6 +16,15 @@ let mainWindow: BrowserWindow | null = null
 // 否则 jmimg:// 的 URL 解析行为不确定，会导致图片加载失败。
 registerImageScheme()
 
+// Windows 11 caption overlay 配色 —— 跟随应用主题切换
+// 颜色取自 Fluent UI v9 tokens（colorNeutralBackground2 / colorNeutralForeground1）
+const CAPTION_LIGHT = { color: '#fafafa', symbolColor: '#242424', height: 32 }
+const CAPTION_DARK = { color: '#1f1f1f', symbolColor: '#ffffff', height: 32 }
+
+function applyCaptionTheme(dark: boolean): void {
+  mainWindow?.setTitleBarOverlay(dark ? CAPTION_DARK : CAPTION_LIGHT)
+}
+
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -23,8 +32,8 @@ function createWindow(): void {
     minWidth: 960,
     minHeight: 640,
     show: false,
-    frame: false,
     titleBarStyle: 'hidden',
+    titleBarOverlay: CAPTION_LIGHT,
     backgroundColor: '#00000000',
     transparent: true,
     webPreferences: {
@@ -101,3 +110,6 @@ ipcMain.handle('window:maximize', () => {
 })
 ipcMain.handle('window:close', () => mainWindow?.close())
 ipcMain.handle('window:isMaximized', () => mainWindow?.isMaximized())
+ipcMain.handle('window:setCaptionTheme', (_event, dark: boolean) => {
+  applyCaptionTheme(Boolean(dark))
+})

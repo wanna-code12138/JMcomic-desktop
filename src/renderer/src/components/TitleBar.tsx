@@ -1,19 +1,22 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {
   makeStyles,
   tokens,
   Button,
-  Tooltip
+  Tooltip,
+  mergeClasses
 } from '@fluentui/react-components'
 import {
-  Subtract20Regular,
-  Square20Regular,
-  Dismiss20Regular,
   WeatherMoon20Regular,
   WeatherSunny20Regular
 } from '@fluentui/react-icons'
 
-const TITLE_BAR_HEIGHT = '36px'
+const TITLE_BAR_HEIGHT = '32px'
+
+// Windows 11 native caption buttons (min/max/close) are drawn by the OS as an
+// overlay ~138px wide on the right edge. We must reserve that space so our own
+// controls are not hidden underneath them.
+const CAPTION_RESERVED = 140
 
 const useStyles = makeStyles({
   bar: {
@@ -29,8 +32,8 @@ const useStyles = makeStyles({
     flexShrink: 0
   },
   title: {
-    fontSize: '13px',
-    fontWeight: 500,
+    fontSize: '12px',
+    fontWeight: 600,
     color: tokens.colorNeutralForeground2,
     marginLeft: '4px',
     flex: 1
@@ -39,30 +42,34 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     gap: '2px',
+    paddingRight: `${CAPTION_RESERVED}px`,
     WebkitAppRegion: 'no-drag'
   }
 })
 
 interface TitleBarProps {
   darkMode: boolean
+  maximized: boolean
   onToggleDarkMode: () => void
 }
 
-export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps): JSX.Element {
+export default function TitleBar({ darkMode, maximized, onToggleDarkMode }: TitleBarProps): JSX.Element {
   const styles = useStyles()
 
-  const handleMinimize = (): void => {
-    window.electronAPI?.windowMinimize()
-  }
-  const handleMaximize = (): void => {
-    window.electronAPI?.windowMaximize()
-  }
-  const handleClose = (): void => {
-    window.electronAPI?.windowClose()
+  useEffect(() => {
+    // Sync native caption button colors with the active Fluent theme
+    window.electronAPI?.windowSetCaptionTheme(darkMode)
+  }, [darkMode])
+
+  const handleToggleDarkMode = (): void => {
+    onToggleDarkMode()
   }
 
   return (
-    <div className={styles.bar}>
+    <div
+      className={mergeClasses(styles.bar, maximized && 'window-maximized')}
+      data-maximized={maximized}
+    >
       <span className={styles.title}>JMComic Desktop</span>
       <div className={styles.actions}>
         <Tooltip content={darkMode ? '浅色模式' : '深色模式'} relationship="label">
@@ -70,34 +77,11 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
             appearance="subtle"
             size="small"
             icon={darkMode ? <WeatherSunny20Regular /> : <WeatherMoon20Regular />}
-            onClick={onToggleDarkMode}
-          />
-        </Tooltip>
-        <Tooltip content="最小化" relationship="label">
-          <Button
-            appearance="subtle"
-            size="small"
-            icon={<Subtract20Regular />}
-            onClick={handleMinimize}
-          />
-        </Tooltip>
-        <Tooltip content="最大化" relationship="label">
-          <Button
-            appearance="subtle"
-            size="small"
-            icon={<Square20Regular />}
-            onClick={handleMaximize}
-          />
-        </Tooltip>
-        <Tooltip content="关闭" relationship="label">
-          <Button
-            appearance="subtle"
-            size="small"
-            icon={<Dismiss20Regular />}
-            onClick={handleClose}
+            onClick={handleToggleDarkMode}
           />
         </Tooltip>
       </div>
     </div>
   )
 }
+

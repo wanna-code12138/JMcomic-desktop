@@ -6,6 +6,7 @@ const api = {
   windowMaximize: () => ipcRenderer.invoke('window:maximize'),
   windowClose: () => ipcRenderer.invoke('window:close'),
   windowIsMaximized: () => ipcRenderer.invoke('window:isMaximized'),
+  windowSetCaptionTheme: (dark: boolean) => ipcRenderer.invoke('window:setCaptionTheme', dark),
 
   onMaximizeChange: (callback: (maximized: boolean) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, maximized: boolean): void => callback(maximized)

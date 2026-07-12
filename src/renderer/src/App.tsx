@@ -1,10 +1,8 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   makeStyles,
   tokens,
-  Button,
-  Tooltip,
-  Badge
+  mergeClasses
 } from '@fluentui/react-components'
 import {
   Home20Regular,
@@ -34,6 +32,7 @@ import TitleBar from './components/TitleBar'
 
 const NAV_WIDTH = 220
 const STATUS_BAR_HEIGHT = 28
+const WINDOW_RADIUS = '8px'
 
 const useStyles = makeStyles({
   root: {
@@ -41,7 +40,15 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     height: '100vh',
     overflow: 'hidden',
-    backgroundColor: tokens.colorNeutralBackground2
+    backgroundColor: tokens.colorNeutralBackground2,
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    borderRadius: WINDOW_RADIUS,
+    // Clip content to the rounded corners (transparent window shows desktop in the notch)
+    // — Win11-style rounded window when restored.
+  },
+  rootMaximized: {
+    border: 'none',
+    borderRadius: '0px'
   },
   body: {
     display: 'flex',
@@ -55,7 +62,7 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     padding: '8px',
-    gap: '2px',
+    gap: '4px',
     backgroundColor: tokens.colorNeutralBackground1,
     borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
     userSelect: 'none',
@@ -74,13 +81,21 @@ const useStyles = makeStyles({
     transition: 'background-color 0.1s ease',
     textDecoration: 'none',
     ':hover': {
-      backgroundColor: tokens.colorNeutralBackground2
+      backgroundColor: tokens.colorNeutralBackground2Hover,
+      color: tokens.colorNeutralForeground2Hover
+    },
+    ':active': {
+      backgroundColor: tokens.colorNeutralBackground2Pressed
     }
   },
   navItemActive: {
-    backgroundColor: tokens.colorNeutralBackground3,
-    color: tokens.colorNeutralForeground1,
-    fontWeight: 600
+    backgroundColor: tokens.colorNeutralBackground2Selected,
+    color: tokens.colorBrandForeground1,
+    fontWeight: 600,
+    ':hover': {
+      backgroundColor: tokens.colorNeutralBackground2Selected,
+      color: tokens.colorBrandForeground1
+    }
   },
   navIcon: {
     display: 'flex',
@@ -107,23 +122,26 @@ const useStyles = makeStyles({
     height: `${STATUS_BAR_HEIGHT}px`,
     paddingLeft: '12px',
     paddingRight: '12px',
-    backgroundColor: tokens.colorNeutralBackground1,
+    backgroundColor: tokens.colorNeutralBackground2,
     borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
     fontSize: '12px',
     color: tokens.colorNeutralForeground3,
-    gap: '12px',
+    gap: '10px',
     flexShrink: 0
   },
-  statusDot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    display: 'inline-block'
+  statusSeparator: {
+    width: '1px',
+    height: '12px',
+    backgroundColor: tokens.colorNeutralStroke2,
+    flexShrink: 0
   },
-  statusText: {
+  statusItem: {
     display: 'flex',
     alignItems: 'center',
     gap: '6px'
+  },
+  statusVersion: {
+    marginLeft: 'auto'
   }
 })
 
@@ -164,6 +182,18 @@ interface AppProps {
 export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Element {
   const styles = useStyles()
   const { currentPage, setCurrentPage, networkStatus } = useAppStore()
+  const [maximized, setMaximized] = useState(false)
+
+  // Track window maximize state to toggle the window chrome (border + rounded
+  // corners) — DWM already squares maximized windows, so we drop our CSS chrome
+  // to avoid a visible 1px gap / rounded notch at the screen edge.
+  useEffect(() => {
+    const off = window.electronAPI?.onMaximizeChange((max: boolean) => setMaximized(max))
+    window.electronAPI?.windowIsMaximized().then((max) => setMaximized(Boolean(max)))
+    return () => {
+      off?.()
+    }
+  }, [])
 
   const ActivePage = pageComponents[currentPage as PageId] ?? HomePage
 
@@ -184,8 +214,8 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
   }
 
   return (
-    <div className={styles.root}>
-      <TitleBar darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />
+    <div className={mergeClasses(styles.root, maximized && styles.rootMaximized)}>
+      <TitleBar darkMode={darkMode} maximized={maximized} onToggleDarkMode={onToggleDarkMode} />
       <div className={styles.body}>
         {/* Navigation View */}
         <nav className={styles.nav}>
@@ -194,7 +224,7 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
             return (
               <div
                 key={item.id}
-                className={`${styles.navItem} ${active ? styles.navItemActive : ''}`}
+                className={mergeClasses(styles.navItem, active && styles.navItemActive)}
                 onClick={() => setCurrentPage(item.id)}
                 role="button"
                 tabIndex={0}
@@ -217,12 +247,12 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
 
           {/* Status Bar */}
           <div className={styles.statusBar}>
-            <span className={styles.statusText}>
+            <span className={styles.statusItem}>
               {networkIcon()}
               {networkLabel()}
             </span>
-            <span>|</span>
-            <span>JMComic Desktop v1.0.0</span>
+            <span className={styles.statusSeparator} />
+            <span className={styles.statusVersion}>JMComic Desktop v1.0.0</span>
           </div>
         </div>
       </div>
