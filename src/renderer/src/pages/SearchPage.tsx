@@ -135,7 +135,12 @@ export default function SearchPage(): JSX.Element {
           placeholder="输入关键词或 6-7 位车号搜索..."
           value={query}
           onChange={(_e, d) => setQuery(d.value)}
-          onSearch={(_e, d) => handleSubmit(d.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              handleSubmit(query)
+            }
+          }}
           size="large"
           style={{ width: '100%' }}
         />
