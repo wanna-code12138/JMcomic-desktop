@@ -35,6 +35,13 @@ const useStyles = makeStyles({
   },
   author: { fontSize: '15px', color: tokens.colorNeutralForeground2 },
   tags: { display: 'flex', flexWrap: 'wrap', gap: '6px' },
+  tagBadge: {
+    cursor: 'pointer',
+    transition: 'background-color 0.1s, transform 0.1s',
+    ':hover': {
+      transform: 'translateY(-1px)'
+    }
+  },
   description: { fontSize: '14px', color: tokens.colorNeutralForeground2, lineHeight: 1.6 },
   actions: { display: 'flex', gap: '12px', marginTop: '8px' },
   chaptersSection: { padding: '24px 32px' },
@@ -71,6 +78,7 @@ export default function MangaDetailPage(): JSX.Element {
   const currentMangaId = useAppStore((s) => s.currentMangaId)
   const setCurrentPage = useAppStore((s) => s.setCurrentPage)
   const openReader = useAppStore((s) => s.openReader)
+  const triggerTagSearch = useAppStore((s) => s.triggerTagSearch)
   const [orderAsc, setOrderAsc] = React.useState(false)
   const [liked, setLiked] = React.useState(false)
   const [loading, setLoading] = React.useState(true)
@@ -155,7 +163,18 @@ export default function MangaDetailPage(): JSX.Element {
           {manga.tags.length > 0 && (
             <div className={styles.tags}>
               {manga.tags.map((tag) => (
-                <Badge key={tag} appearance="tint" size="small">{tag}</Badge>
+                <Badge
+                  key={tag}
+                  appearance="tint"
+                  size="small"
+                  className={styles.tagBadge}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => triggerTagSearch(tag)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') triggerTagSearch(tag) }}
+                >
+                  {tag}
+                </Badge>
               ))}
             </div>
           )}

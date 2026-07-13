@@ -8,6 +8,7 @@ import {
   extractMangaDetail,
   extractChapterPages,
   extractSearch,
+  extractCategory,
   destroyScraper
 } from './scraperWindow'
 
@@ -47,10 +48,27 @@ ipcMain.handle('content:homepage', async () => {
   }
 })
 
-ipcMain.handle('content:search', async (_event, query: string, page?: number) => {
+ipcMain.handle('content:search', async (_event, query: string, page?: number, mainTag?: 0 | 1, category?: string, order?: string, time?: string) => {
   try {
     await ensureReady()
-    const data = await extractSearch(query, page ?? 1)
+    const data = await extractSearch(query, page ?? 1, mainTag ?? 0, category, order ?? 'mr', time ?? 'a')
+    return { ok: true, data: data.results, totalPages: data.totalPages }
+  } catch (err) {
+    return { ok: false, error: String(err) }
+  }
+})
+
+ipcMain.handle('content:category', async (_event, params: Record<string, unknown>) => {
+  try {
+    await ensureReady()
+    const data = await extractCategory({
+      category: params.category as string | undefined,
+      subCategory: params.subCategory as string | undefined,
+      tag: params.tag as string | undefined,
+      order: params.order as string | undefined,
+      time: params.time as string | undefined,
+      page: params.page as number | undefined
+    })
     return { ok: true, data: data.results, totalPages: data.totalPages }
   } catch (err) {
     return { ok: false, error: String(err) }

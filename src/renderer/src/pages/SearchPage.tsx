@@ -116,9 +116,12 @@ function SearchSkeleton(): JSX.Element {
 export default function SearchPage(): JSX.Element {
   const styles = useStyles()
   const setCurrentMangaId = useAppStore((s) => s.setCurrentMangaId)
+  const pendingSearch = useAppStore((s) => s.pendingSearch)
+  const clearPendingSearch = useAppStore((s) => s.clearPendingSearch)
 
   const [query, setQuery] = React.useState('')
   const [submittedQuery, setSubmittedQuery] = React.useState('')
+  const [mainTag, setMainTag] = React.useState<0 | 1>(0)
   const [results, setResults] = React.useState<MangaCardData[]>([])
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState('')
@@ -145,11 +148,11 @@ export default function SearchPage(): JSX.Element {
     } catch { /* ignore */ }
   }, [refreshHistory])
 
-  const doSearch = React.useCallback(async (q: string, p: number): Promise<void> => {
+  const doSearch = React.useCallback(async (q: string, p: number, mt: 0 | 1): Promise<void> => {
     setLoading(true)
     setError('')
     try {
-      const result = await window.electronAPI?.contentSearch(q, p)
+      const result = await window.electronAPI?.contentSearch(q, p, mt)
       if (result?.ok) {
         setResults((result.data as MangaCardData[]) || [])
         setTotalPages((result.totalPages as number) || 1)
@@ -170,13 +173,15 @@ export default function SearchPage(): JSX.Element {
     }
   }, [])
 
-  const handleSubmit = React.useCallback((value: string): void => {
+  const handleSubmit = React.useCallback((value: string, mt: 0 | 1 = 0): void => {
     const q = value.trim()
     if (!q) return
-    void saveToHistory(q)
+    if (mt === 0) {
+      void saveToHistory(q)
+    }
 
-    // 严格 6-7 位纯数字 → 视为车牌号，直接跳转详情页
-    if (/^\d{6,7}$/.test(q)) {
+    // 严格 6-7 位纯数字且非标签搜索 → 视为车牌号，直接跳转详情页
+    if (mt === 0 && /^\d{6,7}$/.test(q)) {
       setJumpedCarPlate(true)
       setSubmittedQuery(q)
       setResults([])
@@ -186,15 +191,25 @@ export default function SearchPage(): JSX.Element {
 
     setJumpedCarPlate(false)
     setSubmittedQuery(q)
+    setMainTag(mt)
     setPage(1)
-    void doSearch(q, 1)
+    void doSearch(q, 1, mt)
   }, [doSearch, setCurrentMangaId, saveToHistory])
 
   const gotoPage = React.useCallback((p: number): void => {
     if (p < 1 || p > totalPages || p === page || loading) return
     setPage(p)
-    void doSearch(submittedQuery, p)
-  }, [doSearch, submittedQuery, page, totalPages, loading])
+    void doSearch(submittedQuery, p, mainTag)
+  }, [doSearch, submittedQuery, page, totalPages, loading, mainTag])
+
+  // 处理来自其他页面的标签搜索跳转（详情页点标签 → 搜索页）
+  React.useEffect(() => {
+    if (pendingSearch) {
+      setQuery(pendingSearch.query)
+      handleSubmit(pendingSearch.query, pendingSearch.mainTag)
+      clearPendingSearch()
+    }
+  }, [pendingSearch, handleSubmit, clearPendingSearch])
 
   const onChipClick = React.useCallback((q: string): void => {
     setQuery(q)

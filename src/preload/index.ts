@@ -83,7 +83,10 @@ const api = {
 
   // Content
   contentHomepage: () => ipcRenderer.invoke('content:homepage'),
-  contentSearch: (query: string, page?: number) => ipcRenderer.invoke('content:search', query, page),
+  contentSearch: (query: string, page?: number, mainTag?: 0 | 1, category?: string, order?: string, time?: string) =>
+    ipcRenderer.invoke('content:search', query, page, mainTag, category, order, time),
+  contentCategory: (params: Record<string, unknown>) =>
+    ipcRenderer.invoke('content:category', params),
   contentDetail: (mangaId: string) => ipcRenderer.invoke('content:detail', mangaId),
   contentPages: (chapterUrl: string) => ipcRenderer.invoke('content:pages', chapterUrl),
   contentLogin: (username: string, password: string) => ipcRenderer.invoke('content:login', username, password),

@@ -176,6 +176,32 @@ async function extractAllCards(): Promise<{ cards: MangaCard[]; debug: string }>
       debug.push('URL: ' + location.href);
       debug.push('Title: ' + document.title);
 
+      // ── 识别「隨便看看」随机推荐区域 ──────────────
+      // 当搜索/分类结果少时，JM 会在页面底部塞入一个随机推荐区域，
+      // 标题文字包含「隨便看看」「随便看」「換一換」等。
+      // 这些不是搜索结果，必须排除，否则会混入结果列表。
+      var randomSectionIds = [];
+      var allElements = document.querySelectorAll('div, section, .well, .card, .row, .panel');
+      allElements.forEach(function(el) {
+        var heading = el.querySelector('h1, h2, h3, h4, h5, .panel-heading, .title, legend');
+        if (!heading) return;
+        var text = heading.textContent || '';
+        if (/隨便看看|随便看看|随便看|隨便看|換一換|换一换|換一個|换一个/i.test(text)) {
+          // 记录该区域及其所有后代元素
+          randomSectionIds.push(el);
+        }
+      });
+
+      // 检查一个元素是否在隨便看看区域内
+      function isInRandomSection(el) {
+        for (var i = 0; i < randomSectionIds.length; i++) {
+          if (randomSectionIds[i].contains(el)) return true;
+        }
+        return false;
+      }
+
+      debug.push('Random sections excluded: ' + randomSectionIds.length);
+
       // ── Strategy 1: Container-based ──────────────────
       // Look for well-structured card containers
       var containers = document.querySelectorAll(
@@ -187,6 +213,9 @@ async function extractAllCards(): Promise<{ cards: MangaCard[]; debug: string }>
       debug.push('Containers found: ' + containers.length);
 
       containers.forEach(function(container) {
+        // 跳过隨便看看区域
+        if (isInRandomSection(container)) return;
+
         var a = container.querySelector('a[href*="/album/"]');
         if (!a) return;
         var href = a.getAttribute('href');
@@ -256,6 +285,9 @@ async function extractAllCards(): Promise<{ cards: MangaCard[]; debug: string }>
           if (!match) return;
           var id = match[1];
           if (seen[id]) return;
+
+          // 跳过隨便看看区域
+          if (isInRandomSection(a)) return;
 
           var title = a.getAttribute('title') || a.textContent.trim();
           title = title.replace(/JM\\d+/g, '').replace(/\\s+/g, ' ').trim();
@@ -607,12 +639,19 @@ export async function extractChapterPages(chapterUrl: string): Promise<{
   })
 }
 
-export async function extractSearch(query: string, page = 1): Promise<{
+export async function extractSearch(
+  query: string,
+  page = 1,
+  mainTag: 0 | 1 = 0,
+  category?: string,
+  order = 'mr',
+  time = 'a'
+): Promise<{
   results: MangaCard[]
   totalPages: number
   debug?: string
 }> {
-  const cacheKey = `search:${query}:${page}`
+  const cacheKey = `search:${query}:${page}:${mainTag}:${category ?? ''}:${order}:${time}`
   const cached = cacheGet<{ results: MangaCard[]; totalPages: number; debug?: string }>(cacheKey)
   if (cached) {
     console.log('[scraper] search cache hit:', query)
@@ -621,40 +660,131 @@ export async function extractSearch(query: string, page = 1): Promise<{
 
   return withScraperLock(async () => {
     const domain = getActiveDomain()
-    const params = new URLSearchParams({ search_query: query, page: String(page), main_tag: '0', o: 'mr', t: 'a' })
-    await navigateAndWait(`https://${domain}/search/photos?${params.toString()}`, 1500)
+    // 路径前缀：选了类型则 /search/photos/{category}，否则 /search/photos
+    const base = category && category !== '0'
+      ? `/search/photos/${category}`
+      : '/search/photos'
+    const params = new URLSearchParams({
+      search_query: query,
+      page: String(page),
+      main_tag: String(mainTag),
+      o: order,
+      t: time
+    })
+    await navigateAndWait(`https://${domain}${base}?${params.toString()}`, 1500)
 
     const { cards, debug } = await extractAllCards()
 
-    // 提取真实总页数：扫描分页控件里的 page= 参数，取最大值。
-    // 禁漫搜索页分页常见结构：
-    //   .pagination a[href*="page="]  /  .page-item a  /  顶/底部的 上一页/下一页/页码链接
-    const totalPages = await extract<number>(`
-      (function() {
-        var maxPage = 1;
-        var links = document.querySelectorAll('a[href*="page="], .pagination a, .page-item a, .page-link');
-        links.forEach(function(a) {
-          var href = a.getAttribute('href') || '';
-          // 优先匹配 page=NNN 形式（禁漫标准）
-          var m = href.match(/page=(\\d+)/);
-          if (!m) {
-            // 兜底：href 末尾的纯数字段（如 /search/photos?...;2 这种非标准写法）
-            m = href.match(/(\\d+)\\/?$/);
-          }
-          if (m) {
-            var n = parseInt(m[1], 10);
-            if (n > maxPage) maxPage = n;
-          }
-          // 部分主题用按钮文本而非 href 表示页码（"下一页", "2", "3"...）
-          var txt = (a.textContent || '').trim();
-          if (/^\\d+$/.test(txt)) {
-            var tn = parseInt(txt, 10);
-            if (tn > maxPage) maxPage = tn;
-          }
-        });
-        return maxPage;
-      })()
-    `).catch(() => 1)
+    const totalPages = await extractTotalPages()
+
+    const result = { results: cards, totalPages, debug }
+    if (cards.length > 0) cacheSet(cacheKey, result)
+    return result
+  })
+}
+
+// ─── 提取分页总页数（extractSearch / extractCategory 共用） ─────────
+async function extractTotalPages(): Promise<number> {
+  return extract<number>(`
+    (function() {
+      var maxPage = 1;
+      var links = document.querySelectorAll('a[href*="page="], .pagination a, .page-item a, .page-link');
+      links.forEach(function(a) {
+        var href = a.getAttribute('href') || '';
+        var m = href.match(/page=(\\d+)/);
+        if (!m) {
+          m = href.match(/(\\d+)\\/?$/);
+        }
+        if (m) {
+          var n = parseInt(m[1], 10);
+          if (n > maxPage) maxPage = n;
+        }
+        var txt = (a.textContent || '').trim();
+        if (/^\\d+$/.test(txt)) {
+          var tn = parseInt(txt, 10);
+          if (tn > maxPage) maxPage = tn;
+        }
+      });
+      return maxPage;
+    })()
+  `).catch(() => 1)
+}
+
+export interface CategoryParams {
+  category?: string      // '0' | 'doujin' | 'single' | 'short' | 'hanman' | 'meiman' | 'another'
+  subCategory?: string   // 'CG' | 'chinese' | 'japanese' | 'youth' | 'other' | '3d' | 'cosplay'
+  tag?: string           // 标签名（如「全彩」）；存在时走 /search/photos，main_tag=1
+  order?: string         // 'mr' | 'mv' | 'mp' | 'tf' | 'tr'
+  time?: string          // 'a' | 't' | 'w' | 'm'
+  page?: number
+}
+
+export async function extractCategory(params: CategoryParams): Promise<{
+  results: MangaCard[]
+  totalPages: number
+  debug?: string
+}> {
+  const category = params.category ?? '0'
+  const subCategory = params.subCategory
+  const tag = params.tag
+  let order = params.order ?? 'mr'
+  const time = params.time ?? 'a'
+  const page = params.page ?? 1
+
+  // JM 的 /albums 和 /search/photos 端点的时间筛选（t≠a）仅支持 o=mv（最多观看）。
+  // 搭配 o=mr（最新）会返回空结果。这里自动修正。
+  if (time !== 'a' && order === 'mr') {
+    order = 'mv'
+  }
+
+  const cacheKey = `category:${category}:${subCategory ?? ''}:${tag ?? ''}:${order}:${time}:${page}`
+  const cached = cacheGet<{ results: MangaCard[]; totalPages: number; debug?: string }>(cacheKey)
+  if (cached) {
+    console.log('[scraper] category cache hit:', cacheKey)
+    return cached
+  }
+
+  return withScraperLock(async () => {
+    const domain = getActiveDomain()
+    let url: string
+
+    if (tag && tag.length > 0) {
+      // 有标签 → 走 /search/photos 端点，main_tag=1
+      // 路径可叠加类型：/search/photos/{category}
+      const base = category && category !== '0'
+        ? `/search/photos/${category}`
+        : '/search/photos'
+      const qs = new URLSearchParams({
+        search_query: tag,
+        page: String(page),
+        main_tag: '0',
+        o: order,
+        t: time
+      })
+      url = `https://${domain}${base}?${qs.toString()}`
+    } else {
+      // 无标签 → 走 /albums 端点
+      // 路径：/albums、/albums/{category}、/albums/{category}/sub/{subCategory}
+      let path = '/albums'
+      if (category && category !== '0') {
+        path += `/${category}`
+        if (subCategory) {
+          path += `/sub/${subCategory}`
+        }
+      }
+      const qs = new URLSearchParams({
+        page: String(page),
+        o: order,
+        t: time
+      })
+      url = `https://${domain}${path}?${qs.toString()}`
+    }
+
+    console.log('[scraper] extractCategory navigating to:', url.slice(0, 120))
+    await navigateAndWait(url, 1500)
+
+    const { cards, debug } = await extractAllCards()
+    const totalPages = await extractTotalPages()
 
     const result = { results: cards, totalPages, debug }
     if (cards.length > 0) cacheSet(cacheKey, result)
