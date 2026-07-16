@@ -47,8 +47,7 @@ function initTables(d: SqlJsDatabase): void {
       manga_id TEXT NOT NULL,
       chapter_index INTEGER NOT NULL,
       page_index INTEGER NOT NULL,
-      read_at INTEGER DEFAULT (strftime('%s','now')),
-      FOREIGN KEY (manga_id) REFERENCES manga_cache(id)
+      read_at INTEGER DEFAULT (strftime('%s','now'))
     )
   `)
 
