@@ -14,33 +14,64 @@ const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
   tabRow: { marginBottom: '16px' },
   grid: {
-    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
     gap: '16px'
   },
   statusMsg: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center',
-    justifyContent: 'center', padding: '60px 0',
-    color: tokens.colorNeutralForeground3, gap: '12px'
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '60px 0',
+    color: 'var(--ac-text-3)',
+    gap: '12px'
   },
   historyItem: {
-    display: 'flex', gap: '12px', padding: '12px',
-    borderRadius: tokens.borderRadiusMedium, cursor: 'pointer',
-    ':hover': { backgroundColor: tokens.colorNeutralBackground2 },
-    alignItems: 'center'
+    display: 'flex',
+    gap: '12px',
+    padding: '12px',
+    borderRadius: 'var(--ac-radius-row)',
+    cursor: 'pointer',
+    transition: 'background-color 0.15s, box-shadow 0.15s',
+    alignItems: 'center',
+    ':hover': {
+      backgroundColor: 'var(--ac-glass-bg-hover)',
+      boxShadow: 'inset 0 0 0 1px var(--ac-glass-border)'
+    }
   },
   historyCover: {
-    width: '48px', minWidth: '48px', height: '64px', objectFit: 'cover',
-    borderRadius: tokens.borderRadiusSmall, backgroundColor: tokens.colorNeutralBackground3
+    width: '48px',
+    minWidth: '48px',
+    height: '64px',
+    objectFit: 'cover',
+    borderRadius: 'var(--ac-radius-badge)',
+    backgroundColor: 'var(--ac-base-bg)',
+    border: '1px solid var(--ac-glass-border)'
   },
   historyInfo: { flex: 1, minWidth: 0 },
   historyTitle: {
-    fontSize: '14px', fontWeight: 500, color: tokens.colorNeutralForeground1,
-    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+    fontSize: '14px',
+    fontWeight: 500,
+    color: 'var(--ac-text-1)',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
   },
-  historyMeta: { fontSize: '12px', color: tokens.colorNeutralForeground3, marginTop: '4px' },
-  historyActions: { display: 'flex', alignItems: 'center', gap: '4px' },
+  historyMeta: {
+    fontSize: '12px',
+    color: 'var(--ac-text-3)',
+    marginTop: '4px'
+  },
+  historyActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px'
+  },
   sectionHeader: {
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: '12px'
   }
 })
