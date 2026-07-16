@@ -6,9 +6,9 @@ let warmupDone = false
 let warmupPromise: Promise<void> | null = null
 
 /**
- * Opens a small visible window showing the JMComic homepage.
+ * Embeds a WebContentsView into the host window showing the JMComic homepage.
  * The user completes the Cloudflare challenge manually (click checkbox).
- * Once passed, the session gets valid cookies, and the window auto-closes.
+ * Once passed, the session gets valid cookies, and the view is removed.
  *
  * This is much more reliable than trying to programmatically bypass Cloudflare.
  */

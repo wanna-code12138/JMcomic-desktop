@@ -142,10 +142,10 @@ export default function HomePage(): JSX.Element {
           <Spinner size="large" />
           <Text size={500} weight="semibold">正在建立安全连接...</Text>
           <Text size={300} style={{ opacity: 0.7, maxWidth: '420px', textAlign: 'center' }}>
-            请在弹出的窗口中完成安全验证
+            请在上方完成安全验证
           </Text>
           <Text size={200} style={{ opacity: 0.5 }}>
-            验证成功后窗口会自动关闭并开始加载内容
+            验证成功后将自动开始加载内容
           </Text>
           <Button
             appearance="secondary"
@@ -153,7 +153,7 @@ export default function HomePage(): JSX.Element {
             style={{ marginTop: '12px' }}
             onClick={() => window.location.reload()}
           >
-            未弹出窗口？点此重试
+            验证卡住？点此重试
           </Button>
         </div>
       </div>
