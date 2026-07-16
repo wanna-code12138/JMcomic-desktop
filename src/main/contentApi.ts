@@ -1,8 +1,7 @@
 import { ipcMain, app } from 'electron'
-import { getNetworkStatus, getActiveDomain } from './networkProbe'
+import { getNetworkStatus } from './networkProbe'
 import { isSessionWarmedUp, warmupSession } from './sessionWarmup'
-import { JmWebAdapter } from './siteAdapter'
-import { invalidateCookieCache } from './httpClient'
+import { accountService } from './accountService'
 import {
   extractHomepage,
   extractMangaDetail,
@@ -26,7 +25,8 @@ async function ensureReady(): Promise<void> {
 //
 // The JmWebAdapter (net.request + cheerio) is NOT used for content
 // because it cannot render JavaScript and returns empty/partial DOM.
-// It is only kept for login (POST /login) and favorites.
+// Login/favorites/history are delegated to accountService, which owns
+// the single JmWebAdapter instance.
 // ─────────────────────────────────────────────────────────────────
 
 ipcMain.handle('content:homepage', async () => {
@@ -101,23 +101,29 @@ ipcMain.handle('content:pages', async (_event, chapterUrl: string) => {
   }
 })
 
-// Login still uses HTTP POST (JmWebAdapter)
+// Login delegated to accountService singleton (single adapter instance)
 ipcMain.handle('content:login', async (_event, username: string, password: string) => {
   try {
     await ensureReady()
-    const result = await new JmWebAdapter([getActiveDomain()]).login(username, password)
-    if (result.success) invalidateCookieCache()
-    return result
+    return await accountService.login(username, password)
   } catch (err) {
     return { success: false, error: String(err) }
   }
 })
 
-// Favorites still uses HTTP (scraper can't easily get per-user pages)
+// Favorites delegated to accountService (uses persisted session)
 ipcMain.handle('content:favorites', async (_event, page?: number) => {
   try {
-    await ensureReady()
-    const data = await new JmWebAdapter([getActiveDomain()]).getFavorites(page ?? 1)
+    const data = await accountService.getFavorites(page ?? 1)
+    return { ok: true, data }
+  } catch (err) {
+    return { ok: false, error: String(err) }
+  }
+})
+
+ipcMain.handle('content:history', async (_event, page?: number) => {
+  try {
+    const data = await accountService.getHistory(page ?? 1)
     return { ok: true, data }
   } catch (err) {
     return { ok: false, error: String(err) }

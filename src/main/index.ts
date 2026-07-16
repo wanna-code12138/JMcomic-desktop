@@ -75,6 +75,10 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  // Restore account session from auth table (cookies / username / persist mode)
+  import('./accountService').then(({ accountService }) => {
+    accountService.loadOnStartup().catch((e) => console.error('[account] loadOnStartup failed:', e))
+  })
   registerIpcHandlers()
   registerImageProtocol()
   startPeriodicProbe()
