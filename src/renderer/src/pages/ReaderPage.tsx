@@ -459,25 +459,18 @@ export default function ReaderPage(): JSX.Element {
     }
   }, [readerState?.mangaId, currentPage])
 
-  // 续读时自动滚动到上次阅读位置（滚动模式，等待图像加载直到 scrollHeight 可用）
+  // 续读时自动滚动到上次阅读位置（滚动模式，用数学估算不依赖图片加载）
   React.useEffect(() => {
     if (viewMode !== 'scroll') return
     const resume = readerState?.resumePageIndex
     if (!resume || resume <= 0 || pages.length <= 1) return
     const el = viewerRef.current
     if (!el) return
-    const targetRatio = Math.min(resume / (pages.length - 1), 1)
-    let attempts = 0
-    const tryScroll = (): void => {
-      if (!el || attempts > 15) return
-      if (el.scrollHeight > el.clientHeight) {
-        el.scrollTo({ top: targetRatio * (el.scrollHeight - el.clientHeight) })
-        return
-      }
-      attempts++
-      requestAnimationFrame(() => tryScroll())
-    }
-    requestAnimationFrame(() => tryScroll())
+    // 漫画图片典型宽高比约 2:3，用容器宽度推算每页高度
+    const pageH = el.clientWidth / (2 / 3) // width * 1.5
+    const gap = 4
+    const scrollTop = resume * (pageH + gap)
+    el.scrollTo({ top: scrollTop })
   }, [viewMode, pages.length, readerState?.resumePageIndex])
 
   useEffect(() => {
