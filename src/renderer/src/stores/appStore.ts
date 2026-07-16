@@ -18,6 +18,7 @@ interface PendingSearch {
 interface AppState {
   darkMode: boolean
   currentPage: string
+  previousPage: string
   currentMangaId: string | null
   readerState: ReaderState | null
   networkStatus: 'online' | 'degraded' | 'offline'
@@ -36,6 +37,7 @@ interface AppState {
 export const useAppStore = create<AppState>((set) => ({
   darkMode: false,
   currentPage: 'home',
+  previousPage: 'home',
   currentMangaId: null,
   readerState: null,
   networkStatus: 'online',
@@ -43,7 +45,11 @@ export const useAppStore = create<AppState>((set) => ({
   setDarkMode: (dark) => set({ darkMode: dark }),
   toggleDarkMode: () => set((s) => ({ darkMode: !s.darkMode })),
   setCurrentPage: (page) => set({ currentPage: page, currentMangaId: page === 'detail' ? undefined : null }),
-  setCurrentMangaId: (id) => set({ currentMangaId: id, currentPage: id ? 'detail' : 'home' }),
+  setCurrentMangaId: (id) => set((s) => ({
+    currentMangaId: id,
+    currentPage: id ? 'detail' : s.currentPage,
+    previousPage: id && s.currentPage !== 'detail' && s.currentPage !== 'reader' ? s.currentPage : s.previousPage
+  })),
   openReader: (state) => set({ readerState: state, currentPage: 'reader' }),
   closeReader: () => set({ readerState: null, currentPage: 'detail' }),
   setNetworkStatus: (status) => set({ networkStatus: status }),

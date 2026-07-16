@@ -113,11 +113,6 @@ export default function FavoritesPage(): JSX.Element {
     loadLocalHistory()
   }
 
-  // ── 删除本地收藏 ──
-  const handleRemoveFav = async (mangaId: string): Promise<void> => {
-    await window.electronAPI?.favoritesRemove(mangaId)
-  }
-
   return (
     <div className={styles.root}>
       {/* Tab */}
@@ -138,14 +133,7 @@ export default function FavoritesPage(): JSX.Element {
         ) : (
           <div className={styles.grid}>
             {localFav.map((f) => (
-              <div key={f.manga_id} style={{ position: 'relative' }}>
-                <MangaCard manga={{ id: f.manga_id, title: f.title, coverUrl: f.cover_url }} />
-                <Tooltip content="取消收藏" relationship="label">
-                  <Button size="small" appearance="subtle" icon={<Dismiss20Regular />}
-                    style={{ position: 'absolute', top: '4px', right: '4px' }}
-                    onClick={(e) => { e.stopPropagation(); handleRemoveFav(f.manga_id) }} />
-                </Tooltip>
-              </div>
+              <MangaCard key={f.manga_id} manga={{ id: f.manga_id, title: f.title, coverUrl: f.cover_url }} />
             ))}
           </div>
         )

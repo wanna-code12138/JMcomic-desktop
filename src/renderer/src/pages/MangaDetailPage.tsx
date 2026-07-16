@@ -77,6 +77,7 @@ export default function MangaDetailPage(): JSX.Element {
   const styles = useStyles()
   const currentMangaId = useAppStore((s) => s.currentMangaId)
   const setCurrentPage = useAppStore((s) => s.setCurrentPage)
+  const previousPage = useAppStore((s) => s.previousPage)
   const openReader = useAppStore((s) => s.openReader)
   const triggerTagSearch = useAppStore((s) => s.triggerTagSearch)
   const [orderAsc, setOrderAsc] = React.useState(false)
@@ -127,7 +128,7 @@ export default function MangaDetailPage(): JSX.Element {
     return (
       <div className={styles.root}>
         <div className={styles.backBtn}>
-          <Button appearance="subtle" icon={<ArrowLeft20Regular />} onClick={() => setCurrentPage('home')}>返回</Button>
+          <Button appearance="subtle" icon={<ArrowLeft20Regular />} onClick={() => setCurrentPage(previousPage || 'home')}>返回</Button>
         </div>
         <div className={styles.center}>
           <Spinner size="large" />
@@ -141,7 +142,7 @@ export default function MangaDetailPage(): JSX.Element {
     return (
       <div className={styles.root}>
         <div className={styles.backBtn}>
-          <Button appearance="subtle" icon={<ArrowLeft20Regular />} onClick={() => setCurrentPage('home')}>返回</Button>
+          <Button appearance="subtle" icon={<ArrowLeft20Regular />} onClick={() => setCurrentPage(previousPage || 'home')}>返回</Button>
         </div>
         <div className={styles.center}>
           <Text size={500} weight="semibold">⚠️ 加载失败</Text>
@@ -156,7 +157,7 @@ export default function MangaDetailPage(): JSX.Element {
   return (
     <div className={styles.root}>
       <div className={styles.backBtn}>
-        <Button appearance="subtle" icon={<ArrowLeft20Regular />} onClick={() => setCurrentPage('home')}>返回首页</Button>
+        <Button appearance="subtle" icon={<ArrowLeft20Regular />} onClick={() => setCurrentPage(previousPage || 'home')}>返回</Button>
       </div>
 
       <div className={styles.hero}>
