@@ -91,6 +91,26 @@ function initTables(d: SqlJsDatabase): void {
       searched_at INTEGER DEFAULT (strftime('%s','now'))
     )
   `)
+
+  // ── reading_history 幂等迁移：补展示列 + 唯一索引 ──
+  // sql.js 的 ALTER TABLE ADD COLUMN 不支持 IF NOT EXISTS，需先查列是否存在
+  const historyCols = d.exec('PRAGMA table_info(reading_history)')
+  const existingCols = new Set(
+    historyCols.length > 0 ? historyCols[0].values.map((r) => String(r[1])) : []
+  )
+  const newCols: Array<[string, string]> = [
+    ['manga_title', 'TEXT'],
+    ['chapter_title', 'TEXT'],
+    ['chapter_url', 'TEXT'],
+    ['cover_url', 'TEXT'],
+    ['total_pages', 'INTEGER DEFAULT 0']
+  ]
+  for (const [col, type] of newCols) {
+    if (!existingCols.has(col)) {
+      d.run(`ALTER TABLE reading_history ADD COLUMN ${col} ${type}`)
+    }
+  }
+  d.run('CREATE UNIQUE INDEX IF NOT EXISTS idx_history_manga ON reading_history(manga_id)')
 }
 
 export function saveDatabase(): void {
