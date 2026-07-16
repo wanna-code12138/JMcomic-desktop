@@ -32,42 +32,46 @@ function invalidateFavCache(): void {
 const useStyles = makeStyles({
   card: {
     cursor: 'pointer',
-    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+    transition: 'transform 0.18s ease, box-shadow 0.18s ease',
     ':hover': {
-      transform: 'translateY(-2px)',
-      boxShadow: tokens.shadow8
+      transform: 'translateY(-3px)',
+      boxShadow: '0 8px 20px var(--ac-glass-shadow)'
     }
   },
   imageWrap: {
     position: 'relative',
-    borderRadius: tokens.borderRadiusMedium,
-    overflow: 'hidden'
+    borderRadius: 'var(--ac-radius-card)',
+    overflow: 'hidden',
+    border: '1px solid var(--ac-glass-border)',
+    boxShadow: 'inset 0 1px 0 var(--ac-glass-inset-hi), var(--ac-glass-shadow)'
   },
   cardImage: {
     display: 'block',
     width: '100%',
     aspectRatio: '3/4',
     objectFit: 'cover',
-    backgroundColor: tokens.colorNeutralBackground3
+    backgroundColor: 'var(--ac-base-bg)'
   },
   favBtn: {
     position: 'absolute',
-    top: '6px',
-    right: '6px',
-    width: '28px',
-    height: '28px',
-    borderRadius: '6px',
+    top: '8px',
+    right: '8px',
+    width: '30px',
+    height: '30px',
+    borderRadius: 'var(--ac-radius-button)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    color: '#ffffff',
+    backgroundColor: 'var(--ac-glass-bg)',
+    backdropFilter: 'blur(var(--ac-blur-card))',
+    WebkitBackdropFilter: 'blur(var(--ac-blur-card))',
+    color: 'var(--ac-danger)',
     cursor: 'pointer',
     opacity: 0,
-    transition: 'opacity 0.15s ease, background-color 0.15s ease',
+    transition: 'opacity 0.18s ease, background-color 0.18s ease',
     zIndex: 2,
     ':hover': {
-      backgroundColor: 'rgba(0,0,0,0.65)'
+      backgroundColor: 'var(--ac-glass-bg-hover)'
     }
   },
   favBtnVisible: {
@@ -78,16 +82,16 @@ const useStyles = makeStyles({
     fontWeight: 500,
     lineHeight: '20px',
     maxHeight: '40px',
-    marginTop: '8px',
+    marginTop: '9px',
     display: '-webkit-box',
     WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical',
     overflow: 'hidden',
-    color: tokens.colorNeutralForeground1
+    color: 'var(--ac-text-1)'
   },
   cardMeta: {
     fontSize: '12px',
-    color: tokens.colorNeutralForeground3,
+    color: 'var(--ac-text-3)',
     marginTop: '4px'
   }
 })
