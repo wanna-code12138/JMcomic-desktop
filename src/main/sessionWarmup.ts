@@ -12,7 +12,7 @@ let warmupPromise: Promise<void> | null = null
  *
  * This is much more reliable than trying to programmatically bypass Cloudflare.
  */
-export async function warmupSession(): Promise<void> {
+export async function warmupSession(hostWindow: BrowserWindow): Promise<void> {
   if (warmupDone) return
   if (warmupPromise) return warmupPromise
 

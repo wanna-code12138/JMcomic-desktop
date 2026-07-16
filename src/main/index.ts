@@ -79,15 +79,18 @@ app.whenReady().then(() => {
   registerImageProtocol()
   startPeriodicProbe()
 
-  // Warm up session in background — bypass Cloudflare
-  warmupSession().then(() => {
-    // Send status update to renderer
-    BrowserWindow.getAllWindows().forEach((w) => {
-      w.webContents.send('app:warmupDone')
-    })
-  })
-
   createWindow()
+
+  // Warm up session in background — bypass Cloudflare
+  // 主窗口必须先创建，warmup 会把验证视图内嵌到主窗口内容区
+  if (mainWindow) {
+    warmupSession(mainWindow).then(() => {
+      // Send status update to renderer
+      BrowserWindow.getAllWindows().forEach((w) => {
+        w.webContents.send('app:warmupDone')
+      })
+    })
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
