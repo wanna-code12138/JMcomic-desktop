@@ -430,6 +430,18 @@ export default function ReaderPage(): JSX.Element {
     if (pages.length > 0) flushHistory(currentPage)
   }, [currentPage, pages.length, flushHistory])
 
+  // 卸载时清除防抖定时器并立即 flush 最终页码（覆盖通过导航栏离开阅读器的场景）
+  useEffect(() => {
+    return () => {
+      if (historyTimer.current) {
+        clearTimeout(historyTimer.current)
+        if (readerState?.mangaId) {
+          window.electronAPI?.historyUpsertPage(readerState.mangaId, currentPage)
+        }
+      }
+    }
+  }, [readerState?.mangaId, currentPage])
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent): void => {
       if (viewMode !== 'single') return

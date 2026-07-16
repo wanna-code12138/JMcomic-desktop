@@ -92,8 +92,28 @@ function initTables(d: SqlJsDatabase): void {
     )
   `)
 
-  // ── reading_history 幂等迁移：补展示列 + 唯一索引 ──
-  // sql.js 的 ALTER TABLE ADD COLUMN 不支持 IF NOT EXISTS，需先查列是否存在
+  // ── reading_history 迁移：移除对 manga_cache 的外键 + 补展示列 + 唯一索引 ──
+  // 原始 schema 含 FOREIGN KEY (manga_id) REFERENCES manga_cache(id)，
+  // 但 manga_cache 从未被写入，导致 PRAGMA foreign_keys=ON 时所有 INSERT 失败。
+  // 该表此前从未成功写入过任何行（FK 从首版本就存在），故重建是安全的。
+  const fkList = d.exec('PRAGMA foreign_key_list(reading_history)')
+  if (fkList.length > 0) {
+    // 表有 FK → 重建为无 FK 版本（sql.js 的 ALTER TABLE 不支持 DROP CONSTRAINT）
+    d.run('ALTER TABLE reading_history RENAME TO reading_history_old')
+    d.run(`
+      CREATE TABLE reading_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        manga_id TEXT NOT NULL,
+        chapter_index INTEGER NOT NULL,
+        page_index INTEGER NOT NULL,
+        read_at INTEGER DEFAULT (strftime('%s','now'))
+      )
+    `)
+    d.run('INSERT INTO reading_history (id, manga_id, chapter_index, page_index, read_at) SELECT id, manga_id, chapter_index, page_index, read_at FROM reading_history_old')
+    d.run('DROP TABLE reading_history_old')
+  }
+
+  // 补展示列（sql.js ALTER TABLE ADD COLUMN 不支持 IF NOT EXISTS，先查列是否存在）
   const historyCols = d.exec('PRAGMA table_info(reading_history)')
   const existingCols = new Set(
     historyCols.length > 0 ? historyCols[0].values.map((r) => String(r[1])) : []
