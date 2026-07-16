@@ -296,6 +296,45 @@ export class JmWebAdapter implements SiteAdapter {
     return { results, totalPages }
   }
 
+  async getHistory(page = 1): Promise<{ results: MangaListItem[]; totalPages: number }> {
+    if (!this._username) throw new Error('未登录')
+    const params = new URLSearchParams({ page: String(page), o: 'mr' })
+    const html = await this.fetchHtml(`/user/${this._username}/history?${params.toString()}`)
+
+    // 历史页结构：与收藏页类似，每条包含 album 链接 + 标题 + 上次阅读章节
+    const contentRe = /<a href="\/album\/(\d+)\/[^"]*?"[^>]*?title="([^"]*?)"[\s\S]*?(?:继续阅读|上次阅读|第[\d\s]*[话話])[^<]*?([^<]*?)</g
+    const totalRe = / : (\d+)[^/]*\/\D*(\d+)/
+
+    const results: MangaListItem[] = []
+    let m: RegExpExecArray | null
+    while ((m = contentRe.exec(html)) !== null) {
+      results.push({
+        id: m[1],
+        title: m[2].trim(),
+        coverUrl: this.buildCoverUrl(m[1]),
+        latestChapter: m[3]?.trim() || undefined
+      })
+    }
+
+    // Fallback: 若专用 regex 无结果，退化为与收藏相同的 album 链接扫描
+    if (results.length === 0) {
+      const albumRe = /<a href="\/album\/(\d+)\/[^"]*?"[^>]*?title="([^"]*?)"/g
+      const seen = new Set<string>()
+      while ((m = albumRe.exec(html)) !== null) {
+        if (seen.has(m[1])) continue
+        seen.add(m[1])
+        results.push({ id: m[1], title: m[2].trim(), coverUrl: this.buildCoverUrl(m[1]) })
+      }
+    }
+
+    const totalMatch = html.match(totalRe)
+    const total = totalMatch ? parseInt(totalMatch[2]) : results.length
+    const perPage = 20
+    const totalPages = Math.ceil(total / perPage)
+
+    return { results, totalPages }
+  }
+
   // ── Private helpers ────────────────────────────────────
 
   private parseSearchPage(html: string, page: number): {
