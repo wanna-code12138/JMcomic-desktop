@@ -1,6 +1,6 @@
 import React from 'react'
 import {
-  makeStyles, tokens, Text, Button, SearchBox,
+  makeStyles, Text, Button, SearchBox,
   Skeleton, SkeletonItem
 } from '@fluentui/react-components'
 import {

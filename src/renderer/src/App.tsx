@@ -22,7 +22,7 @@ import {
   Wifi3Regular,
   WifiOff20Regular
 } from '@fluentui/react-icons'
-import { auroraBody, glassPanel, clayRaised } from './theme/clayStyles'
+import { auroraBody, clayRaised } from './theme/clayStyles'
 import { useAppStore } from './stores/appStore'
 import {
   HomePage, CategoriesPage, SearchPage,

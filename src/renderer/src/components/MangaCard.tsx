@@ -1,5 +1,5 @@
 import React from 'react'
-import { makeStyles, tokens, mergeClasses } from '@fluentui/react-components'
+import { makeStyles, mergeClasses } from '@fluentui/react-components'
 import { Heart20Regular, Heart20Filled } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
 import { toJmImg } from '../utils/image'

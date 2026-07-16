@@ -1,5 +1,5 @@
 import React from 'react'
-import { makeStyles, tokens, Text, DataGrid, DataGridHeader, DataGridRow, DataGridCell, DataGridBody, TableColumnDefinition, createTableColumn } from '@fluentui/react-components'
+import { makeStyles, Text, DataGrid, DataGridHeader, DataGridRow, DataGridCell, DataGridBody, TableColumnDefinition, createTableColumn } from '@fluentui/react-components'
 
 interface DownloadItem {
   id: number

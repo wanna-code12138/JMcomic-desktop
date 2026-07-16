@@ -1,6 +1,6 @@
 import React from 'react'
 import {
-  makeStyles, tokens, Text, Button, TabList, Tab,
+  makeStyles, Text, Button, TabList, Tab,
   Tooltip
 } from '@fluentui/react-components'
 import {
@@ -180,7 +180,7 @@ export default function FavoritesPage(): JSX.Element {
         ) : (
           <>
             <div className={styles.sectionHeader}>
-              <Text size={300} style={{ color: tokens.colorNeutralForeground3 }}>
+              <Text size={300} style={{ color: 'var(--ac-text-3)' }}>
                 {localHistory.length} 条记录
               </Text>
               <Button size="small" appearance="subtle" icon={<Delete20Regular />}
