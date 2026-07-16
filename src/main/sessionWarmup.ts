@@ -33,16 +33,18 @@ export async function warmupSession(hostWindow: BrowserWindow): Promise<void> {
     let resolved = false
     let viewDestroyed = false
 
-    // ── bounds：视图占满标题栏（32px）以下区域 ──────────────
+    // ── bounds：高度顶满标题栏（32px）以下区域，宽度按 9:16 竖屏比例居中 ──
     const TITLE_BAR_HEIGHT = 32
     const updateBounds = (): void => {
       if (hostWindow.isDestroyed() || viewDestroyed) return
       const [w, h] = hostWindow.getContentSize()
+      const height = Math.max(0, h - TITLE_BAR_HEIGHT)
+      const viewWidth = Math.min(w, Math.round(height * 9 / 16))
       view.setBounds({
-        x: 0,
+        x: Math.round((w - viewWidth) / 2),
         y: TITLE_BAR_HEIGHT,
-        width: w,
-        height: Math.max(0, h - TITLE_BAR_HEIGHT)
+        width: viewWidth,
+        height
       })
     }
 
