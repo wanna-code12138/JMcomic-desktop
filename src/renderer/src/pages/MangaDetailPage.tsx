@@ -1,6 +1,6 @@
 import React from 'react'
 import {
-  makeStyles, tokens, Text, Button, Badge, Skeleton, SkeletonItem,
+  makeStyles, Text, Button, Badge, Skeleton, SkeletonItem,
   Tooltip, Divider, Spinner
 } from '@fluentui/react-components'
 import {
@@ -214,7 +214,7 @@ export default function MangaDetailPage(): JSX.Element {
           {manga.coverUrl ? (
             <img className={styles.cover} src={toJmImg(manga.coverUrl)} alt={manga.title} />
           ) : (
-            <div className={styles.cover} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: tokens.colorNeutralForeground3 }}>
+            <div className={styles.cover} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ac-text-3)' }}>
               <BookOpen20Regular style={{ width: '48px', height: '48px' }} />
             </div>
           )}
@@ -276,7 +276,7 @@ export default function MangaDetailPage(): JSX.Element {
             >下载</Button>
             <Tooltip content={liked ? '取消收藏' : '收藏'} relationship="label">
               <Button size="large"
-                icon={liked ? <Heart20Filled style={{ color: tokens.colorStatusDangerForeground1 }} /> : <Heart20Regular />}
+                icon={liked ? <Heart20Filled style={{ color: 'var(--ac-danger)' }} /> : <Heart20Regular />}
                 onClick={async () => {
                   if (!window.electronAPI) return
                   const wasLiked = liked

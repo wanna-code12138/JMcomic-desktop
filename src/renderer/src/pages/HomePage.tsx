@@ -1,7 +1,6 @@
 import React from 'react'
 import {
   makeStyles,
-  tokens,
   TabList,
   Tab,
   Text,
@@ -201,9 +200,9 @@ export default function HomePage(): JSX.Element {
           <Text size={500} weight="semibold">⚠️ 内容加载失败</Text>
           <pre style={{
             maxWidth: '600px', textAlign: 'left', fontSize: '12px',
-            color: tokens.colorNeutralForeground3, whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word', background: tokens.colorNeutralBackground1,
-            padding: '12px', borderRadius: tokens.borderRadiusMedium,
+            color: 'var(--ac-text-3)', whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word', background: 'var(--ac-glass-bg)',
+            padding: '12px', borderRadius: 'var(--ac-radius-row)',
             maxHeight: '300px', overflow: 'auto'
           }}>{error}</pre>
           <Text size={200} style={{ opacity: 0.5 }}>
