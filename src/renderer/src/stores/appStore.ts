@@ -15,7 +15,10 @@ interface PendingSearch {
   mainTag: 0 | 1
 }
 
+type ThemeMode = 'system' | 'light' | 'dark'
+
 interface AppState {
+  themeMode: ThemeMode
   darkMode: boolean
   currentPage: string
   previousPage: string
@@ -25,6 +28,7 @@ interface AppState {
   readerState: ReaderState | null
   networkStatus: 'online' | 'degraded' | 'offline'
   pendingSearch: PendingSearch | null
+  setThemeMode: (mode: ThemeMode) => void
   setDarkMode: (dark: boolean) => void
   toggleDarkMode: () => void
   setCurrentPage: (page: string) => void
@@ -37,8 +41,13 @@ interface AppState {
   clearPendingSearch: () => void
 }
 
-export const useAppStore = create<AppState>((set) => ({
-  darkMode: false,
+const systemDark =
+  typeof window !== 'undefined' &&
+  window.matchMedia('(prefers-color-scheme: dark)').matches
+
+export const useAppStore = create<AppState>((set, get) => ({
+  themeMode: 'system',
+  darkMode: systemDark,
   currentPage: 'home',
   previousPage: 'home',
   readerSourcePage: 'home',
@@ -47,28 +56,57 @@ export const useAppStore = create<AppState>((set) => ({
   readerState: null,
   networkStatus: 'online',
   pendingSearch: null,
-  setDarkMode: (dark) => set({ darkMode: dark }),
-  toggleDarkMode: () => set((s) => ({ darkMode: !s.darkMode })),
-  setCurrentPage: (page) => set({ currentPage: page, currentMangaId: page === 'detail' ? undefined : null }),
-  setCurrentMangaId: (id) => set((s) => ({
-    currentMangaId: id,
-    currentPage: id ? 'detail' : s.currentPage,
-    previousPage: id && s.currentPage !== 'detail' && s.currentPage !== 'reader' ? s.currentPage : s.previousPage
-  })),
-  openReader: (state) => set((s) => ({
-    readerState: state,
-    currentPage: 'reader',
-    readerSourcePage: s.currentPage
-  })),
-  closeReader: () => set((s) => ({
-    readerState: null,
-    currentPage: s.readerSourcePage
-  })),
+  setThemeMode: (mode) => {
+    const dark =
+      mode === 'system'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+        : mode === 'dark'
+    set({ themeMode: mode, darkMode: dark })
+  },
+  setDarkMode: (dark) => set({ darkMode: dark, themeMode: dark ? 'dark' : 'light' }),
+  toggleDarkMode: () => {
+    const next = !get().darkMode
+    set({ darkMode: next, themeMode: next ? 'dark' : 'light' })
+  },
+  setCurrentPage: (page) =>
+    set({ currentPage: page, currentMangaId: page === 'detail' ? undefined : null }),
+  setCurrentMangaId: (id) =>
+    set((s) => ({
+      currentMangaId: id,
+      currentPage: id ? 'detail' : s.currentPage,
+      previousPage:
+        id && s.currentPage !== 'detail' && s.currentPage !== 'reader'
+          ? s.currentPage
+          : s.previousPage
+    })),
+  openReader: (state) =>
+    set((s) => ({
+      readerState: state,
+      currentPage: 'reader',
+      readerSourcePage: s.currentPage
+    })),
+  closeReader: () =>
+    set((s) => ({
+      readerState: null,
+      currentPage: s.readerSourcePage
+    })),
   setFavoritesTab: (tab) => set({ favoritesTab: tab }),
   setNetworkStatus: (status) => set({ networkStatus: status }),
-  triggerTagSearch: (tag) => set({
-    pendingSearch: { query: tag, mainTag: 0 },
-    currentPage: 'search'
-  }),
+  triggerTagSearch: (tag) =>
+    set({
+      pendingSearch: { query: tag, mainTag: 0 },
+      currentPage: 'search'
+    }),
   clearPendingSearch: () => set({ pendingSearch: null })
 }))
+
+export function initSystemThemeListener(): () => void {
+  const mq = window.matchMedia('(prefers-color-scheme: dark)')
+  const handler = (e: MediaQueryListEvent): void => {
+    if (useAppStore.getState().themeMode === 'system') {
+      useAppStore.setState({ darkMode: e.matches })
+    }
+  }
+  mq.addEventListener('change', handler)
+  return () => mq.removeEventListener('change', handler)
+}
