@@ -6,6 +6,10 @@ import {
 } from '@fluentui/react-components'
 import { ArrowSync20Regular } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
+import { useAccountStore } from '../stores/accountStore'
+import {
+  Dropdown, Option, type OptionOnSelectData, type SelectionEvents
+} from '@fluentui/react-components'
 
 const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto', maxWidth: '720px' },
@@ -18,9 +22,60 @@ const useStyles = makeStyles({
 export default function SettingsPage(): JSX.Element {
   const styles = useStyles()
   const { darkMode, toggleDarkMode, networkStatus } = useAppStore()
+  const { loggedIn, username, persistMode, logout, setPersistMode } = useAccountStore()
+  const setCurrentPage = useAppStore((s) => s.setCurrentPage)
+
+  const onPersistModeChange = (_e: SelectionEvents, d: OptionOnSelectData): void => {
+    setPersistMode(d.optionValue as 'cookie' | 'credential')
+  }
 
   return (
     <div className={styles.root}>
+      {/* Account */}
+      <div className={styles.section}>
+        <Text size={500} weight="semibold" className={styles.sectionTitle}>账户</Text>
+        <Card className={styles.card}>
+          {loggedIn ? (
+            <div className={styles.row}>
+              <div>
+                <Text weight="semibold">已登录: {username}</Text>
+                <div><Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>禁漫天堂账户</Text></div>
+              </div>
+              <Button size="small" appearance="secondary" onClick={logout}>退出登录</Button>
+            </div>
+          ) : (
+            <div className={styles.row}>
+              <div>
+                <Text weight="semibold">未登录</Text>
+                <div><Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>登录后可同步在线收藏和历史</Text></div>
+              </div>
+              <Button size="small" appearance="primary" onClick={() => setCurrentPage('favorites')}>去登录</Button>
+            </div>
+          )}
+        </Card>
+        <Card className={styles.card}>
+          <div className={styles.row}>
+            <div>
+              <Text weight="semibold">登录持久化模式</Text>
+              <div><Text size={200} style={{ color: tokens.colorNeutralForeground3 }}>
+                {persistMode === 'cookie'
+                  ? '仅 Cookie：重启后验证 Cookie 有效性，失效需重新登录'
+                  : '自动重登：加密保存密码，重启后自动重新登录'}
+              </Text></div>
+            </div>
+            <Dropdown
+              value={persistMode === 'cookie' ? '仅 Cookie' : '自动重登'}
+              onOptionSelect={onPersistModeChange}
+              size="small"
+              style={{ width: '160px' }}
+            >
+              <Option value="cookie">仅 Cookie</Option>
+              <Option value="credential">自动重登</Option>
+            </Dropdown>
+          </div>
+        </Card>
+      </div>
+
       {/* Appearance */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>外观</Text>
