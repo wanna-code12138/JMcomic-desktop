@@ -60,8 +60,10 @@ export default function FavoritesPage(): JSX.Element {
   const styles = useStyles()
   const openReader = useAppStore((s) => s.openReader)
   const setCurrentMangaId = useAppStore((s) => s.setCurrentMangaId)
+  const savedTab = useAppStore((s) => s.favoritesTab)
+  const setFavoritesTab = useAppStore((s) => s.setFavoritesTab)
 
-  const [mainTab, setMainTab] = React.useState<MainTab>('local-fav')
+  const [mainTab, setMainTab] = React.useState<MainTab>((savedTab as MainTab) || 'local-fav')
 
   // 本地收藏
   const [localFav, setLocalFav] = React.useState<LocalFavorite[]>([])
@@ -118,7 +120,7 @@ export default function FavoritesPage(): JSX.Element {
     <div className={styles.root}>
       {/* Tab */}
       <div className={styles.tabRow}>
-        <TabList selectedValue={mainTab} onTabSelect={(_e, d) => setMainTab(d.value as MainTab)}>
+        <TabList selectedValue={mainTab} onTabSelect={(_e, d) => { const tab = d.value as MainTab; setMainTab(tab); setFavoritesTab(tab) }}>
           <Tab value="local-fav">本地收藏</Tab>
           <Tab value="history">历史记录</Tab>
         </TabList>

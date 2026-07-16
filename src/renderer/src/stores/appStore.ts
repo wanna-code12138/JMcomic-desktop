@@ -20,6 +20,7 @@ interface AppState {
   currentPage: string
   previousPage: string
   readerSourcePage: string
+  favoritesTab: string
   currentMangaId: string | null
   readerState: ReaderState | null
   networkStatus: 'online' | 'degraded' | 'offline'
@@ -30,6 +31,7 @@ interface AppState {
   setCurrentMangaId: (id: string | null) => void
   openReader: (state: ReaderState) => void
   closeReader: () => void
+  setFavoritesTab: (tab: string) => void
   setNetworkStatus: (status: 'online' | 'degraded' | 'offline') => void
   triggerTagSearch: (tag: string) => void
   clearPendingSearch: () => void
@@ -40,6 +42,7 @@ export const useAppStore = create<AppState>((set) => ({
   currentPage: 'home',
   previousPage: 'home',
   readerSourcePage: 'home',
+  favoritesTab: 'local-fav',
   currentMangaId: null,
   readerState: null,
   networkStatus: 'online',
@@ -61,6 +64,7 @@ export const useAppStore = create<AppState>((set) => ({
     readerState: null,
     currentPage: s.readerSourcePage
   })),
+  setFavoritesTab: (tab) => set({ favoritesTab: tab }),
   setNetworkStatus: (status) => set({ networkStatus: status }),
   triggerTagSearch: (tag) => set({
     pendingSearch: { query: tag, mainTag: 0 },
