@@ -15,7 +15,9 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-    backgroundColor: '#0a0a12',
+    backgroundColor: 'var(--ac-glass-bg)',
+    backdropFilter: 'blur(var(--ac-blur-panel))',
+    WebkitBackdropFilter: 'blur(var(--ac-blur-panel))',
     color: '#ffffff',
     position: 'relative',
     userSelect: 'none'
@@ -53,7 +55,9 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    backgroundColor: '#0a0a12'
+    backgroundColor: 'var(--ac-glass-bg)',
+    backdropFilter: 'blur(var(--ac-blur-panel))',
+    WebkitBackdropFilter: 'blur(var(--ac-blur-panel))'
   },
   scrollMode: {
     display: 'flex',
@@ -73,7 +77,9 @@ const useStyles = makeStyles({
     width: '100%',
     display: 'flex',
     justifyContent: 'center',
-    backgroundColor: '#11111c'
+    backgroundColor: 'var(--ac-glass-bg)',
+    backdropFilter: 'blur(var(--ac-blur-card))',
+    WebkitBackdropFilter: 'blur(var(--ac-blur-card))'
   },
   mangaImage: {
     display: 'block',
@@ -129,7 +135,7 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     height: '100%',
     gap: '16px',
-    color: '#8a8a9a'
+    color: 'var(--ac-text-3)'
   }
 })
 
