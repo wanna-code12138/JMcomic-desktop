@@ -59,6 +59,7 @@ interface LocalHistoryRow {
 export default function FavoritesPage(): JSX.Element {
   const styles = useStyles()
   const openReader = useAppStore((s) => s.openReader)
+  const setCurrentMangaId = useAppStore((s) => s.setCurrentMangaId)
 
   const [mainTab, setMainTab] = React.useState<MainTab>('local-fav')
 
@@ -170,6 +171,10 @@ export default function FavoritesPage(): JSX.Element {
                   </div>
                 </div>
                 <div className={styles.historyActions}>
+                  <Button size="small" appearance="subtle"
+                    onClick={(e) => { e.stopPropagation(); setCurrentMangaId(h.manga_id) }}>
+                    详情页
+                  </Button>
                   <Tooltip content="删除" relationship="label">
                     <Button size="small" appearance="subtle" icon={<Dismiss20Regular />}
                       onClick={(e) => { e.stopPropagation(); handleRemoveHistory(h.manga_id) }} />

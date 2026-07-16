@@ -19,6 +19,7 @@ interface AppState {
   darkMode: boolean
   currentPage: string
   previousPage: string
+  readerSourcePage: string
   currentMangaId: string | null
   readerState: ReaderState | null
   networkStatus: 'online' | 'degraded' | 'offline'
@@ -38,6 +39,7 @@ export const useAppStore = create<AppState>((set) => ({
   darkMode: false,
   currentPage: 'home',
   previousPage: 'home',
+  readerSourcePage: 'home',
   currentMangaId: null,
   readerState: null,
   networkStatus: 'online',
@@ -50,8 +52,15 @@ export const useAppStore = create<AppState>((set) => ({
     currentPage: id ? 'detail' : s.currentPage,
     previousPage: id && s.currentPage !== 'detail' && s.currentPage !== 'reader' ? s.currentPage : s.previousPage
   })),
-  openReader: (state) => set({ readerState: state, currentPage: 'reader' }),
-  closeReader: () => set({ readerState: null, currentPage: 'detail' }),
+  openReader: (state) => set((s) => ({
+    readerState: state,
+    currentPage: 'reader',
+    readerSourcePage: s.currentPage
+  })),
+  closeReader: () => set((s) => ({
+    readerState: null,
+    currentPage: s.readerSourcePage
+  })),
   setNetworkStatus: (status) => set({ networkStatus: status }),
   triggerTagSearch: (tag) => set({
     pendingSearch: { query: tag, mainTag: 0 },
