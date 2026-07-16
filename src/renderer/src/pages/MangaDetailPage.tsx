@@ -110,6 +110,19 @@ export default function MangaDetailPage(): JSX.Element {
     return () => { cancelled = true }
   }, [currentMangaId])
 
+  React.useEffect(() => {
+    if (!currentMangaId) return
+    let cancelled = false
+    async function checkFav(): Promise<void> {
+      const list = await window.electronAPI?.favoritesList()
+      if (cancelled) return
+      const ids = (list ?? []).map((f: any) => f.manga_id)
+      setLiked(ids.includes(currentMangaId))
+    }
+    checkFav()
+    return () => { cancelled = true }
+  }, [currentMangaId])
+
   if (loading) {
     return (
       <div className={styles.root}>
@@ -183,7 +196,10 @@ export default function MangaDetailPage(): JSX.Element {
             {manga.chapters.length > 0 && (
               <Button appearance="primary" size="large" icon={<BookOpen20Regular />}
                 onClick={() => openReader({
+                  mangaId: manga.id,
                   mangaTitle: manga.title,
+                  mangaCoverUrl: manga.coverUrl,
+                  chapterIndex: manga.chapters[0].index,
                   chapterTitle: manga.chapters[0].title,
                   chapterUrl: manga.chapters[0].url
                 })}
@@ -211,7 +227,24 @@ export default function MangaDetailPage(): JSX.Element {
             <Tooltip content={liked ? '取消收藏' : '收藏'} relationship="label">
               <Button size="large"
                 icon={liked ? <Heart20Filled style={{ color: tokens.colorStatusDangerForeground1 }} /> : <Heart20Regular />}
-                onClick={() => setLiked(!liked)}
+                onClick={async () => {
+                  if (!window.electronAPI) return
+                  const wasLiked = liked
+                  setLiked(!wasLiked)
+                  try {
+                    if (wasLiked) {
+                      await window.electronAPI.favoritesRemove(manga.id)
+                    } else {
+                      await window.electronAPI.favoritesAdd({
+                        mangaId: manga.id,
+                        title: manga.title,
+                        coverUrl: manga.coverUrl
+                      })
+                    }
+                  } catch {
+                    setLiked(wasLiked) // 回滚
+                  }
+                }}
               />
             </Tooltip>
           </div>
@@ -235,11 +268,14 @@ export default function MangaDetailPage(): JSX.Element {
               {chapters.map((ch) => (
                 <div key={ch.index} className={styles.chapterItem} role="button" tabIndex={0}
                   onClick={() => openReader({
+                    mangaId: manga.id,
                     mangaTitle: manga.title,
+                    mangaCoverUrl: manga.coverUrl,
+                    chapterIndex: ch.index,
                     chapterTitle: ch.title,
                     chapterUrl: ch.url
                   })}
-                  onKeyDown={(e) => { if (e.key === 'Enter') openReader({ mangaTitle: manga.title, chapterTitle: ch.title, chapterUrl: ch.url }) }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') openReader({ mangaId: manga.id, mangaTitle: manga.title, mangaCoverUrl: manga.coverUrl, chapterIndex: ch.index, chapterTitle: ch.title, chapterUrl: ch.url }) }}
                 >
                   <div className={styles.chapterIndex}>{ch.index + 1}</div>
                   <div className={styles.chapterTitle}>{ch.title}</div>

@@ -1,9 +1,13 @@
 import { create } from 'zustand'
 
 interface ReaderState {
+  mangaId: string
   mangaTitle: string
+  mangaCoverUrl: string
+  chapterIndex: number
   chapterTitle: string
   chapterUrl: string
+  resumePageIndex?: number
 }
 
 interface PendingSearch {
