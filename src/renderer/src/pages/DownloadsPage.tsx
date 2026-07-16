@@ -11,7 +11,15 @@ interface DownloadItem {
 
 const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
-  emptyState: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 0', color: tokens.colorNeutralForeground3, gap: '12px' }
+  emptyState: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '60px 0',
+    color: 'var(--ac-text-3)',
+    gap: '12px'
+  }
 })
 
 export default function DownloadsPage(): JSX.Element {
