@@ -23,6 +23,7 @@ import {
   WifiOff20Regular
 } from '@fluentui/react-icons'
 import { useAppStore } from './stores/appStore'
+import { useAccountStore } from './stores/accountStore'
 import {
   HomePage, CategoriesPage, SearchPage,
   FavoritesPage, DownloadsPage, SettingsPage,
@@ -178,6 +179,11 @@ interface AppProps {
 export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Element {
   const styles = useStyles()
   const { currentPage, setCurrentPage, networkStatus } = useAppStore()
+  const validateOnStartup = useAccountStore((s) => s.validateOnStartup)
+
+  React.useEffect(() => {
+    validateOnStartup()
+  }, [validateOnStartup])
 
   const ActivePage = pageComponents[currentPage as PageId] ?? HomePage
 
