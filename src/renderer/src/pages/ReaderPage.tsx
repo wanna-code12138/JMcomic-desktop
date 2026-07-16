@@ -377,6 +377,25 @@ export default function ReaderPage(): JSX.Element {
         // so the renderer can load them through the main process
         // (which adds proper Referer + session cookies).
         setPages(pageList)
+
+        // 续读：若指定了 resumePageIndex，跳到该页
+        const resume = readerState!.resumePageIndex
+        if (typeof resume === 'number' && resume > 0 && resume < pageList.length) {
+          setCurrentPage(resume)
+        }
+
+        // 写历史：记录"开始读"这一章
+        const rs = readerState!
+        window.electronAPI?.historyUpsert({
+          manga_id: rs.mangaId,
+          manga_title: rs.mangaTitle,
+          chapter_index: rs.chapterIndex,
+          chapter_title: rs.chapterTitle,
+          chapter_url: rs.chapterUrl,
+          cover_url: rs.mangaCoverUrl,
+          page_index: rs.resumePageIndex ?? 0,
+          total_pages: pageList.length
+        })
       } catch (err) {
         if (!cancelled) setError(String(err))
       }
@@ -395,6 +414,21 @@ export default function ReaderPage(): JSX.Element {
   const goPrev = useCallback(() => {
     if (currentPage > 0) setCurrentPage((p) => p - 1)
   }, [currentPage])
+
+  // 翻页时防抖写历史（2s 内连续翻页只写一次）
+  const historyTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const flushHistory = React.useCallback((pageIndex: number): void => {
+    if (historyTimer.current) clearTimeout(historyTimer.current)
+    historyTimer.current = setTimeout(() => {
+      if (readerState?.mangaId) {
+        window.electronAPI?.historyUpsertPage(readerState.mangaId, pageIndex)
+      }
+    }, 2000)
+  }, [readerState?.mangaId])
+
+  useEffect(() => {
+    if (pages.length > 0) flushHistory(currentPage)
+  }, [currentPage, pages.length, flushHistory])
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent): void => {
@@ -425,7 +459,15 @@ export default function ReaderPage(): JSX.Element {
       {/* Toolbar */}
       <div className={styles.toolbar}>
         <Button appearance="subtle" size="small" icon={<Dismiss20Regular />}
-          style={{ color: '#cccccc' }} onClick={closeReader}
+          style={{ color: '#cccccc' }} onClick={() => {
+            if (historyTimer.current) {
+              clearTimeout(historyTimer.current)
+              if (readerState?.mangaId) {
+                window.electronAPI?.historyUpsertPage(readerState.mangaId, currentPage)
+              }
+            }
+            closeReader()
+          }}
         >返回</Button>
         <div className={styles.toolbarTitle}>{readerState.mangaTitle} - {readerState.chapterTitle}</div>
         <div className={styles.toolbarInfo}>
