@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import ZoomableImage from '../components/ZoomableImage'
-import { makeStyles, tokens, Button, Tooltip, Text, Spinner } from '@fluentui/react-components'
+import { makeStyles, Button, Tooltip, Text, Spinner } from '@fluentui/react-components'
 import {
   ArrowLeft20Regular, ArrowRight20Regular, Dismiss20Regular,
   ArrowDownload20Regular, SlideText20Regular
@@ -12,47 +12,124 @@ const TOOLBAR_HEIGHT = 48
 
 const useStyles = makeStyles({
   root: {
-    display: 'flex', flexDirection: 'column', height: '100%',
-    backgroundColor: '#0a0a0a', color: '#ffffff', position: 'relative', userSelect: 'none'
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+    backgroundColor: '#0a0a0a',
+    color: '#ffffff',
+    position: 'relative',
+    userSelect: 'none'
   },
   toolbar: {
-    display: 'flex', alignItems: 'center', height: `${TOOLBAR_HEIGHT}px`,
-    padding: '0 12px', gap: '8px', backgroundColor: 'rgba(0,0,0,0.85)',
-    backdropFilter: 'blur(12px)', zIndex: 10, flexShrink: 0,
-    borderBottom: '1px solid rgba(255,255,255,0.08)'
+    display: 'flex',
+    alignItems: 'center',
+    height: `${TOOLBAR_HEIGHT}px`,
+    padding: '0 12px',
+    gap: '8px',
+    backgroundColor: 'var(--ac-glass-bg)',
+    backdropFilter: 'blur(var(--ac-blur-toolbar))',
+    WebkitBackdropFilter: 'blur(var(--ac-blur-toolbar))',
+    zIndex: 10,
+    flexShrink: 0,
+    borderBottom: '1px solid var(--ac-glass-border)'
   },
   toolbarTitle: {
-    fontSize: '14px', fontWeight: 500, color: '#cccccc', flex: 1,
-    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+    fontSize: '14px',
+    fontWeight: 500,
+    color: 'var(--ac-text-2)',
+    flex: 1,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
   },
-  toolbarInfo: { fontSize: '12px', color: '#888888' },
+  toolbarInfo: {
+    fontSize: '12px',
+    color: 'var(--ac-text-3)'
+  },
   viewerArea: {
-    flex: 1, overflow: 'auto', position: 'relative',
-    display: 'flex', flexDirection: 'column', alignItems: 'center'
+    flex: 1,
+    overflow: 'auto',
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    backgroundColor: '#0a0a0a'
   },
   scrollMode: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '16px 0'
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '16px 0'
   },
   singlePageMode: {
-    display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%'
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
+    width: '100%'
   },
-  imageWrap: { width: '100%', display: 'flex', justifyContent: 'center', backgroundColor: '#111111' },
-  mangaImage: { display: 'block', maxWidth: '100%', height: 'auto', objectFit: 'contain' },
+  imageWrap: {
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    backgroundColor: '#111111'
+  },
+  mangaImage: {
+    display: 'block',
+    maxWidth: '100%',
+    height: 'auto',
+    objectFit: 'contain'
+  },
   navBtn: {
-    position: 'absolute', top: '50%', transform: 'translateY(-50%)', zIndex: 5,
-    width: '48px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: '8px', cursor: 'pointer',
-    opacity: 0.3, transition: 'opacity 0.2s', ':hover': { opacity: 1 }
+    position: 'absolute',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    zIndex: 5,
+    width: '48px',
+    height: '80px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'var(--ac-glass-bg)',
+    backdropFilter: 'blur(var(--ac-blur-card))',
+    WebkitBackdropFilter: 'blur(var(--ac-blur-card))',
+    border: '1px solid var(--ac-glass-border)',
+    borderRadius: 'var(--ac-radius-button)',
+    cursor: 'pointer',
+    color: 'var(--ac-text-2)',
+    opacity: 0.4,
+    transition: 'opacity 0.2s',
+    ':hover': {
+      opacity: 1,
+      backgroundColor: 'var(--ac-glass-bg-hover)'
+    }
   },
-  navLeft: { left: '16px' }, navRight: { right: '16px' },
+  navLeft: { left: '16px' },
+  navRight: { right: '16px' },
   pageIndicator: {
-    position: 'absolute', bottom: '16px', left: '50%', transform: 'translateX(-50%)',
-    backgroundColor: 'rgba(0,0,0,0.7)', color: '#cccccc', padding: '4px 12px',
-    borderRadius: '12px', fontSize: '12px', zIndex: 5
+    position: 'absolute',
+    bottom: '16px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    backgroundColor: 'var(--ac-glass-bg)',
+    backdropFilter: 'blur(var(--ac-blur-card))',
+    WebkitBackdropFilter: 'blur(var(--ac-blur-card))',
+    border: '1px solid var(--ac-glass-border)',
+    color: 'var(--ac-text-2)',
+    padding: '5px 14px',
+    borderRadius: 'var(--ac-radius-pill)',
+    fontSize: '12px',
+    zIndex: 5
   },
   loading: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center',
-    justifyContent: 'center', height: '100%', gap: '16px', color: '#888888'
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
+    gap: '16px',
+    color: '#888888'
   }
 })
 
@@ -502,7 +579,7 @@ export default function ReaderPage(): JSX.Element {
       {/* Toolbar */}
       <div className={styles.toolbar}>
         <Button appearance="subtle" size="small" icon={<Dismiss20Regular />}
-          style={{ color: '#cccccc' }} onClick={() => {
+          style={{ color: 'var(--ac-text-2)' }} onClick={() => {
             if (historyTimer.current) {
               clearTimeout(historyTimer.current)
               if (readerState?.mangaId) {
@@ -519,14 +596,14 @@ export default function ReaderPage(): JSX.Element {
         {pages.length > 0 && (
           <Tooltip content={viewMode === 'scroll' ? '单页模式' : '滚动模式'} relationship="label">
             <Button appearance="subtle" size="small" icon={<SlideText20Regular />}
-              style={{ color: viewMode === 'scroll' ? tokens.colorBrandForeground1 : '#cccccc' }}
+              style={{ color: viewMode === 'scroll' ? 'var(--ac-brand)' : 'var(--ac-text-2)' }}
               onClick={() => setViewMode(viewMode === 'scroll' ? 'single' : 'scroll')}
             />
           </Tooltip>
         )}
         <Tooltip content="下载本章" relationship="label">
           <Button appearance="subtle" size="small" icon={<ArrowDownload20Regular />}
-            style={{ color: '#cccccc' }}
+            style={{ color: 'var(--ac-text-2)' }}
             onClick={async () => {
               if (!window.electronAPI) return
               await window.electronAPI.downloadAdd({
