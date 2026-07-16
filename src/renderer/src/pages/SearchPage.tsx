@@ -15,8 +15,10 @@ const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
   searchBar: { display: 'flex', gap: '8px', maxWidth: '660px', marginBottom: '8px' },
   hint: {
-    fontSize: '12px', color: tokens.colorNeutralForeground3,
-    marginTop: '4px', marginBottom: '20px'
+    fontSize: '12px',
+    color: 'var(--ac-text-3)',
+    marginTop: '4px',
+    marginBottom: '20px'
   },
   grid: {
     display: 'grid',
@@ -24,17 +26,27 @@ const useStyles = makeStyles({
     gap: '16px'
   },
   statusMsg: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center',
-    justifyContent: 'center', padding: '60px 0',
-    color: tokens.colorNeutralForeground3, gap: '12px'
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '60px 0',
+    color: 'var(--ac-text-3)',
+    gap: '12px'
   },
   pagination: {
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    gap: '12px', marginTop: '24px', marginBottom: '12px'
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+    marginTop: '24px',
+    marginBottom: '12px'
   },
   pageText: {
-    fontSize: '13px', color: tokens.colorNeutralForeground2,
-    minWidth: '80px', textAlign: 'center'
+    fontSize: '13px',
+    color: 'var(--ac-text-2)',
+    minWidth: '80px',
+    textAlign: 'center'
   },
   shimmerGrid: {
     display: 'grid',
@@ -43,36 +55,47 @@ const useStyles = makeStyles({
   },
   shimmerCard: {
     aspectRatio: '3/4',
-    borderRadius: tokens.borderRadiusMedium
+    borderRadius: 'var(--ac-radius-card)'
   },
   historySection: {
-    maxWidth: '660px', marginTop: '8px'
+    maxWidth: '660px',
+    marginTop: '8px'
   },
   historyHeader: {
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: '12px'
   },
   historyTitle: {
-    display: 'flex', alignItems: 'center', gap: '6px',
-    fontSize: '13px', fontWeight: 600,
-    color: tokens.colorNeutralForeground2
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: '13px',
+    fontWeight: 600,
+    color: 'var(--ac-text-2)'
   },
   chipList: {
-    display: 'flex', flexWrap: 'wrap', gap: '8px'
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '8px'
   },
   chip: {
-    display: 'inline-flex', alignItems: 'center', gap: '4px',
-    height: '32px', padding: '0 4px 0 12px',
-    borderRadius: '16px',
-    backgroundColor: tokens.colorNeutralBackground2,
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-    color: tokens.colorNeutralForeground2,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    height: '32px',
+    padding: '0 4px 0 12px',
+    borderRadius: 'var(--ac-radius-pill)',
+    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 12%, transparent)',
+    border: '1px solid color-mix(in srgb, var(--ac-brand) 18%, transparent)',
+    color: 'var(--ac-brand)',
     fontSize: '13px',
     cursor: 'pointer',
-    transition: 'background-color 0.1s, border-color 0.1s',
+    transition: 'background-color 0.15s, transform 0.15s',
     ':hover': {
-      backgroundColor: tokens.colorNeutralBackground2Hover,
-      borderColor: tokens.colorNeutralStroke1Hover
+      backgroundColor: 'color-mix(in srgb, var(--ac-brand) 20%, transparent)',
+      transform: 'translateY(-1px)'
     }
   },
   chipText: {
@@ -82,18 +105,22 @@ const useStyles = makeStyles({
     whiteSpace: 'nowrap'
   },
   chipDelete: {
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    width: '20px', height: '20px',
-    borderRadius: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '20px',
+    height: '20px',
+    borderRadius: 'var(--ac-radius-badge)',
     cursor: 'pointer',
-    color: tokens.colorNeutralForeground3,
+    color: 'var(--ac-text-3)',
     ':hover': {
-      backgroundColor: tokens.colorNeutralBackground3,
-      color: tokens.colorNeutralForeground1
+      backgroundColor: 'color-mix(in srgb, var(--ac-danger) 20%, transparent)',
+      color: 'var(--ac-danger)'
     }
   },
   historyEmpty: {
-    fontSize: '13px', color: tokens.colorNeutralForeground3,
+    fontSize: '13px',
+    color: 'var(--ac-text-3)',
     padding: '8px 0'
   }
 })
