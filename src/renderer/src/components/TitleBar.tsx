@@ -22,11 +22,12 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     height: TITLE_BAR_HEIGHT,
-    paddingLeft: '12px',
+    paddingLeft: '14px',
     paddingRight: '4px',
-    // 透明：透出 DWM 的 Mica 材质，与下方实色内容区形成层次差异
-    backgroundColor: 'transparent',
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    backgroundColor: 'var(--ac-glass-bg)',
+    backdropFilter: 'blur(var(--ac-blur-toolbar))',
+    WebkitBackdropFilter: 'blur(var(--ac-blur-toolbar))',
+    borderBottom: '1px solid var(--ac-glass-border)',
     WebkitAppRegion: 'drag',
     userSelect: 'none',
     flexShrink: 0
@@ -34,7 +35,7 @@ const useStyles = makeStyles({
   title: {
     fontSize: '12px',
     fontWeight: 600,
-    color: tokens.colorNeutralForeground2,
+    color: 'var(--ac-text-2)',
     marginLeft: '4px',
     flex: 1
   },
