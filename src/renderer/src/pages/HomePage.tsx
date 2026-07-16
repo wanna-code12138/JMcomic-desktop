@@ -19,7 +19,27 @@ const useStyles = makeStyles({
     overflow: 'auto'
   },
   tabs: {
-    marginBottom: '24px'
+    marginBottom: '24px',
+    '& .fui-TabList': {
+      gap: '6px'
+    },
+    '& .fui-Tab': {
+      borderRadius: 'var(--ac-radius-row)',
+      color: 'var(--ac-text-3)',
+      fontSize: '14px',
+      padding: '6px 14px'
+    },
+    '& .fui-Tab:hover': {
+      backgroundColor: 'var(--ac-glass-bg-hover)',
+      color: 'var(--ac-text-2)'
+    },
+    '& .fui-Tab--selected': {
+      backgroundColor: 'var(--ac-glass-bg-hover)',
+      color: 'var(--ac-brand)',
+      fontWeight: 600,
+      boxShadow:
+        'var(--ac-clay-shadow-dark), var(--ac-clay-shadow-light), var(--ac-clay-inset-border)'
+    }
   },
   grid: {
     display: 'grid',
@@ -32,7 +52,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
     justifyContent: 'center',
     padding: '60px 0',
-    color: tokens.colorNeutralForeground3,
+    color: 'var(--ac-text-3)',
     gap: '16px'
   },
   shimmerGrid: {
@@ -42,7 +62,7 @@ const useStyles = makeStyles({
   },
   shimmerCard: {
     aspectRatio: '3/4',
-    borderRadius: tokens.borderRadiusMedium
+    borderRadius: 'var(--ac-radius-card)'
   }
 })
 
