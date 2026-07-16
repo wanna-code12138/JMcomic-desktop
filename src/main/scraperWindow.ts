@@ -240,8 +240,7 @@ async function extractAllCards(): Promise<{ cards: MangaCard[]; debug: string }>
 
         // Filter out junk entries
         if (!title || title.length < 2) return;
-        if (/^(随便看|換一換|換一個|随机|random|换一换|随便看看|隨便看看)$/i.test(title)) return;
-        if (/^(随便看|換一換|換一個|随机|random|换一换)/i.test(title) && title.length < 8) return;
+        if (/随便看|隨便看|随便看看|隨便看看|換一換|换一换|換一個|换一个|随机推荐|random/i.test(title)) return;
         seen[id] = true;
 
         // Cover image
@@ -292,8 +291,7 @@ async function extractAllCards(): Promise<{ cards: MangaCard[]; debug: string }>
           var title = a.getAttribute('title') || a.textContent.trim();
           title = title.replace(/JM\\d+/g, '').replace(/\\s+/g, ' ').trim();
           if (!title || title.length < 2) return;
-          if (/^(随便看|換一換|換一個|随机|random|换一换|随便看看|隨便看看)$/i.test(title)) return;
-          if (/^(随便看|換一換|換一個|随机|random|换一换)/i.test(title) && title.length < 8) return;
+          if (/随便看|隨便看|随便看看|隨便看看|換一換|换一换|換一個|换一个|随机推荐|random/i.test(title)) return;
 
           seen[id] = true;
 

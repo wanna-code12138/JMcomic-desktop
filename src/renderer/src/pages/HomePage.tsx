@@ -10,6 +10,25 @@ import {
   Button
 } from '@fluentui/react-components'
 import { MangaCard, type MangaCardData } from '../components'
+import { useAppStore } from '../stores/appStore'
+
+const RANDOM_COVER = 'data:image/svg+xml,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400">'
+  + '<defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">'
+  + '<stop offset="0%" stop-color="#667eea"/><stop offset="100%" stop-color="#764ba2"/>'
+  + '</linearGradient></defs>'
+  + '<rect width="300" height="400" fill="url(#g)"/>'
+  + '<text x="150" y="180" text-anchor="middle" font-size="64" fill="white" font-family="sans-serif">?</text>'
+  + '<text x="150" y="230" text-anchor="middle" font-size="22" fill="rgba(255,255,255,0.85)" font-family="sans-serif">随便看</text>'
+  + '</svg>'
+)
+
+const RANDOM_CARD: MangaCardData = {
+  id: '__random__',
+  title: '随便看',
+  coverUrl: RANDOM_COVER,
+  author: '随机打开一个本子'
+}
 
 const useStyles = makeStyles({
   root: {
@@ -78,13 +97,23 @@ function MangaCardSkeleton(): JSX.Element {
 
 export default function HomePage(): JSX.Element {
   const styles = useStyles()
+  const setCurrentMangaId = useAppStore((s) => s.setCurrentMangaId)
   const [tab, setTab] = React.useState<'recommended' | 'latest' | 'popular'>('recommended')
   const [loading, setLoading] = React.useState(true)
   const [warmingUp, setWarmingUp] = React.useState(true)
-  // All three tabs share the same card list — extracted once
   const [allCards, setAllCards] = React.useState<MangaCardData[]>([])
   const [error, setError] = React.useState('')
   const [debugInfo, setDebugInfo] = React.useState('')
+
+  const handleCardClick = React.useCallback((mangaId: string) => {
+    if (mangaId === '__random__') {
+      if (allCards.length === 0) return
+      const idx = Math.floor(Math.random() * allCards.length)
+      setCurrentMangaId(allCards[idx].id)
+    } else {
+      setCurrentMangaId(mangaId)
+    }
+  }, [allCards, setCurrentMangaId])
 
   React.useEffect(() => {
     let cancelled = false
@@ -216,8 +245,8 @@ export default function HomePage(): JSX.Element {
         </div>
       ) : (
         <div className={styles.grid}>
-          {allCards.map((m) => (
-            <MangaCard key={m.id} manga={m} />
+          {[RANDOM_CARD, ...allCards].map((m) => (
+            <MangaCard key={m.id} manga={m} onClick={handleCardClick} />
           ))}
         </div>
       )}

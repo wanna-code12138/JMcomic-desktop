@@ -201,9 +201,11 @@ export default function CategoriesPage(): JSX.Element {
         page: p
       })
       if (result?.ok) {
-        setResults((result.data as MangaCardData[]) || [])
+        const data = ((result.data as MangaCardData[]) || [])
+          .filter((c) => !/随便看|隨便看|随便看看|隨便看看|換一換|换一换|随机|random/i.test(c.title))
+        setResults(data)
         setTotalPages((result.totalPages as number) || 1)
-        if (((result.data as MangaCardData[]) || []).length === 0) {
+        if (data.length === 0) {
           setError('当前筛选条件下没有漫画')
         }
       } else {

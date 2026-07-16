@@ -106,7 +106,7 @@ export interface MangaCardData {
   latestChapter?: string
 }
 
-export default function MangaCard({ manga }: { manga: MangaCardData }): JSX.Element {
+export default function MangaCard({ manga, onClick }: { manga: MangaCardData; onClick?: (id: string) => void }): JSX.Element {
   const styles = useStyles()
   const setCurrentMangaId = useAppStore((s) => s.setCurrentMangaId)
 
@@ -150,8 +150,8 @@ export default function MangaCard({ manga }: { manga: MangaCardData }): JSX.Elem
       className={styles.card}
       role="button"
       tabIndex={0}
-      onClick={() => setCurrentMangaId(manga.id)}
-      onKeyDown={(e) => { if (e.key === 'Enter') setCurrentMangaId(manga.id) }}
+      onClick={() => onClick ? onClick(manga.id) : setCurrentMangaId(manga.id)}
+      onKeyDown={(e) => { if (e.key === 'Enter') onClick ? onClick(manga.id) : setCurrentMangaId(manga.id) }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
