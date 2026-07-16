@@ -338,6 +338,9 @@ export default function ReaderPage(): JSX.Element {
 
   const [viewMode, setViewMode] = useState<ViewMode>('scroll')
   const [currentPage, setCurrentPage] = useState(0)
+  const currentPageRef = React.useRef(currentPage)
+  currentPageRef.current = currentPage
+  const viewerRef = React.useRef<HTMLDivElement>(null)
   const [pages, setPages] = useState<PageData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -414,6 +417,20 @@ export default function ReaderPage(): JSX.Element {
   const goPrev = useCallback(() => {
     if (currentPage > 0) setCurrentPage((p) => p - 1)
   }, [currentPage])
+
+  // 滚动模式下根据滚动位置推算当前页码（单页模式由 goNext/goPrev 控制）
+  const handleScroll = (): void => {
+    if (viewMode !== 'scroll') return
+    const el = viewerRef.current
+    if (!el || pages.length <= 1) return
+    const maxScroll = el.scrollHeight - el.clientHeight
+    if (maxScroll <= 0) return
+    const ratio = Math.min(1, Math.max(0, el.scrollTop / maxScroll))
+    const page = Math.round(ratio * (pages.length - 1))
+    if (page !== currentPageRef.current) {
+      setCurrentPage(page)
+    }
+  }
 
   // 翻页时防抖写历史（2s 内连续翻页只写一次）
   const historyTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -525,7 +542,7 @@ export default function ReaderPage(): JSX.Element {
           <pre style={{ maxWidth: '500px', fontSize: '11px', color: '#666', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{error}</pre>
         </div>
       ) : viewMode === 'scroll' ? (
-        <div className={styles.viewerArea}>
+        <div className={styles.viewerArea} ref={viewerRef} onScroll={handleScroll}>
           <div className={styles.scrollMode}>
             {pages.map((page, i) => (
               <div key={i} className={styles.imageWrap}>
