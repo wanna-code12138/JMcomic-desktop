@@ -31,10 +31,10 @@ const useStyles = makeStyles({
   label: {
     fontSize: '14px',
     fontWeight: 500,
-    color: tokens.colorNeutralForeground2
+    color: 'var(--ac-text-2)'
   },
   error: {
-    color: tokens.colorStatusDangerForeground1,
+    color: 'var(--ac-danger)',
     fontSize: '13px',
     marginTop: '4px'
   }
@@ -76,7 +76,16 @@ export default function LoginDialog({ open, onClose, onLogin }: LoginDialogProps
 
   return (
     <Dialog open={open} onOpenChange={(_e, d) => { if (!d.open) onClose() }}>
-      <DialogSurface>
+      <DialogSurface
+        style={{
+          backgroundColor: 'var(--ac-glass-bg)',
+          backdropFilter: 'blur(var(--ac-blur-dialog))',
+          WebkitBackdropFilter: 'blur(var(--ac-blur-dialog))',
+          border: '1px solid var(--ac-glass-border)',
+          boxShadow: 'inset 0 1px 0 var(--ac-glass-inset-hi), var(--ac-glass-shadow)',
+          borderRadius: 'var(--ac-radius-panel)'
+        }}
+      >
         <DialogBody>
           <DialogTitle>登录禁漫天堂</DialogTitle>
           <DialogContent>
