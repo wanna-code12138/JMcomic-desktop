@@ -16,6 +16,7 @@ interface HttpOptions {
   method?: 'GET' | 'POST' | 'HEAD'
   body?: string
   timeout?: number
+  redirect?: 'follow' | 'manual'
 }
 
 interface HttpResponse {
@@ -59,29 +60,48 @@ export function invalidateCookieCache(): void {
 export async function httpRequest(url: string, options: HttpOptions = {}): Promise<HttpResponse> {
   const timeout = options.timeout ?? 15000
 
-  // Merge session cookies with any user-provided Cookie header.
-  // User cookies take precedence (so siteAdapter's login cookies win).
+  // Merge session cookies (Cloudflare bypass from warmup) with any caller-provided
+  // Cookie header (siteAdapter's login session cookies). Caller takes precedence on
+  // duplicate names. Both must be sent together — previously the caller's Cookie
+  // header REPLACED the session cookies, discarding cf_clearance so Cloudflare
+  // blocked login/favorites POSTs and GETs.
   const sessionCookie = await getSessionCookieHeader(url)
+  const callerCookie = options.headers?.Cookie
+
+  let mergedCookie = sessionCookie ?? ''
+  if (callerCookie && sessionCookie) {
+    const map = new Map<string, string>()
+    for (const part of sessionCookie.split(';')) {
+      const eq = part.indexOf('=')
+      if (eq > 0) map.set(part.slice(0, eq).trim(), part.slice(eq + 1).trim())
+    }
+    for (const part of callerCookie.split(';')) {
+      const eq = part.indexOf('=')
+      if (eq > 0) map.set(part.slice(0, eq).trim(), part.slice(eq + 1).trim())
+    }
+    mergedCookie = [...map.entries()].map(([k, v]) => `${k}=${v}`).join('; ')
+  } else if (callerCookie) {
+    mergedCookie = callerCookie
+  }
 
   return new Promise((resolve, reject) => {
     const req = net.request({
       method: options.method ?? 'GET',
       url: url,
-      redirect: 'follow'
+      redirect: options.redirect ?? 'follow'
     })
 
     req.setHeader('User-Agent', USER_AGENT)
     req.setHeader('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')
     req.setHeader('Accept-Language', 'zh-CN,zh;q=0.9,en;q=0.8')
 
-    // Session cookies first (Cloudflare bypass)…
-    if (sessionCookie) {
-      req.setHeader('Cookie', sessionCookie)
+    if (mergedCookie) {
+      req.setHeader('Cookie', mergedCookie)
     }
 
     if (options.headers) {
       for (const [key, value] of Object.entries(options.headers)) {
-        // Cookie from caller overrides (e.g. login flow cookies)
+        if (key.toLowerCase() === 'cookie') continue // already merged above
         req.setHeader(key, value)
       }
     }

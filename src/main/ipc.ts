@@ -200,27 +200,6 @@ export function registerIpcHandlers(): void {
     return row.length > 0 && row[0].values.length > 0 ? row[0].values[0][0] : null
   })
 
-  // Account session (delegated to accountService singleton)
-  ipcMain.handle('account:logout', async () => {
-    const { accountService } = await import('./accountService')
-    await accountService.logout()
-  })
-
-  ipcMain.handle('account:getStatus', async () => {
-    const { accountService } = await import('./accountService')
-    return accountService.getStatus()
-  })
-
-  ipcMain.handle('account:validateSession', async () => {
-    const { accountService } = await import('./accountService')
-    return accountService.validateSession()
-  })
-
-  ipcMain.handle('auth:setPersistMode', async (_event, mode: 'cookie' | 'credential') => {
-    const { accountService } = await import('./accountService')
-    await accountService.setPersistMode(mode)
-  })
-
   // Clear all caches (scraper content cache + image disk cache)
   ipcMain.handle('cache:clearAll', async () => {
     const imgCount = clearImageCache()

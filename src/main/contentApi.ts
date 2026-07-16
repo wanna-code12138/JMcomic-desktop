@@ -1,7 +1,6 @@
 import { ipcMain, app } from 'electron'
 import { getNetworkStatus } from './networkProbe'
 import { isSessionWarmedUp, warmupSession } from './sessionWarmup'
-import { accountService } from './accountService'
 import {
   extractHomepage,
   extractMangaDetail,
@@ -25,8 +24,6 @@ async function ensureReady(): Promise<void> {
 //
 // The JmWebAdapter (net.request + cheerio) is NOT used for content
 // because it cannot render JavaScript and returns empty/partial DOM.
-// Login/favorites/history are delegated to accountService, which owns
-// the single JmWebAdapter instance.
 // ─────────────────────────────────────────────────────────────────
 
 ipcMain.handle('content:homepage', async () => {
@@ -97,35 +94,6 @@ ipcMain.handle('content:pages', async (_event, chapterUrl: string) => {
     return { ok: true, data: data.pages, scrambleId: data.scrambleId, debug: data.debug }
   } catch (err) {
     console.error('[content:pages] error:', err)
-    return { ok: false, error: String(err) }
-  }
-})
-
-// Login delegated to accountService singleton (single adapter instance)
-ipcMain.handle('content:login', async (_event, username: string, password: string) => {
-  try {
-    await ensureReady()
-    return await accountService.login(username, password)
-  } catch (err) {
-    return { success: false, error: String(err) }
-  }
-})
-
-// Favorites delegated to accountService (uses persisted session)
-ipcMain.handle('content:favorites', async (_event, page?: number) => {
-  try {
-    const data = await accountService.getFavorites(page ?? 1)
-    return { ok: true, data }
-  } catch (err) {
-    return { ok: false, error: String(err) }
-  }
-})
-
-ipcMain.handle('content:history', async (_event, page?: number) => {
-  try {
-    const data = await accountService.getHistory(page ?? 1)
-    return { ok: true, data }
-  } catch (err) {
     return { ok: false, error: String(err) }
   }
 })

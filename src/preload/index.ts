@@ -36,12 +36,6 @@ const api = {
   // Auth
   authSave: (key: string, value: string) => ipcRenderer.invoke('auth:save', key, value),
   authGet: (key: string) => ipcRenderer.invoke('auth:get', key),
-  authSetPersistMode: (mode: 'cookie' | 'credential') => ipcRenderer.invoke('auth:setPersistMode', mode),
-
-  // Account session
-  accountLogout: () => ipcRenderer.invoke('account:logout'),
-  accountGetStatus: () => ipcRenderer.invoke('account:getStatus'),
-  accountValidateSession: () => ipcRenderer.invoke('account:validateSession'),
 
   // Cache
   cacheSetManga: (manga: Record<string, unknown>) => ipcRenderer.invoke('cache:setManga', manga),
@@ -95,9 +89,6 @@ const api = {
     ipcRenderer.invoke('content:category', params),
   contentDetail: (mangaId: string) => ipcRenderer.invoke('content:detail', mangaId),
   contentPages: (chapterUrl: string) => ipcRenderer.invoke('content:pages', chapterUrl),
-  contentLogin: (username: string, password: string) => ipcRenderer.invoke('content:login', username, password),
-  contentFavorites: (page?: number) => ipcRenderer.invoke('content:favorites', page),
-  contentHistory: (page?: number) => ipcRenderer.invoke('content:history', page),
   contentWarmupStatus: () => ipcRenderer.invoke('content:warmupStatus'),
 
   // Local history
