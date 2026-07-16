@@ -15,55 +15,104 @@ const useStyles = makeStyles({
   root: { height: '100%', overflow: 'auto' },
   backBtn: { padding: '12px 32px 0' },
   hero: {
-    display: 'flex', gap: '32px', padding: '32px',
-    background: `linear-gradient(180deg, ${tokens.colorNeutralBackground2} 0%, ${tokens.colorNeutralBackground1} 100%)`
+    display: 'flex',
+    gap: '32px',
+    padding: '32px',
+    backgroundColor: 'var(--ac-glass-bg)',
+    backdropFilter: 'blur(var(--ac-blur-panel))',
+    WebkitBackdropFilter: 'blur(var(--ac-blur-panel))',
+    borderBottom: '1px solid var(--ac-glass-border)',
+    boxShadow: 'inset 0 1px 0 var(--ac-glass-inset-hi)'
   },
   coverWrap: {
-    width: '240px', minWidth: '240px', borderRadius: tokens.borderRadiusLarge,
-    overflow: 'hidden', boxShadow: tokens.shadow16, aspectRatio: '3/4',
-    backgroundColor: tokens.colorNeutralBackground3
+    width: '240px',
+    minWidth: '240px',
+    borderRadius: 'var(--ac-radius-cover)',
+    overflow: 'hidden',
+    boxShadow: '0 10px 28px var(--ac-glass-shadow), inset 0 1px 0 var(--ac-glass-inset-hi)',
+    aspectRatio: '3/4',
+    border: '1px solid var(--ac-glass-border)',
+    backgroundColor: 'var(--ac-base-bg)'
   },
   cover: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   info: { flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 },
-  title: { fontSize: '28px', fontWeight: 700, color: tokens.colorNeutralForeground1, lineHeight: 1.3 },
+  title: {
+    fontSize: '28px',
+    fontWeight: 700,
+    color: 'var(--ac-text-1)',
+    lineHeight: 1.3
+  },
   carPlate: {
     fontSize: '13px',
-    color: tokens.colorNeutralForeground3,
+    color: 'var(--ac-text-3)',
     letterSpacing: '0.5px',
     userSelect: 'all',
     cursor: 'text'
   },
-  author: { fontSize: '15px', color: tokens.colorNeutralForeground2 },
+  author: { fontSize: '15px', color: 'var(--ac-text-2)' },
   tags: { display: 'flex', flexWrap: 'wrap', gap: '6px' },
   tagBadge: {
     cursor: 'pointer',
-    transition: 'background-color 0.1s, transform 0.1s',
+    transition: 'transform 0.15s, background-color 0.15s',
     ':hover': {
       transform: 'translateY(-1px)'
     }
   },
-  description: { fontSize: '14px', color: tokens.colorNeutralForeground2, lineHeight: 1.6 },
+  description: {
+    fontSize: '14px',
+    color: 'var(--ac-text-2)',
+    lineHeight: 1.6
+  },
   actions: { display: 'flex', gap: '12px', marginTop: '8px' },
   chaptersSection: { padding: '24px 32px' },
-  chapterHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' },
-  chapterList: { display: 'flex', flexDirection: 'column', gap: '2px' },
+  chapterHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '16px'
+  },
+  chapterList: { display: 'flex', flexDirection: 'column', gap: '4px' },
   chapterItem: {
-    display: 'flex', alignItems: 'center', padding: '10px 16px',
-    borderRadius: tokens.borderRadiusMedium, cursor: 'pointer',
-    transition: 'background-color 0.1s', gap: '12px',
-    ':hover': { backgroundColor: tokens.colorNeutralBackground2 }
+    display: 'flex',
+    alignItems: 'center',
+    padding: '10px 16px',
+    borderRadius: 'var(--ac-radius-row)',
+    cursor: 'pointer',
+    transition: 'background-color 0.15s, box-shadow 0.15s',
+    gap: '12px',
+    ':hover': {
+      backgroundColor: 'var(--ac-glass-bg-hover)',
+      boxShadow: 'inset 0 0 0 1px var(--ac-glass-border)'
+    }
   },
   chapterIndex: {
-    width: '32px', height: '32px', borderRadius: tokens.borderRadiusMedium,
-    backgroundColor: tokens.colorNeutralBackground3, display: 'flex',
-    alignItems: 'center', justifyContent: 'center', fontSize: '12px',
-    fontWeight: 600, color: tokens.colorNeutralForeground2, flexShrink: 0
+    width: '32px',
+    height: '32px',
+    borderRadius: 'var(--ac-radius-badge)',
+    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 12%, transparent)',
+    border: '1px solid color-mix(in srgb, var(--ac-brand) 18%, transparent)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '12px',
+    fontWeight: 600,
+    color: 'var(--ac-brand)',
+    flexShrink: 0
   },
-  chapterTitle: { fontSize: '14px', fontWeight: 400, color: tokens.colorNeutralForeground1, flex: 1 },
+  chapterTitle: {
+    fontSize: '14px',
+    fontWeight: 400,
+    color: 'var(--ac-text-1)',
+    flex: 1
+  },
   center: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center',
-    justifyContent: 'center', padding: '60px', gap: '16px',
-    color: tokens.colorNeutralForeground3
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '60px',
+    gap: '16px',
+    color: 'var(--ac-text-3)'
   }
 })
 
