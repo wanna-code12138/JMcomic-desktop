@@ -617,7 +617,8 @@ export default function ReaderPage(): JSX.Element {
                 mangaTitle: readerState.mangaTitle,
                 chapterIndex: 0,
                 chapterTitle: readerState.chapterTitle,
-                imageUrls: pages.map((p) => p.imageUrl)
+                imageUrls: pages.map((p) => p.imageUrl),
+                scrambleId
               })
             }}
           />

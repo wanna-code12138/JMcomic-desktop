@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs'
 import { getDatabase, saveDatabase } from './database'
 import { loadImages } from './imageLoader'
 import { getActiveDomain } from './networkProbe'
+import { descrambleImage } from './imageDescrambler'
 
 interface DownloadTask {
   id: number
@@ -11,6 +12,7 @@ interface DownloadTask {
   mangaTitle: string
   chapterIndex: number
   chapterTitle: string
+  scrambleId?: number
   status: 'pending' | 'downloading' | 'completed' | 'failed'
   totalPages: number
   downloadedPages: number
@@ -120,7 +122,18 @@ async function downloadTask(task: DownloadTask): Promise<void> {
         const ext = result.url.match(/\.(jpg|jpeg|png|webp|gif)/i)?.[1] ?? 'jpg'
         const dest = join(saveDir, `${String(i + 1).padStart(4, '0')}.${ext}`)
         if (!existsSync(dest)) {
-          writeFileSync(dest, readFileSync(result.localPath))
+          const rawBytes = readFileSync(result.localPath)
+          let finalBytes = rawBytes
+          if (task.scrambleId && task.scrambleId > 0) {
+            try {
+              finalBytes = await descrambleImage(rawBytes, task.scrambleId, result.url)
+              console.log('[download] descrambled image', i + 1)
+            } catch (err) {
+              console.warn('[download] descramble failed for image', i + 1, ':', err)
+              finalBytes = rawBytes
+            }
+          }
+          writeFileSync(dest, finalBytes)
         }
         task.downloadedPages = i + 1
         sendProgress({
@@ -179,6 +192,7 @@ ipcMain.handle('download:add', async (_event, data: {
   chapterTitle: string
   imageUrls: string[]
   savePath?: string
+  scrambleId?: number
 }) => {
   const db = await getDatabase()
   const savePath = data.savePath ?? app.getPath('downloads')
@@ -199,6 +213,7 @@ ipcMain.handle('download:add', async (_event, data: {
     mangaTitle: data.mangaTitle,
     chapterIndex: data.chapterIndex,
     chapterTitle: data.chapterTitle,
+    scrambleId: data.scrambleId,
     status: 'pending',
     totalPages: data.imageUrls.length,
     downloadedPages: 0,

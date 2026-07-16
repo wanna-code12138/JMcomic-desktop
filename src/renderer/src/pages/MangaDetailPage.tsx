@@ -272,7 +272,8 @@ export default function MangaDetailPage(): JSX.Element {
                     mangaTitle: manga.title,
                     chapterIndex: 0,
                     chapterTitle: manga.chapters[0].title,
-                    imageUrls: pages.map((p: { imageUrl: string }) => p.imageUrl)
+                    imageUrls: pages.map((p: { imageUrl: string }) => p.imageUrl),
+                    scrambleId: (pagesResult as any).scrambleId ?? 0
                   })
                 }
               }}
