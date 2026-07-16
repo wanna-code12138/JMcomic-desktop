@@ -16,75 +16,103 @@ import {
 
 const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
-  title: { marginBottom: '16px', display: 'block' },
+  title: { marginBottom: '16px', display: 'block', color: 'var(--ac-text-1)' },
   filterBar: {
-    display: 'flex', flexWrap: 'wrap', gap: '12px',
-    alignItems: 'flex-end', marginBottom: '16px'
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '12px',
+    alignItems: 'flex-end',
+    marginBottom: '16px'
   },
   filterItem: {
-    display: 'flex', flexDirection: 'column', gap: '4px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
     minWidth: '120px'
   },
   filterLabel: {
-    fontSize: '12px', color: tokens.colorNeutralForeground2,
-    fontWeight: 600, paddingLeft: '4px'
+    fontSize: '12px',
+    color: 'var(--ac-text-2)',
+    fontWeight: 600,
+    paddingLeft: '4px'
   },
   tagSection: { marginBottom: '16px' },
   tagHeader: {
-    display: 'flex', alignItems: 'center', gap: '6px',
-    fontSize: '13px', fontWeight: 600,
-    color: tokens.colorNeutralForeground2,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: '13px',
+    fontWeight: 600,
+    color: 'var(--ac-text-2)',
     marginBottom: '10px'
   },
   tagList: {
-    display: 'flex', flexWrap: 'wrap', gap: '8px'
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '8px'
   },
   tagChip: {
-    display: 'inline-flex', alignItems: 'center', gap: '4px',
-    height: '30px', padding: '0 12px',
-    borderRadius: '15px',
-    backgroundColor: tokens.colorNeutralBackground2,
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-    color: tokens.colorNeutralForeground2,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    height: '30px',
+    padding: '0 12px',
+    borderRadius: 'var(--ac-radius-pill)',
+    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 10%, transparent)',
+    border: '1px solid color-mix(in srgb, var(--ac-brand) 15%, transparent)',
+    color: 'var(--ac-text-2)',
     fontSize: '13px',
     cursor: 'pointer',
-    transition: 'background-color 0.1s, border-color 0.1s, color 0.1s',
+    transition: 'background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s',
     ':hover': {
-      backgroundColor: tokens.colorNeutralBackground2Hover,
-      border: `1px solid ${tokens.colorNeutralStroke1Hover}`
+      backgroundColor: 'color-mix(in srgb, var(--ac-brand) 18%, transparent)',
+      border: '1px solid color-mix(in srgb, var(--ac-brand) 25%, transparent)',
+      color: 'var(--ac-brand)',
+      transform: 'translateY(-1px)'
     }
   },
   tagChipActive: {
-    backgroundColor: tokens.colorBrandBackground2,
-    border: `1px solid ${tokens.colorBrandStroke1}`,
-    color: tokens.colorBrandForeground1,
+    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 25%, transparent)',
+    border: '1px solid color-mix(in srgb, var(--ac-brand) 40%, transparent)',
+    color: 'var(--ac-brand)',
     fontWeight: 600,
     ':hover': {
-      backgroundColor: tokens.colorBrandBackground2Hover,
-      border: `1px solid ${tokens.colorBrandStroke2Hover}`
+      backgroundColor: 'color-mix(in srgb, var(--ac-brand) 32%, transparent)',
+      border: '1px solid color-mix(in srgb, var(--ac-brand) 50%, transparent)',
+      color: 'var(--ac-brand)'
     }
   },
   selectedTagWrap: {
-    display: 'flex', alignItems: 'center', gap: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
     marginBottom: '16px'
   },
   selectedTagChip: {
-    display: 'inline-flex', alignItems: 'center', gap: '6px',
-    height: '32px', padding: '0 4px 0 12px',
-    borderRadius: '16px',
-    backgroundColor: tokens.colorBrandBackground2,
-    border: `1px solid ${tokens.colorBrandStroke1}`,
-    color: tokens.colorBrandForeground1,
-    fontSize: '13px', fontWeight: 600
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    height: '32px',
+    padding: '0 4px 0 12px',
+    borderRadius: 'var(--ac-radius-pill)',
+    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 22%, transparent)',
+    border: '1px solid color-mix(in srgb, var(--ac-brand) 35%, transparent)',
+    color: 'var(--ac-brand)',
+    fontSize: '13px',
+    fontWeight: 600
   },
   selectedTagDismiss: {
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    width: '24px', height: '24px',
-    borderRadius: '12px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '24px',
+    height: '24px',
+    borderRadius: 'var(--ac-radius-badge)',
     cursor: 'pointer',
-    color: tokens.colorBrandForeground2,
+    color: 'var(--ac-brand)',
     ':hover': {
-      backgroundColor: tokens.colorBrandBackground2Hover
+      backgroundColor: 'color-mix(in srgb, var(--ac-danger) 20%, transparent)',
+      color: 'var(--ac-danger)'
     }
   },
   grid: {
@@ -93,17 +121,27 @@ const useStyles = makeStyles({
     gap: '16px'
   },
   statusMsg: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center',
-    justifyContent: 'center', padding: '60px 0',
-    color: tokens.colorNeutralForeground3, gap: '12px'
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '60px 0',
+    color: 'var(--ac-text-3)',
+    gap: '12px'
   },
   pagination: {
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    gap: '12px', marginTop: '24px', marginBottom: '12px'
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+    marginTop: '24px',
+    marginBottom: '12px'
   },
   pageText: {
-    fontSize: '13px', color: tokens.colorNeutralForeground2,
-    minWidth: '80px', textAlign: 'center'
+    fontSize: '13px',
+    color: 'var(--ac-text-2)',
+    minWidth: '80px',
+    textAlign: 'center'
   },
   shimmerGrid: {
     display: 'grid',
@@ -112,7 +150,7 @@ const useStyles = makeStyles({
   },
   shimmerCard: {
     aspectRatio: '3/4',
-    borderRadius: tokens.borderRadiusMedium
+    borderRadius: 'var(--ac-radius-card)'
   }
 })
 
