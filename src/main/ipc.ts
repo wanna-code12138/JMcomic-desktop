@@ -112,6 +112,81 @@ export function registerIpcHandlers(): void {
     saveDatabase()
   })
 
+  // History (local reading history — one row per manga, UPSERT semantics)
+  ipcMain.handle('history:upsert', async (_event, data: {
+    manga_id: string; manga_title?: string; chapter_index: number
+    chapter_title?: string; chapter_url?: string; cover_url?: string
+    page_index: number; total_pages?: number
+  }) => {
+    const db = await getDatabase()
+    db.run(
+      `INSERT INTO reading_history
+         (manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, read_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%s','now'))
+       ON CONFLICT(manga_id) DO UPDATE SET
+         manga_title = excluded.manga_title,
+         chapter_index = excluded.chapter_index,
+         chapter_title = excluded.chapter_title,
+         chapter_url = excluded.chapter_url,
+         cover_url = excluded.cover_url,
+         page_index = excluded.page_index,
+         total_pages = excluded.total_pages,
+         read_at = strftime('%s','now')`,
+      [data.manga_id, data.manga_title ?? null, data.chapter_index,
+       data.chapter_title ?? null, data.chapter_url ?? null, data.cover_url ?? null,
+       data.page_index, data.total_pages ?? 0]
+    )
+    saveDatabase()
+  })
+
+  ipcMain.handle('history:upsertPage', async (_event, mangaId: string, pageIndex: number) => {
+    const db = await getDatabase()
+    db.run(
+      `UPDATE reading_history SET page_index = ?, read_at = strftime('%s','now')
+       WHERE manga_id = ?`,
+      [pageIndex, mangaId]
+    )
+    saveDatabase()
+  })
+
+  ipcMain.handle('history:listLocal', async () => {
+    const db = await getDatabase()
+    const results = db.exec(
+      'SELECT manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, read_at FROM reading_history ORDER BY read_at DESC'
+    )
+    if (results.length === 0) return []
+    const cols = results[0].columns
+    return results[0].values.map((row) => {
+      const obj: Record<string, unknown> = {}
+      cols.forEach((c, i) => { obj[c] = row[i] })
+      return obj
+    })
+  })
+
+  ipcMain.handle('history:getLocal', async (_event, mangaId: string) => {
+    const db = await getDatabase()
+    const stmt = db.prepare(
+      'SELECT manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, read_at FROM reading_history WHERE manga_id = ?'
+    )
+    stmt.bind([mangaId])
+    let row: Record<string, unknown> | null = null
+    if (stmt.step()) row = stmt.getAsObject()
+    stmt.free()
+    return row
+  })
+
+  ipcMain.handle('history:removeLocal', async (_event, mangaId: string) => {
+    const db = await getDatabase()
+    db.run('DELETE FROM reading_history WHERE manga_id = ?', [mangaId])
+    saveDatabase()
+  })
+
+  ipcMain.handle('history:clearLocal', async () => {
+    const db = await getDatabase()
+    db.run('DELETE FROM reading_history')
+    saveDatabase()
+  })
+
   // Auth
   ipcMain.handle('auth:save', async (_event, key: string, value: string) => {
     const db = await getDatabase()
