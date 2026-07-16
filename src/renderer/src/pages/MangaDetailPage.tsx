@@ -52,10 +52,13 @@ const useStyles = makeStyles({
   author: { fontSize: '15px', color: 'var(--ac-text-2)' },
   tags: { display: 'flex', flexWrap: 'wrap', gap: '6px' },
   tagBadge: {
+    backgroundColor: '#7c5cf0',
+    color: '#ffffff',
     cursor: 'pointer',
     transition: 'transform 0.15s, background-color 0.15s',
     ':hover': {
-      transform: 'translateY(-1px)'
+      transform: 'translateY(-1px)',
+      opacity: 0.9
     }
   },
   description: {

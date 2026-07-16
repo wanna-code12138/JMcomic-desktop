@@ -15,7 +15,7 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#0a0a12',
     color: '#ffffff',
     position: 'relative',
     userSelect: 'none'
@@ -53,7 +53,7 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    backgroundColor: '#0a0a0a'
+    backgroundColor: '#0a0a12'
   },
   scrollMode: {
     display: 'flex',
@@ -73,7 +73,7 @@ const useStyles = makeStyles({
     width: '100%',
     display: 'flex',
     justifyContent: 'center',
-    backgroundColor: '#111111'
+    backgroundColor: '#11111c'
   },
   mangaImage: {
     display: 'block',
@@ -129,7 +129,7 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     height: '100%',
     gap: '16px',
-    color: '#888888'
+    color: '#8a8a9a'
   }
 })
 
