@@ -22,6 +22,7 @@ import {
   Wifi3Regular,
   WifiOff20Regular
 } from '@fluentui/react-icons'
+import { auroraBody, glassPanel, clayRaised } from './theme/clayStyles'
 import { useAppStore } from './stores/appStore'
 import {
   HomePage, CategoriesPage, SearchPage,
@@ -39,28 +40,26 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     height: '100vh',
     overflow: 'hidden',
-    // 透明：标题栏区透出 DWM Mica 材质，下方内容区用实色背景，
-    // 两者形成 Win11 风格的层次差异。
-    // 窗口外圆角 + 1px 边框由 DWM 自动绘制（不可设 transparent:true）。
     backgroundColor: 'transparent'
   },
   body: {
+    ...auroraBody,
     display: 'flex',
     flex: 1,
     overflow: 'hidden',
-    minHeight: 0,
-    // 内容区实色，与透明标题栏（Mica）形成差异
-    backgroundColor: tokens.colorNeutralBackground2
+    minHeight: 0
   },
   nav: {
     width: `${NAV_WIDTH}px`,
     minWidth: `${NAV_WIDTH}px`,
     display: 'flex',
     flexDirection: 'column',
-    padding: '8px',
-    gap: '4px',
-    backgroundColor: tokens.colorNeutralBackground1,
-    borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
+    padding: '10px',
+    gap: '5px',
+    backgroundColor: 'var(--ac-glass-bg)',
+    backdropFilter: 'blur(var(--ac-blur-panel))',
+    WebkitBackdropFilter: 'blur(var(--ac-blur-panel))',
+    borderRight: '1px solid var(--ac-glass-border)',
     userSelect: 'none',
     flexShrink: 0
   },
@@ -68,29 +67,26 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    padding: '8px 12px',
-    borderRadius: tokens.borderRadiusMedium,
+    padding: '9px 12px',
+    borderRadius: 'var(--ac-radius-row)',
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: 400,
-    color: tokens.colorNeutralForeground2,
-    transition: 'background-color 0.1s ease',
+    color: 'var(--ac-text-3)',
+    transition: 'background-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease',
     textDecoration: 'none',
     ':hover': {
-      backgroundColor: tokens.colorNeutralBackground2Hover,
-      color: tokens.colorNeutralForeground2Hover
-    },
-    ':active': {
-      backgroundColor: tokens.colorNeutralBackground2Pressed
+      backgroundColor: 'var(--ac-glass-bg-hover)',
+      color: 'var(--ac-text-2)'
     }
   },
   navItemActive: {
-    backgroundColor: tokens.colorNeutralBackground2Selected,
-    color: tokens.colorBrandForeground1,
+    ...clayRaised,
+    color: 'var(--ac-brand)',
     fontWeight: 600,
     ':hover': {
-      backgroundColor: tokens.colorNeutralBackground2Selected,
-      color: tokens.colorBrandForeground1
+      color: 'var(--ac-brand)',
+      backgroundColor: 'var(--ac-glass-bg-hover)'
     }
   },
   navIcon: {
@@ -116,19 +112,21 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     height: `${STATUS_BAR_HEIGHT}px`,
-    paddingLeft: '12px',
-    paddingRight: '12px',
-    backgroundColor: tokens.colorNeutralBackground2,
-    borderTop: `1px solid ${tokens.colorNeutralStroke1}`,
+    paddingLeft: '14px',
+    paddingRight: '14px',
+    backgroundColor: 'var(--ac-glass-bg)',
+    backdropFilter: 'blur(var(--ac-blur-toolbar))',
+    WebkitBackdropFilter: 'blur(var(--ac-blur-toolbar))',
+    borderTop: '1px solid var(--ac-glass-border)',
     fontSize: '12px',
-    color: tokens.colorNeutralForeground3,
+    color: 'var(--ac-text-3)',
     gap: '10px',
     flexShrink: 0
   },
   statusSeparator: {
     width: '1px',
     height: '12px',
-    backgroundColor: tokens.colorNeutralStroke2,
+    backgroundColor: 'var(--ac-glass-border)',
     flexShrink: 0
   },
   statusItem: {
