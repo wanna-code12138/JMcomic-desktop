@@ -36,6 +36,12 @@ const api = {
   // Auth
   authSave: (key: string, value: string) => ipcRenderer.invoke('auth:save', key, value),
   authGet: (key: string) => ipcRenderer.invoke('auth:get', key),
+  authSetPersistMode: (mode: 'cookie' | 'credential') => ipcRenderer.invoke('auth:setPersistMode', mode),
+
+  // Account session
+  accountLogout: () => ipcRenderer.invoke('account:logout'),
+  accountGetStatus: () => ipcRenderer.invoke('account:getStatus'),
+  accountValidateSession: () => ipcRenderer.invoke('account:validateSession'),
 
   // Cache
   cacheSetManga: (manga: Record<string, unknown>) => ipcRenderer.invoke('cache:setManga', manga),
@@ -91,7 +97,16 @@ const api = {
   contentPages: (chapterUrl: string) => ipcRenderer.invoke('content:pages', chapterUrl),
   contentLogin: (username: string, password: string) => ipcRenderer.invoke('content:login', username, password),
   contentFavorites: (page?: number) => ipcRenderer.invoke('content:favorites', page),
-  contentWarmupStatus: () => ipcRenderer.invoke('content:warmupStatus')
+  contentHistory: (page?: number) => ipcRenderer.invoke('content:history', page),
+  contentWarmupStatus: () => ipcRenderer.invoke('content:warmupStatus'),
+
+  // Local history
+  historyUpsert: (data: Record<string, unknown>) => ipcRenderer.invoke('history:upsert', data),
+  historyUpsertPage: (mangaId: string, pageIndex: number) => ipcRenderer.invoke('history:upsertPage', mangaId, pageIndex),
+  historyListLocal: () => ipcRenderer.invoke('history:listLocal'),
+  historyGetLocal: (mangaId: string) => ipcRenderer.invoke('history:getLocal', mangaId),
+  historyRemoveLocal: (mangaId: string) => ipcRenderer.invoke('history:removeLocal', mangaId),
+  historyClearLocal: () => ipcRenderer.invoke('history:clearLocal')
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)
