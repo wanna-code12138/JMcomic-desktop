@@ -116,7 +116,6 @@ export default function FavoritesPage(): JSX.Element {
   // ── 删除本地收藏 ──
   const handleRemoveFav = async (mangaId: string): Promise<void> => {
     await window.electronAPI?.favoritesRemove(mangaId)
-    loadLocalFav()
   }
 
   return (
