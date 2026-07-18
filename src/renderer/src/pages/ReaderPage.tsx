@@ -15,10 +15,8 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-    backgroundColor: 'var(--ac-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-panel))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-panel))',
-    color: '#ffffff',
+    backgroundColor: 'var(--ac-reader-bg)',
+    color: 'var(--ac-reader-text-1)',
     position: 'relative',
     userSelect: 'none'
   },
@@ -28,17 +26,17 @@ const useStyles = makeStyles({
     height: `${TOOLBAR_HEIGHT}px`,
     padding: '0 12px',
     gap: '8px',
-    backgroundColor: 'var(--ac-glass-bg)',
+    backgroundColor: 'var(--ac-reader-glass-bg)',
     backdropFilter: 'blur(var(--ac-blur-toolbar))',
     WebkitBackdropFilter: 'blur(var(--ac-blur-toolbar))',
     zIndex: 10,
     flexShrink: 0,
-    borderBottom: '1px solid var(--ac-glass-border)'
+    borderBottom: '1px solid var(--ac-reader-glass-border)'
   },
   toolbarTitle: {
     fontSize: '14px',
     fontWeight: 500,
-    color: 'var(--ac-text-2)',
+    color: 'var(--ac-reader-text-2)',
     flex: 1,
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -46,7 +44,7 @@ const useStyles = makeStyles({
   },
   toolbarInfo: {
     fontSize: '12px',
-    color: 'var(--ac-text-3)'
+    color: 'var(--ac-reader-text-3)'
   },
   viewerArea: {
     flex: 1,
@@ -54,10 +52,7 @@ const useStyles = makeStyles({
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    backgroundColor: 'var(--ac-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-panel))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-panel))'
+    alignItems: 'center'
   },
   scrollMode: {
     display: 'flex',
@@ -76,10 +71,7 @@ const useStyles = makeStyles({
   imageWrap: {
     width: '100%',
     display: 'flex',
-    justifyContent: 'center',
-    backgroundColor: 'var(--ac-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-card))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-card))'
+    justifyContent: 'center'
   },
   mangaImage: {
     display: 'block',
@@ -97,18 +89,18 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'var(--ac-glass-bg)',
+    backgroundColor: 'var(--ac-reader-glass-bg)',
     backdropFilter: 'blur(var(--ac-blur-card))',
     WebkitBackdropFilter: 'blur(var(--ac-blur-card))',
-    border: '1px solid var(--ac-glass-border)',
+    border: '1px solid var(--ac-reader-glass-border)',
     borderRadius: 'var(--ac-radius-button)',
     cursor: 'pointer',
-    color: 'var(--ac-text-2)',
+    color: 'var(--ac-reader-text-2)',
     opacity: 0.4,
     transition: 'opacity 0.2s',
     ':hover': {
       opacity: 1,
-      backgroundColor: 'var(--ac-glass-bg-hover)'
+      backgroundColor: 'var(--ac-reader-glass-bg-hover)'
     }
   },
   navLeft: { left: '16px' },
@@ -118,11 +110,11 @@ const useStyles = makeStyles({
     bottom: '16px',
     left: '50%',
     transform: 'translateX(-50%)',
-    backgroundColor: 'var(--ac-glass-bg)',
+    backgroundColor: 'var(--ac-reader-glass-bg)',
     backdropFilter: 'blur(var(--ac-blur-card))',
     WebkitBackdropFilter: 'blur(var(--ac-blur-card))',
-    border: '1px solid var(--ac-glass-border)',
-    color: 'var(--ac-text-2)',
+    border: '1px solid var(--ac-reader-glass-border)',
+    color: 'var(--ac-reader-text-2)',
     padding: '5px 14px',
     borderRadius: 'var(--ac-radius-pill)',
     fontSize: '12px',
@@ -135,7 +127,7 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     height: '100%',
     gap: '16px',
-    color: 'var(--ac-text-3)'
+    color: 'var(--ac-reader-text-3)'
   }
 })
 
@@ -337,6 +329,9 @@ function DescrambledImage(props: {
   const { src, imageUrl, alt, className, style, loading, scrambleId } = props
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const imgRef = React.useRef<HTMLImageElement>(null)
+  const [loaded, setLoaded] = React.useState(false)
+
+  React.useEffect(() => { setLoaded(false) }, [src])
 
   const handleLoad = (): void => {
     const img = imgRef.current
@@ -358,7 +353,9 @@ function DescrambledImage(props: {
     // c === 0 表示不打乱，直接显示原图
     if (c === 0) {
       canvas.style.display = 'none'
+      img.style.display = 'block'
       img.style.visibility = 'visible'
+      setLoaded(true)
       return
     }
 
@@ -390,6 +387,7 @@ function DescrambledImage(props: {
     // 隐藏原图，显示 canvas
     img.style.display = 'none'
     canvas.style.display = 'block'
+    setLoaded(true)
   }
 
   return (
@@ -399,7 +397,7 @@ function DescrambledImage(props: {
         src={src}
         alt={alt}
         className={className}
-        style={{ ...style, display: 'block', visibility: scrambleId === 0 ? 'visible' : 'hidden' }}
+        style={{ ...style, display: 'block', visibility: scrambleId === 0 ? 'visible' : 'hidden', opacity: loaded ? 1 : 0, transition: 'opacity 0.25s ease' }}
         loading={loading}
         onLoad={handleLoad}
         crossOrigin="anonymous"
@@ -407,7 +405,7 @@ function DescrambledImage(props: {
       <canvas
         ref={canvasRef}
         className={className}
-        style={{ ...style, display: 'none', maxWidth: '100%', height: 'auto' }}
+        style={{ ...style, display: 'none', maxWidth: '100%', height: 'auto', opacity: loaded ? 1 : 0, transition: 'opacity 0.25s ease' }}
       />
     </>
   )
@@ -584,7 +582,7 @@ export default function ReaderPage(): JSX.Element {
       {/* Toolbar */}
       <div className={styles.toolbar}>
         <Button appearance="subtle" size="small" icon={<Dismiss20Regular />}
-          style={{ color: 'var(--ac-text-2)' }} onClick={() => {
+          style={{ color: 'var(--ac-reader-text-2)' }} onClick={() => {
             if (historyTimer.current) {
               clearTimeout(historyTimer.current)
               if (readerState?.mangaId) {
@@ -601,14 +599,14 @@ export default function ReaderPage(): JSX.Element {
         {pages.length > 0 && (
           <Tooltip content={viewMode === 'scroll' ? '单页模式' : '滚动模式'} relationship="label">
             <Button appearance="subtle" size="small" icon={<SlideText20Regular />}
-              style={{ color: viewMode === 'scroll' ? 'var(--ac-brand)' : 'var(--ac-text-2)' }}
+              style={{ color: viewMode === 'scroll' ? 'var(--ac-brand)' : 'var(--ac-reader-text-2)' }}
               onClick={() => setViewMode(viewMode === 'scroll' ? 'single' : 'scroll')}
             />
           </Tooltip>
         )}
         <Tooltip content="下载本章" relationship="label">
           <Button appearance="subtle" size="small" icon={<ArrowDownload20Regular />}
-            style={{ color: 'var(--ac-text-2)' }}
+            style={{ color: 'var(--ac-reader-text-2)' }}
             onClick={async () => {
               if (!window.electronAPI) return
               await window.electronAPI.downloadAdd({
@@ -630,13 +628,13 @@ export default function ReaderPage(): JSX.Element {
           <Spinner size="large" />
           <Text>正在加载章节图片...</Text>
           {debugInfo ? (
-            <pre style={{ maxWidth: '500px', fontSize: '11px', color: '#666', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{debugInfo}</pre>
+            <pre style={{ maxWidth: '500px', fontSize: '11px', color: 'var(--ac-reader-text-3)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{debugInfo}</pre>
           ) : null}
         </div>
       ) : error ? (
         <div className={styles.loading}>
           <Text size={500}>⚠️ 加载失败</Text>
-          <pre style={{ maxWidth: '500px', fontSize: '11px', color: '#666', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{error}</pre>
+          <pre style={{ maxWidth: '500px', fontSize: '11px', color: 'var(--ac-reader-text-3)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{error}</pre>
         </div>
       ) : viewMode === 'scroll' ? (
         <div className={styles.viewerArea} ref={viewerRef} onScroll={handleScroll}>

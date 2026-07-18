@@ -46,6 +46,15 @@ body {
   --ac-blur-card: 10px;
   --ac-blur-dialog: 20px;
   --ac-blur-toolbar: 14px;
+
+  /* 阅读器沉浸深色（不随浅深主题切换） */
+  --ac-reader-bg: #0b0b14;
+  --ac-reader-glass-bg: rgba(255, 255, 255, 0.08);
+  --ac-reader-glass-bg-hover: rgba(255, 255, 255, 0.14);
+  --ac-reader-glass-border: rgba(255, 255, 255, 0.12);
+  --ac-reader-text-1: #e8e8f8;
+  --ac-reader-text-2: #b4b4d0;
+  --ac-reader-text-3: #8a8aa8;
 }
 
 /* 浅色 Aurora Clay Light */
