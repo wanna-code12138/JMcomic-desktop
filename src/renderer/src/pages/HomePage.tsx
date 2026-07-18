@@ -102,6 +102,11 @@ export default function HomePage(): JSX.Element {
   const [loading, setLoading] = React.useState(true)
   const [warmingUp, setWarmingUp] = React.useState(true)
   const [allCards, setAllCards] = React.useState<MangaCardData[]>([])
+  const [sections, setSections] = React.useState<{
+    recommended: MangaCardData[]
+    latest: MangaCardData[]
+    popular: MangaCardData[]
+  }>({ recommended: [], latest: [], popular: [] })
   const [error, setError] = React.useState('')
   const [debugInfo, setDebugInfo] = React.useState('')
 
@@ -163,6 +168,11 @@ export default function HomePage(): JSX.Element {
             }
           }
           setAllCards(merged)
+          setSections({
+            recommended: data.recommended || [],
+            latest: data.latest || [],
+            popular: data.popular || []
+          })
 
           if (merged.length === 0) {
             setDebugInfo((result as any).debug ?? '')
@@ -245,7 +255,7 @@ export default function HomePage(): JSX.Element {
         </div>
       ) : (
         <div className={styles.grid}>
-          {[RANDOM_CARD, ...allCards].map((m) => (
+          {[RANDOM_CARD, ...sections[tab]].map((m) => (
             <MangaCard key={m.id} manga={m} onClick={handleCardClick} />
           ))}
         </div>
