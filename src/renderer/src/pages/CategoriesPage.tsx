@@ -69,6 +69,9 @@ const useStyles = makeStyles({
       border: '1px solid color-mix(in srgb, var(--ac-brand) 25%, transparent)',
       color: 'var(--ac-brand)',
       transform: 'translateY(-1px)'
+    },
+    ':active': {
+      transform: 'scale(0.97)'
     }
   },
   tagChipActive: {

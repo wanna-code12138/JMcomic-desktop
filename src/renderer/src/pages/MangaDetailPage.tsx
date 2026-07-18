@@ -34,7 +34,17 @@ const useStyles = makeStyles({
     border: '1px solid var(--ac-glass-border)',
     backgroundColor: 'var(--ac-base-bg)'
   },
-  cover: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
+  cover: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    display: 'block',
+    opacity: 0,
+    transition: 'opacity 0.25s ease'
+  },
+  coverLoaded: {
+    opacity: 1
+  },
   info: { flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 },
   title: {
     fontSize: '28px',
@@ -81,11 +91,14 @@ const useStyles = makeStyles({
     padding: '10px 16px',
     borderRadius: 'var(--ac-radius-row)',
     cursor: 'pointer',
-    transition: 'background-color 0.15s, box-shadow 0.15s',
+    transition: 'background-color 0.15s, box-shadow 0.15s, transform 0.15s',
     gap: '12px',
     ':hover': {
       backgroundColor: 'var(--ac-glass-bg-hover)',
       boxShadow: 'inset 0 0 0 1px var(--ac-glass-border)'
+    },
+    ':active': {
+      transform: 'scale(0.97)'
     }
   },
   chapterIndex: {
@@ -135,6 +148,7 @@ export default function MangaDetailPage(): JSX.Element {
   const [orderAsc, setOrderAsc] = React.useState(false)
   const [liked, setLiked] = React.useState(false)
   const [loading, setLoading] = React.useState(true)
+  const [coverLoaded, setCoverLoaded] = React.useState(false)
   const [manga, setManga] = React.useState<DetailData | null>(null)
   const [error, setError] = React.useState('')
 
@@ -144,6 +158,7 @@ export default function MangaDetailPage(): JSX.Element {
 
     async function load(): Promise<void> {
       setLoading(true)
+      setCoverLoaded(false)
       setError('')
       try {
         const result = await window.electronAPI?.contentDetail(currentMangaId!)
@@ -215,7 +230,12 @@ export default function MangaDetailPage(): JSX.Element {
       <div className={styles.hero}>
         <div className={styles.coverWrap}>
           {manga.coverUrl ? (
-            <img className={styles.cover} src={toJmImg(manga.coverUrl)} alt={manga.title} />
+            <img
+              className={`${styles.cover} ${coverLoaded ? styles.coverLoaded : ''}`}
+              src={toJmImg(manga.coverUrl)}
+              alt={manga.title}
+              onLoad={() => setCoverLoaded(true)}
+            />
           ) : (
             <div className={styles.cover} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ac-text-3)' }}>
               <BookOpen20Regular style={{ width: '48px', height: '48px' }} />

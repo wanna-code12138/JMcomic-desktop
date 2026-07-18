@@ -96,6 +96,9 @@ const useStyles = makeStyles({
     ':hover': {
       backgroundColor: 'color-mix(in srgb, var(--ac-brand) 20%, transparent)',
       transform: 'translateY(-1px)'
+    },
+    ':active': {
+      transform: 'scale(0.97)'
     }
   },
   chipText: {
