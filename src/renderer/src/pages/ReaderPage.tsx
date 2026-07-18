@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import ZoomableImage from '../components/ZoomableImage'
 import { makeStyles, Button, Tooltip, Text, Spinner } from '@fluentui/react-components'
 import {
@@ -53,13 +54,6 @@ const useStyles = makeStyles({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center'
-  },
-  scrollMode: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '4px',
-    padding: '16px 0'
   },
   singlePageMode: {
     display: 'flex',
@@ -428,6 +422,15 @@ export default function ReaderPage(): JSX.Element {
   const [scrambleId, setScrambleId] = useState(0)
   const [zoomDisplay, setZoomDisplay] = useState(1)
 
+  const virtualizer = useVirtualizer({
+    count: pages.length,
+    getScrollElement: () => viewerRef.current,
+    estimateSize: () => (viewerRef.current?.clientWidth ?? 800) * 1.5 + 4,
+    overscan: 3,
+    paddingStart: 16,
+    scrollPaddingEnd: 16
+  })
+
   useEffect(() => {
     if (!readerState) return
     let cancelled = false
@@ -498,17 +501,14 @@ export default function ReaderPage(): JSX.Element {
     if (currentPage > 0) setCurrentPage((p) => p - 1)
   }, [currentPage])
 
-  // 滚动模式下根据滚动位置推算当前页码（单页模式由 goNext/goPrev 控制）
+  // 滚动模式下根据首个可见虚拟行推算当前页码（单页模式由 goNext/goPrev 控制）
   const handleScroll = (): void => {
     if (viewMode !== 'scroll') return
-    const el = viewerRef.current
-    if (!el || pages.length <= 1) return
-    const maxScroll = el.scrollHeight - el.clientHeight
-    if (maxScroll <= 0) return
-    const ratio = Math.min(1, Math.max(0, el.scrollTop / maxScroll))
-    const page = Math.round(ratio * (pages.length - 1))
-    if (page !== currentPageRef.current) {
-      setCurrentPage(page)
+    const items = virtualizer.getVirtualItems()
+    if (items.length === 0) return
+    const first = items[0].index
+    if (first !== currentPageRef.current) {
+      setCurrentPage(first)
     }
   }
 
@@ -539,18 +539,13 @@ export default function ReaderPage(): JSX.Element {
     }
   }, [readerState?.mangaId, currentPage])
 
-  // 续读时自动滚动到上次阅读位置（滚动模式，用数学估算不依赖图片加载）
+  // 续读时自动滚动到上次阅读位置（滚动模式，由虚拟列表按索引定位）
   React.useEffect(() => {
     if (viewMode !== 'scroll') return
     const resume = readerState?.resumePageIndex
     if (!resume || resume <= 0 || pages.length <= 1) return
-    const el = viewerRef.current
-    if (!el) return
-    // 漫画图片典型宽高比约 2:3，用容器宽度推算每页高度
-    const pageH = el.clientWidth / (2 / 3) // width * 1.5
-    const gap = 4
-    const scrollTop = resume * (pageH + gap)
-    el.scrollTo({ top: scrollTop })
+    virtualizer.scrollToIndex(resume, { align: 'start' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewMode, pages.length, readerState?.resumePageIndex])
 
   useEffect(() => {
@@ -638,19 +633,40 @@ export default function ReaderPage(): JSX.Element {
         </div>
       ) : viewMode === 'scroll' ? (
         <div className={styles.viewerArea} ref={viewerRef} onScroll={handleScroll}>
-          <div className={styles.scrollMode}>
-            {pages.map((page, i) => (
-              <div key={i} className={styles.imageWrap}>
-                <DescrambledImage
-                  className={styles.mangaImage}
-                  src={imgSrc(page)}
-                  imageUrl={page.imageUrl}
-                  alt={`第 ${i + 1} 页`}
-                  loading="lazy"
-                  scrambleId={scrambleId}
-                />
-              </div>
-            ))}
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: '100%',
+              position: 'relative'
+            }}
+          >
+            {virtualizer.getVirtualItems().map((vi) => {
+              const page = pages[vi.index]
+              return (
+                <div
+                  key={vi.key}
+                  data-index={vi.index}
+                  ref={virtualizer.measureElement}
+                  className={styles.imageWrap}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    transform: `translateY(${vi.start}px)`,
+                    paddingBottom: '4px'
+                  }}
+                >
+                  <DescrambledImage
+                    className={styles.mangaImage}
+                    src={imgSrc(page)}
+                    imageUrl={page.imageUrl}
+                    alt={`第 ${vi.index + 1} 页`}
+                    loading="lazy"
+                    scrambleId={scrambleId}
+                  />
+                </div>
+              )
+            })}
           </div>
         </div>
       ) : (
