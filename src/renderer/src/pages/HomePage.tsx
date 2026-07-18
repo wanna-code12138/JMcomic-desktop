@@ -255,8 +255,8 @@ export default function HomePage(): JSX.Element {
         </div>
       ) : (
         <div className={styles.grid}>
-          {[RANDOM_CARD, ...sections[tab]].map((m) => (
-            <MangaCard key={m.id} manga={m} onClick={handleCardClick} />
+          {[RANDOM_CARD, ...sections[tab]].map((m, i) => (
+            <MangaCard key={m.id} manga={m} onClick={handleCardClick} index={i} />
           ))}
         </div>
       )}

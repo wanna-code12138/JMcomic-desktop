@@ -36,7 +36,13 @@ const useStyles = makeStyles({
     ':hover': {
       transform: 'translateY(-3px)',
       boxShadow: '0 8px 20px var(--ac-glass-shadow)'
+    },
+    ':active': {
+      transform: 'translateY(-3px) scale(0.97)'
     }
+  },
+  cardEnter: {
+    animation: 'ac-card-enter 0.3s ease-out both'
   },
   imageWrap: {
     position: 'relative',
@@ -50,7 +56,15 @@ const useStyles = makeStyles({
     width: '100%',
     aspectRatio: '3/4',
     objectFit: 'cover',
-    backgroundColor: 'var(--ac-base-bg)'
+    backgroundColor: 'var(--ac-base-bg)',
+    opacity: 0,
+    transition: 'opacity 0.25s ease, transform 0.2s ease'
+  },
+  cardImageLoaded: {
+    opacity: 1
+  },
+  cardImageHover: {
+    transform: 'scale(1.03)'
   },
   favBtn: {
     position: 'absolute',
@@ -72,6 +86,9 @@ const useStyles = makeStyles({
     zIndex: 2,
     ':hover': {
       backgroundColor: 'var(--ac-glass-bg-hover)'
+    },
+    ':focus': {
+      opacity: 1
     }
   },
   favBtnVisible: {
@@ -106,12 +123,13 @@ export interface MangaCardData {
   latestChapter?: string
 }
 
-export default function MangaCard({ manga, onClick }: { manga: MangaCardData; onClick?: (id: string) => void }): JSX.Element {
+export default function MangaCard({ manga, onClick, index }: { manga: MangaCardData; onClick?: (id: string) => void; index?: number }): JSX.Element {
   const styles = useStyles()
   const setCurrentMangaId = useAppStore((s) => s.setCurrentMangaId)
 
   const [liked, setLiked] = React.useState(false)
   const [hovered, setHovered] = React.useState(false)
+  const [imgLoaded, setImgLoaded] = React.useState(false)
 
   React.useEffect(() => {
     let cancelled = false
@@ -147,7 +165,8 @@ export default function MangaCard({ manga, onClick }: { manga: MangaCardData; on
 
   return (
     <div
-      className={styles.card}
+      className={mergeClasses(styles.card, index !== undefined && styles.cardEnter)}
+      style={index !== undefined ? { animationDelay: `${Math.min(index, 12) * 30}ms` } : undefined}
       role="button"
       tabIndex={0}
       onClick={() => onClick ? onClick(manga.id) : setCurrentMangaId(manga.id)}
@@ -157,16 +176,18 @@ export default function MangaCard({ manga, onClick }: { manga: MangaCardData; on
     >
       <div className={styles.imageWrap}>
         <img
-          className={styles.cardImage}
+          className={mergeClasses(styles.cardImage, imgLoaded && styles.cardImageLoaded, hovered && styles.cardImageHover)}
           src={toJmImg(manga.coverUrl)}
           alt={manga.title}
           loading="lazy"
+          onLoad={() => setImgLoaded(true)}
         />
         <div
-          className={mergeClasses(styles.favBtn, hovered && styles.favBtnVisible)}
+          className={mergeClasses(styles.favBtn, (hovered || liked) && styles.favBtnVisible)}
           onClick={handleFavClick}
           role="button"
-          tabIndex={-1}
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); void handleFavClick(e as unknown as React.MouseEvent) } }}
         >
           {liked ? <Heart20Filled style={{ color: '#ff4d4f' }} /> : <Heart20Regular />}
         </div>

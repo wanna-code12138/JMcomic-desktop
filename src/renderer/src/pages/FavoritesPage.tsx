@@ -166,8 +166,8 @@ export default function FavoritesPage(): JSX.Element {
           </div>
         ) : (
           <div className={styles.grid}>
-            {localFav.map((f) => (
-              <MangaCard key={f.manga_id} manga={{ id: f.manga_id, title: f.title, coverUrl: f.cover_url }} />
+            {localFav.map((f, i) => (
+              <MangaCard key={f.manga_id} manga={{ id: f.manga_id, title: f.title, coverUrl: f.cover_url }} index={i} />
             ))}
           </div>
         )

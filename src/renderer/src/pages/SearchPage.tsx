@@ -353,8 +353,8 @@ export default function SearchPage(): JSX.Element {
       {hasQuery && !loading && !error && results.length > 0 && (
         <>
           <div className={styles.grid}>
-            {results.map((m) => (
-              <MangaCard key={m.id} manga={m} />
+            {results.map((m, i) => (
+              <MangaCard key={m.id} manga={m} index={i} />
             ))}
           </div>
 
