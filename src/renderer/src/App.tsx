@@ -72,11 +72,14 @@ const useStyles = makeStyles({
     fontSize: '14px',
     fontWeight: 400,
     color: 'var(--ac-text-3)',
-    transition: 'background-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease',
+    transition: 'background-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease, transform 0.15s ease',
     textDecoration: 'none',
     ':hover': {
       backgroundColor: 'var(--ac-glass-bg-hover)',
       color: 'var(--ac-text-2)'
+    },
+    ':active': {
+      transform: 'scale(0.97)'
     }
   },
   navItemActive: {
@@ -106,6 +109,10 @@ const useStyles = makeStyles({
     flex: 1,
     overflow: 'auto',
     minHeight: 0
+  },
+  pageEnter: {
+    height: '100%',
+    animation: 'ac-page-enter 0.22s ease-out'
   },
   statusBar: {
     display: 'flex',
@@ -223,7 +230,9 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
         {/* Content */}
         <div className={styles.content}>
           <div className={styles.pageArea}>
-            <ActivePage />
+            <div key={currentPage} className={styles.pageEnter}>
+              <ActivePage />
+            </div>
           </div>
 
           {/* Status Bar */}
