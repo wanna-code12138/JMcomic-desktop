@@ -1,7 +1,6 @@
 import React from 'react'
 import {
   makeStyles,
-  tokens,
   mergeClasses
 } from '@fluentui/react-components'
 import {
@@ -181,9 +180,9 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
 
   const networkIcon = () => {
     switch (networkStatus) {
-      case 'online': return <Wifi3Regular style={{ color: tokens.colorStatusSuccessForeground1 }} />
-      case 'degraded': return <Wifi1Regular style={{ color: tokens.colorStatusWarningForeground1 }} />
-      default: return <WifiOff20Regular style={{ color: tokens.colorStatusDangerForeground1 }} />
+      case 'online': return <Wifi3Regular style={{ color: 'var(--ac-green)' }} />
+      case 'degraded': return <Wifi1Regular style={{ color: 'var(--ac-amber)' }} />
+      default: return <WifiOff20Regular style={{ color: 'var(--ac-danger)' }} />
     }
   }
 

@@ -354,7 +354,6 @@ function DescrambledImage(props: {
 
     // 计算条带数量（每页可能不同）
     const c = getNum(scrambleId, aid, filename)
-    console.log('[descramble]', { aid, filename, scrambleId, c, w, h, src })
 
     // c === 0 表示不打乱，直接显示原图
     if (c === 0) {

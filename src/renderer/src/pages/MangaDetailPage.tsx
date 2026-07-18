@@ -52,7 +52,7 @@ const useStyles = makeStyles({
   author: { fontSize: '15px', color: 'var(--ac-text-2)' },
   tags: { display: 'flex', flexWrap: 'wrap', gap: '6px' },
   tagBadge: {
-    backgroundColor: '#7c5cf0',
+    backgroundColor: 'var(--ac-brand)',
     color: '#ffffff',
     cursor: 'pointer',
     transition: 'transform 0.15s, background-color 0.15s',
