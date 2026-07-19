@@ -59,16 +59,15 @@ src/
         ├── pages/
         │   ├── HomePage.tsx         # 首页（推荐/最新/热门 Tab，一次请求三个 Tab 共享）
         │   ├── MangaDetailPage.tsx  # 漫画详情（封面、标签←可点击→搜索、章节列表、阅读/下载按钮）
-        │   ├── ReaderPage.tsx       # 阅读器（滚动模式/单页模式、键盘翻页、jmimg:// 图片代理）
+        │   ├── ReaderPage.tsx       # 阅读器（滚动模式/单页模式、键盘翻页、滚动虚拟化、jmimg:// 图片代理、反打乱）
         │   ├── SearchPage.tsx       # 搜索（搜索历史持久化 chips、关键词/标签筛选、车牌直跳、分页）
         │   ├── CategoriesPage.tsx   # 分类浏览（类型/子类型/排序/时间/热门标签筛选 + 分页）
         │   ├── FavoritesPage.tsx    # 收藏（⚠️ 占位，登录未接入）
         │   ├── DownloadsPage.tsx    # 下载管理（⚠️ 占位，未查询 download:list）
         │   └── SettingsPage.tsx     # 设置（⚠️ 按钮未接入实际逻辑）
         └── components/
-            ├── MangaCard.tsx        # 统一漫画卡片组件（封面 + 标题 + 悬停效果）
+            ├── MangaCard.tsx        # 统一漫画卡片组件（封面淡入 + hover 缩放 + 入场 stagger + 收藏钮）
             ├── TitleBar.tsx         # 自定义标题栏（窗口控制 + 主题切换）
-            ├── NavigationView.tsx   # 侧边导航组件
             └── LoginDialog.tsx      # 登录对话框（UI 完成，已接入 content:login）
 ```
 
@@ -132,17 +131,14 @@ renderer → content:pages → scraperWindow (隐藏浏览器)
 3. **FavoritesPage 是占位**：登录按钮无点击处理，未接入 LoginDialog 和 `content:favorites`。
 4. **DownloadsPage 是占位**：始终展示空状态，未调用 `download:list` IPC 查询数据库中的下载任务。
 5. **SettingsPage 按钮无实际逻辑**：清空缓存、重新探测、代理输入、缓存大小滑块都没有绑定 handler。
-6. **深色模式切换未生效**：TitleBar 传递了 `darkMode` prop 但 App 组件没有根据它切换 Fluent UI 主题（需要 `<FluentProvider theme={...}>` 包裹）。
 
 ### 🟢 改进建议
 
 7. **阅读器无磁盘缓存集成**：ReaderPage 直接通过 `jmimg://` 代理加载图片，没有预取到磁盘缓存。已浏览的图片每次打开都需要重新从 CDN 加载（虽然 `jmimg://` 设置了 `Cache-Control: max-age=86400`，但这是 HTTP 缓存而非应用层缓存）。
-8. **无阅读进度记忆**：`reading_history` 表已建好但 ReaderPage 不会保存/恢复上次阅读位置。
-9. **无章节预加载**：阅读当前章时不预加载下一章的首几张图，翻章时有明显等待。
-10. **首页无分页/无限滚动**：只提取第一页内容（~24 张卡片），无法浏览更多。
-11. **下载无 CBZ/ZIP 导出**：下载的图片以文件夹形式保存，不支持打包为漫画阅读器通用格式。
-12. **内容提取无重试**：scraperWindow 导航失败时直接抛错，没有自动重试或切换备用域名。
-13. **`NavigationView.tsx` 组件未被使用**：App.tsx 里导航是直接内联写的，`NavigationView` 组件是独立封装但未引用（冗余代码）。
+8. **无章节预加载**：阅读当前章时不预加载下一章的首几张图，翻章时有明显等待。
+9. **首页无分页/无限滚动**：只提取第一页内容（~24 张卡片），无法浏览更多。
+10. **下载无 CBZ/ZIP 导出**：下载的图片以文件夹形式保存，不支持打包为漫画阅读器通用格式。
+11. **内容提取无重试**：scraperWindow 导航失败时直接抛错，没有自动重试或切换备用域名。
 
 ---
 
@@ -154,8 +150,10 @@ renderer → content:pages → scraperWindow (隐藏浏览器)
 2. FavoritesPage 集成登录对话框和收藏列表
 3. DownloadsPage 接入 `download:list` 显示下载进度
 4. SettingsPage 绑定实际功能（清缓存、重探测、代理配置）
-5. 深色模式生效（FluentProvider 主题切换）
+5. **深色模式永久生效**：标题栏主题切换与 FluentProvider 主题联动，支持跟随系统/浅色/深色三态切换。
 6. 阅读进度自动保存/恢复
+7. **Aurora Clay 设计语言**：毛玻璃面板 + 新拟物凸起 + 极光渐变背景 + 大圆角体系 + CSS 动效（页面过渡 / 卡片 stagger / 图片淡入 / 按压反馈）
+8. **阅读器深色沉浸**：阅读区固定深色底 + 悬浮件深色玻璃 + 滚动虚拟化
 
 ### 中期（性能优化）
 
@@ -200,4 +198,4 @@ renderer → content:pages → scraperWindow (隐藏浏览器)
 
 ---
 
-*最后更新：2026-07-13*
+*最后更新：2026-07-19*
