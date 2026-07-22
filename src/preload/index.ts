@@ -83,6 +83,16 @@ const api = {
 
   // Content
   contentHomepage: (category?: string) => ipcRenderer.invoke('content:homepage', category),
+  contentHomepageStream: (category?: string) => ipcRenderer.send('content:homepage:stream', category),
+  contentHomepageCancel: (category?: string) => ipcRenderer.send('content:homepage:cancel', category),
+  onHomepageBatch: (callback: (payload: { category: string; cards: Record<string, unknown>[]; done: boolean; error?: string }) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, payload: { category: string; cards: Record<string, unknown>[]; done: boolean; error?: string }): void =>
+      callback(payload)
+    ipcRenderer.on('content:homepage:batch', handler)
+    return () => {
+      ipcRenderer.removeListener('content:homepage:batch', handler)
+    }
+  },
   contentSearch: (query: string, page?: number, mainTag?: 0 | 1, category?: string, order?: string, time?: string) =>
     ipcRenderer.invoke('content:search', query, page, mainTag, category, order, time),
   contentCategory: (params: Record<string, unknown>) =>
