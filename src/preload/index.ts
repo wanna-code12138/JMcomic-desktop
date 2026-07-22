@@ -99,6 +99,16 @@ const api = {
     ipcRenderer.invoke('content:category', params),
   contentDetail: (mangaId: string) => ipcRenderer.invoke('content:detail', mangaId),
   contentPages: (chapterUrl: string) => ipcRenderer.invoke('content:pages', chapterUrl),
+  contentPagesStream: (chapterUrl: string) => ipcRenderer.send('content:pages:stream', chapterUrl),
+  contentPagesCancel: (chapterUrl: string) => ipcRenderer.send('content:pages:cancel', chapterUrl),
+  onPagesBatch: (callback: (payload: { chapterUrl: string; pages: Record<string, unknown>[]; scrambleId: number; done: boolean; debug?: string; error?: string }) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, payload: { chapterUrl: string; pages: Record<string, unknown>[]; scrambleId: number; done: boolean; debug?: string; error?: string }): void =>
+      callback(payload)
+    ipcRenderer.on('content:pages:batch', handler)
+    return () => {
+      ipcRenderer.removeListener('content:pages:batch', handler)
+    }
+  },
   contentWarmupStatus: () => ipcRenderer.invoke('content:warmupStatus'),
 
   // Local history
