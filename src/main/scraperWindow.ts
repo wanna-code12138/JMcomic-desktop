@@ -566,41 +566,22 @@ export async function extractMangaDetail(mangaId: string): Promise<MangaDetailRe
   })
 }
 
-export async function extractChapterPages(chapterUrl: string): Promise<{
+async function extractChapterPagesFromDom(): Promise<{
   pages: { index: number; imageUrl: string }[]
-  scrambleId?: number
-  debug?: string
+  scrambleId: number
+  debug: string
 }> {
-  const cacheKey = `pages:${chapterUrl}`
-  const cached = cacheGet<{ pages: { index: number; imageUrl: string }[]; scrambleId?: number; debug?: string }>(cacheKey)
-  if (cached) {
-    console.log('[scraper] pages cache hit:', chapterUrl)
-    return cached
-  }
-
-  return withScraperLock(async () => {
-    const domain = getActiveDomain()
-    const fullUrl = chapterUrl.startsWith('http') ? chapterUrl : `https://${domain}${chapterUrl}`
-    // 从 chapterUrl 提取 photo_id — 图片 URL 需要包含它作为子目录
-    // URL 格式: /photo/296135 → photoId = "296135"
-    const photoIdMatch = chapterUrl.match(/\/photo\/(\d+)/)
-    const photoId = photoIdMatch ? photoIdMatch[1] : ''
-    console.log('[scraper] extractChapterPages navigating to:', fullUrl, 'photoId:', photoId)
-    await navigateAndWait(fullUrl, 2500)
-
-    const result = await extract<{ pages: { index: number; imageUrl: string }[]; scrambleId: number; debug: string }>(`
+  return extract<{ pages: { index: number; imageUrl: string }[]; scrambleId: number; debug: string }>(`
     (function() {
       var pages = [];
       var debug = [];
       debug.push('URL: ' + location.href);
       debug.push('Title: ' + document.title);
 
-      // 从当前 URL 提取 photo_id（图片 URL 需要包含它作为子目录）
       var urlMatch = location.pathname.match(/\\/photo\\/(\\d+)/);
       var photoId = urlMatch ? urlMatch[1] : '';
       debug.push('photoId from URL: ' + photoId);
 
-      // 提取 scramble_id
       var scrambleId = 0;
       try {
         if (typeof scramble_id !== 'undefined') {
@@ -608,7 +589,6 @@ export async function extractChapterPages(chapterUrl: string): Promise<{
           debug.push('scramble_id from var: ' + scrambleId);
         }
       } catch(e) {
-        // 从 HTML 源码正则提取
         var html = document.documentElement.outerHTML;
         var sm = html.match(/var\\s+scramble_id\\s*=\\s*(\\d+)/);
         if (sm) {
@@ -630,18 +610,16 @@ export async function extractChapterPages(chapterUrl: string): Promise<{
           }
         }
         if (typeof page_arr !== 'undefined' && Array.isArray(page_arr)) {
-          // 尝试从 blank 图片提取域名
           var blankImg = document.querySelector('img[src*="/media/albums/blank"]');
           if (blankImg && blankImg.src) {
             var m = blankImg.src.match(/https:\\/\\/(.*?)\\/media\\/albums\\/blank/);
             if (m) imgDomain = m[1];
             debug.push('blankImg src: ' + blankImg.src);
           } else {
-            debug.push('blankImg not found, using default domain: ' + imgDomain);
+            debug.push('blankImg not found: ' + imgDomain);
           }
+          if (typeof imgDomain === 'undefined') { imgDomain = 'cdn-msp3.18comic.vip'; }
           page_arr.forEach(function(f, i) {
-            // page_arr 元素是文件名如 "00001.webp"
-            // 完整 URL 格式: https://cdn-msp3.18comic.vip/media/photos/{photoId}/{filename}
             var url;
             if (f.indexOf('http') === 0) {
               url = f;
@@ -680,7 +658,6 @@ export async function extractChapterPages(chapterUrl: string): Promise<{
         debug.push('visible imgs matched: ' + pages.length);
       }
 
-      // 额外调试：检查页面中的 script 标签内容
       if (pages.length === 0) {
         var scripts = document.querySelectorAll('script');
         debug.push('script tags: ' + scripts.length);
@@ -693,7 +670,6 @@ export async function extractChapterPages(chapterUrl: string): Promise<{
             debug.push('script[' + i + '] has img_host');
           }
         }
-        // 打印 body 的前 2000 字符
         debug.push('body snippet: ' + (document.body ? document.body.innerHTML.substring(0, 2000) : 'no body'));
       }
 
@@ -703,12 +679,96 @@ export async function extractChapterPages(chapterUrl: string): Promise<{
       return { pages: pages, scrambleId: scrambleId, debug: debug.join('\\n') };
     })()
   `)
+}
+
+export async function extractChapterPages(chapterUrl: string): Promise<{
+  pages: { index: number; imageUrl: string }[]
+  scrambleId?: number
+  debug?: string
+}> {
+  const cacheKey = `pages:${chapterUrl}`
+  const cached = cacheGet<{ pages: { index: number; imageUrl: string }[]; scrambleId?: number; debug?: string }>(cacheKey)
+  if (cached) {
+    console.log('[scraper] pages cache hit:', chapterUrl)
+    return cached
+  }
+
+  return withScraperLock(async () => {
+    const domain = getActiveDomain()
+    const fullUrl = chapterUrl.startsWith('http') ? chapterUrl : `https://${domain}${chapterUrl}`
+    console.log('[scraper] extractChapterPages navigating to:', fullUrl)
+    await navigateAndWait(fullUrl, 2500)
+
+    const result = await extractChapterPagesFromDom()
 
     if (result.pages.length > 0) {
       cacheSet(cacheKey, result)
     }
     console.log('[scraper] extractChapterPages result:', result.pages.length, 'pages')
     return result
+  })
+}
+
+export async function extractChapterPagesStream(
+  chapterUrl: string,
+  onPages: (pages: { index: number; imageUrl: string }[], scrambleId: number, done: boolean, debug?: string) => void,
+  signal: { aborted: boolean }
+): Promise<{ debug?: string }> {
+  const cacheKey = `pages:${chapterUrl}`
+  const cached = cacheGet<{ pages: { index: number; imageUrl: string }[]; scrambleId?: number; debug?: string }>(cacheKey)
+  if (cached) {
+    console.log('[scraper] pages stream cache hit:', chapterUrl)
+    onPages(cached.pages, cached.scrambleId ?? 0, true, cached.debug)
+    return cached
+  }
+
+  return withScraperLock(async () => {
+    if (signal.aborted) {
+      console.log('[scraper] pages stream aborted before navigate:', chapterUrl)
+      onPages([], 0, true)
+      return { debug: 'aborted before navigate' }
+    }
+
+    const domain = getActiveDomain()
+    const fullUrl = chapterUrl.startsWith('http') ? chapterUrl : `https://${domain}${chapterUrl}`
+    console.log('[scraper] extractChapterPagesStream navigating to:', fullUrl)
+    await navigateAndWait(fullUrl, 200)
+
+    const startTime = Date.now()
+
+    while (true) {
+      if (signal.aborted) {
+        console.log('[scraper] pages stream aborted for:', chapterUrl)
+        onPages([], 0, true)
+        return { debug: 'aborted' }
+      }
+
+      const ready = await extract<boolean>(
+        "(typeof page_arr !== 'undefined' && Array.isArray(page_arr) && page_arr.length > 0)"
+      )
+
+      if (ready) {
+        const result = await extractChapterPagesFromDom()
+        onPages(result.pages, result.scrambleId, true, result.debug)
+        if (result.pages.length > 0) {
+          cacheSet(cacheKey, result)
+        }
+        console.log('[scraper] pages stream ready:', result.pages.length, 'pages, domain from poll')
+        return { debug: result.debug }
+      }
+
+      if (Date.now() - startTime > 10000) {
+        console.log('[scraper] pages stream timeout, fallback extraction for:', chapterUrl)
+        const result = await extractChapterPagesFromDom()
+        onPages(result.pages, result.scrambleId, true, result.debug)
+        if (result.pages.length > 0) {
+          cacheSet(cacheKey, result)
+        }
+        return { debug: result.debug }
+      }
+
+      await sleep(150)
+    }
   })
 }
 

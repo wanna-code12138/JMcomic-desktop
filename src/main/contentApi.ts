@@ -6,6 +6,7 @@ import {
   extractHomepageStream,
   extractMangaDetail,
   extractChapterPages,
+  extractChapterPagesStream,
   extractSearch,
   extractCategory,
   destroyScraper
@@ -134,6 +135,37 @@ ipcMain.handle('content:pages', async (_event, chapterUrl: string) => {
     console.error('[content:pages] error:', err)
     return { ok: false, error: String(err) }
   }
+})
+
+const pageStreams = new Map<string, { signal: { aborted: boolean } }>()
+
+ipcMain.on('content:pages:stream', async (event, chapterUrl?: string) => {
+  const url = chapterUrl ?? ''
+  const prev = pageStreams.get(url)
+  if (prev) prev.signal.aborted = true
+  const signal = { aborted: false }
+  pageStreams.set(url, { signal })
+  const send = (payload: { chapterUrl: string; pages: unknown[]; scrambleId: number; done: boolean; debug?: string; error?: string }): void => {
+    if (!event.sender.isDestroyed()) event.sender.send('content:pages:batch', payload)
+  }
+  try {
+    await ensureReady()
+    if (signal.aborted) return
+    await extractChapterPagesStream(url, (pages, scrambleId, done, debug) => {
+      if (signal.aborted) return
+      send({ chapterUrl: url, pages, scrambleId, done, debug })
+    }, signal)
+  } catch (err) {
+    if (!signal.aborted) send({ chapterUrl: url, error: String(err), done: true })
+  } finally {
+    if (pageStreams.get(url)?.signal === signal) pageStreams.delete(url)
+  }
+})
+
+ipcMain.on('content:pages:cancel', (_event, chapterUrl?: string) => {
+  const url = chapterUrl ?? ''
+  const entry = pageStreams.get(url)
+  if (entry) entry.signal.aborted = true
 })
 
 ipcMain.handle('content:warmupStatus', () => {

@@ -434,63 +434,75 @@ export default function ReaderPage(): JSX.Element {
   useEffect(() => {
     if (!readerState) return
     let cancelled = false
+    let historyDone = false
+    let streamOffRef: (() => void) | null = null
 
-    async function load(): Promise<void> {
-      setLoading(true)
-      setError('')
+    setLoading(true)
+    setError('')
 
-      try {
-        const result = await window.electronAPI?.contentPages(readerState!.chapterUrl)
-        if (cancelled) return
+    const off = window.electronAPI?.onPagesBatch((payload) => {
+      if (cancelled) {
+        streamOffRef?.()
+        return
+      }
+      if (payload.chapterUrl !== readerState.chapterUrl) return
 
-        if (!result?.ok || !result.data) {
-          setError(result?.error || '无法获取章节图片')
-          setLoading(false)
-          return
-        }
-
-        const pageList = result.data as PageData[]
-        setDebugInfo((result as any).debug ?? '')
-        setScrambleId((result as any).scrambleId ?? 0)
-
-        if (pageList.length === 0) {
-          setError(`未找到任何图片\n调试: ${(result as any).debug ?? ''}`)
-          setLoading(false)
-          return
-        }
-
-        // URLs come from scraperWindow — convert to jmimg:// proxy
-        // so the renderer can load them through the main process
-        // (which adds proper Referer + session cookies).
-        setPages(pageList)
-
-        // 续读：若指定了 resumePageIndex，跳到该页
-        const resume = readerState!.resumePageIndex
-        if (typeof resume === 'number' && resume > 0 && resume < pageList.length) {
-          setCurrentPage(resume)
-        }
-
-        // 写历史：记录"开始读"这一章
-        const rs = readerState!
-        window.electronAPI?.historyUpsert({
-          manga_id: rs.mangaId,
-          manga_title: rs.mangaTitle,
-          chapter_index: rs.chapterIndex,
-          chapter_title: rs.chapterTitle,
-          chapter_url: rs.chapterUrl,
-          cover_url: rs.mangaCoverUrl,
-          page_index: rs.resumePageIndex ?? 0,
-          total_pages: pageList.length
-        })
-      } catch (err) {
-        if (!cancelled) setError(String(err))
+      if (payload.error) {
+        setError(payload.error)
+        setLoading(false)
+        streamOffRef?.()
+        return
       }
 
-      if (!cancelled) setLoading(false)
-    }
+      const pageList = payload.pages as unknown as PageData[]
+      setScrambleId(payload.scrambleId)
 
-    load()
-    return () => { cancelled = true }
+      if (pageList.length > 0) {
+        setPages(pageList)
+        setLoading(false)
+        setDebugInfo(payload.debug ?? '')
+
+        if (!historyDone) {
+          historyDone = true
+          const resume = readerState.resumePageIndex
+          if (typeof resume === 'number' && resume > 0 && resume < pageList.length) {
+            setCurrentPage(resume)
+          }
+          const rs = readerState
+          window.electronAPI?.historyUpsert({
+            manga_id: rs.mangaId,
+            manga_title: rs.mangaTitle,
+            chapter_index: rs.chapterIndex,
+            chapter_title: rs.chapterTitle,
+            chapter_url: rs.chapterUrl,
+            cover_url: rs.mangaCoverUrl,
+            page_index: rs.resumePageIndex ?? 0,
+            total_pages: pageList.length
+          })
+        }
+      }
+
+      if (payload.done) {
+        streamOffRef?.()
+        if (pageList.length === 0) {
+          setError('未找到任何图片')
+          setLoading(false)
+        }
+      }
+    })
+
+    if (off) streamOffRef = off
+
+    window.electronAPI?.contentPagesStream(readerState.chapterUrl)
+
+    return () => {
+      cancelled = true
+      streamOffRef?.()
+      streamOffRef = null
+      if (readerState) {
+        window.electronAPI?.contentPagesCancel(readerState.chapterUrl)
+      }
+    }
   }, [readerState])
 
   const goNext = useCallback(() => {
