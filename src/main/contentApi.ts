@@ -9,6 +9,7 @@ import {
   extractCategory,
   destroyScraper
 } from './scraperWindow'
+import { mapCardToMangaCardData } from './homepageLogic'
 
 // Ensure session is ready (Cloudflare warmup)
 async function ensureReady(): Promise<void> {
@@ -26,19 +27,17 @@ async function ensureReady(): Promise<void> {
 // because it cannot render JavaScript and returns empty/partial DOM.
 // ─────────────────────────────────────────────────────────────────
 
-ipcMain.handle('content:homepage', async () => {
+ipcMain.handle('content:homepage', async (_event, category?: string) => {
   try {
     await ensureReady()
-    const data = await extractHomepage()
+    const cat: 'recommended' | 'latest' | 'popular' =
+      category === 'latest' || category === 'popular' ? category : 'recommended'
+    const data = await extractHomepage(cat)
+    const mappedCards = data.cards.map(mapCardToMangaCardData)
     return {
       ok: true,
-      data: {
-        recommended: data.recommended,
-        latest: data.latest,
-        popular: data.popular
-      },
-      total: data.recommended.length + data.latest.length + data.popular.length,
-      debug: (data as any).debug
+      data: mappedCards,
+      category: cat
     }
   } catch (err) {
     return { ok: false, error: `提取失败: ${String(err)}` }

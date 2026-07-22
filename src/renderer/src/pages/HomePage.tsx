@@ -102,6 +102,7 @@ export default function HomePage(): JSX.Element {
   const [loading, setLoading] = React.useState(true)
   const [warmingUp, setWarmingUp] = React.useState(true)
   const [allCards, setAllCards] = React.useState<MangaCardData[]>([])
+  const loadedTabs = React.useRef(new Set<string>())
   const [sections, setSections] = React.useState<{
     recommended: MangaCardData[]
     latest: MangaCardData[]
@@ -120,78 +121,83 @@ export default function HomePage(): JSX.Element {
     }
   }, [allCards, setCurrentMangaId])
 
+  const fetchCategory = React.useCallback(async (category: 'recommended' | 'latest' | 'popular', cancelled: { current: boolean }) => {
+    if (loadedTabs.current.has(category)) return
+
+    try {
+      const result = await window.electronAPI?.contentHomepage(category)
+      if (cancelled.current) return
+
+      if (result?.ok) {
+        const data = result.data as MangaCardData[]
+
+        if (data.length === 0) {
+          if (cancelled.current) return
+          setDebugInfo((result as any).debug ?? '')
+          setError(`"${category === 'recommended' ? '推荐' : category === 'latest' ? '最新' : '热门'}"分类暂无可显示的内容。\n\n调试信息:\n${(result as any).debug ?? ''}`)
+          return
+        }
+
+        if (cancelled.current) return
+        setSections((prev) => ({ ...prev, [category]: data }))
+        setAllCards((prev) => {
+          const seen = new Set(prev.map((c) => c.id))
+          const newCards = data.filter((c) => !seen.has(c.id))
+          return [...prev, ...newCards]
+        })
+        loadedTabs.current.add(category)
+      } else {
+        if (cancelled.current) return
+        setDebugInfo((result as any)?.debug ?? '')
+        setError((result?.error || '获取内容失败') + (((result as any)?.debug) ? `\n\n调试:\n${(result as any).debug}` : ''))
+      }
+    } catch (err) {
+      if (!cancelled.current) setError(String(err))
+    }
+  }, [])
+
+  // Load current tab on mount and when tab switches
   React.useEffect(() => {
-    let cancelled = false
+    const cancelled = { current: false }
+    setError('')
 
     async function load(): Promise<void> {
       setLoading(true)
-      setError('')
-      setWarmingUp(true)
 
-      // Wait for warmup
-      try {
-        if (window.electronAPI) {
-          const status = await window.electronAPI.contentWarmupStatus()
-          if (!status.warmedUp) {
-            await new Promise<void>((resolve) => {
-              const unsub = window.electronAPI!.onWarmupDone(() => {
-                unsub()
-                resolve()
+      // Warmup only on first load
+      if (loadedTabs.current.size === 0) {
+        setWarmingUp(true)
+        try {
+          if (window.electronAPI) {
+            const status = await window.electronAPI.contentWarmupStatus()
+            if (!status.warmedUp) {
+              await new Promise<void>((resolve) => {
+                const unsub = window.electronAPI!.onWarmupDone(() => {
+                  unsub()
+                  resolve()
+                })
+                setTimeout(resolve, 35000)
               })
-              setTimeout(resolve, 35000)
-            })
-          }
-        }
-      } catch { /* proceed */ }
-
-      if (cancelled) return
-      setWarmingUp(false)
-
-      // Fetch homepage once for all tabs
-      try {
-        const result = await window.electronAPI?.contentHomepage()
-        if (cancelled) return
-
-        if (result?.ok) {
-          const data = result.data as { recommended: MangaCardData[]; latest: MangaCardData[]; popular: MangaCardData[] }
-          // Merge all sections, deduplicate by id
-          const seen = new Set<string>()
-          const merged: MangaCardData[] = []
-          for (const card of [
-            ...(data.recommended || []),
-            ...(data.latest || []),
-            ...(data.popular || [])
-          ]) {
-            if (!seen.has(card.id)) {
-              seen.add(card.id)
-              merged.push(card)
             }
           }
-          setAllCards(merged)
-          setSections({
-            recommended: data.recommended || [],
-            latest: data.latest || [],
-            popular: data.popular || []
-          })
+        } catch { /* proceed */ }
 
-          if (merged.length === 0) {
-            setDebugInfo((result as any).debug ?? '')
-            setError(`解析到 ${(result as any).total ?? 0} 个条目但筛选后为空。\n\n调试信息:\n${(result as any).debug ?? ''}`)
-          }
-        } else {
-          setDebugInfo((result as any)?.debug ?? '')
-          setError((result?.error || '获取内容失败') + (((result as any)?.debug) ? `\n\n调试:\n${(result as any).debug}` : ''))
-        }
-      } catch (err) {
-        if (!cancelled) setError(String(err))
+        if (cancelled.current) return
+        setWarmingUp(false)
       }
 
-      if (!cancelled) setLoading(false)
+      await fetchCategory(tab, cancelled)
+      if (!cancelled.current) setLoading(false)
     }
 
-    load()
-    return () => { cancelled = true }
-  }, []) // Fetch once — tab switching just filters from cache
+    if (!loadedTabs.current.has(tab)) {
+      load()
+    } else {
+      setLoading(false)
+    }
+
+    return () => { cancelled.current = true }
+  }, [tab, fetchCategory])
 
   if (warmingUp) {
     return (

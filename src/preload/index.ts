@@ -82,7 +82,7 @@ const api = {
   },
 
   // Content
-  contentHomepage: () => ipcRenderer.invoke('content:homepage'),
+  contentHomepage: (category?: string) => ipcRenderer.invoke('content:homepage', category),
   contentSearch: (query: string, page?: number, mainTag?: 0 | 1, category?: string, order?: string, time?: string) =>
     ipcRenderer.invoke('content:search', query, page, mainTag, category, order, time),
   contentCategory: (params: Record<string, unknown>) =>

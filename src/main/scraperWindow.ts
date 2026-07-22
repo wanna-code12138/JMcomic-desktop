@@ -2,6 +2,7 @@ import { BrowserWindow, session, app } from 'electron'
 import { writeFileSync, mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
 import { getActiveDomain } from './networkProbe'
+import { buildHomepageUrl, buildHomepageCacheKey, type HomepageCategory } from './homepageLogic'
 
 let scraperWin: BrowserWindow | null = null
 
@@ -348,41 +349,35 @@ async function extractAllCards(): Promise<{ cards: MangaCard[]; debug: string }>
 // Public API
 // ═══════════════════════════════════════════════════════════
 
-export async function extractHomepage(): Promise<{
-  recommended: MangaCard[]
-  latest: MangaCard[]
-  popular: MangaCard[]
+export async function extractHomepage(category: HomepageCategory): Promise<{
+  cards: MangaCard[]
   debug?: string
 }> {
-  const cacheKey = 'homepage'
-  const cached = cacheGet<{ recommended: MangaCard[]; latest: MangaCard[]; popular: MangaCard[]; debug?: string }>(cacheKey)
+  const cacheKey = buildHomepageCacheKey(category)
+  const cached = cacheGet<{ cards: MangaCard[]; debug?: string }>(cacheKey)
   if (cached) {
-    console.log('[scraper] homepage cache hit')
+    console.log('[scraper] homepage cache hit:', cacheKey)
     return cached
   }
 
   return withScraperLock(async () => {
     const domain = getActiveDomain()
-    await navigateAndWait(`https://${domain}/`, 1500)
+    const url = buildHomepageUrl(domain, category)
+    console.log('[scraper] extractHomepage navigating to:', url.slice(0, 120))
+    await navigateAndWait(url, 1500)
 
     const { cards, debug } = await extractAllCards()
 
-    // Save debug info
     if (cards.length === 0) {
       const pageHtml = await extract<string>(`document.documentElement.outerHTML`)
-      const dumpPath = dumpDebug('homepage', debug + '\n\n===PAGE HTML===\n' + pageHtml.substring(0, 50000))
+      const dumpPath = dumpDebug(`homepage-${category}`, debug + '\n\n===PAGE HTML===\n' + pageHtml.substring(0, 50000))
       return {
-        recommended: [], latest: [], popular: [],
+        cards: [],
         debug: `0 张卡片被提取。调试信息已保存至: ${dumpPath}\n\n${debug}`
       }
     }
 
-    const result = {
-      recommended: cards.slice(0, 12),
-      latest: cards.slice(0, 24),
-      popular: cards.slice(0, 24),
-      debug: debug
-    }
+    const result = { cards, debug }
     cacheSet(cacheKey, result)
     return result
   })
