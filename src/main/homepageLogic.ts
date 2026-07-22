@@ -2,7 +2,7 @@ export type HomepageCategory = 'recommended' | 'latest' | 'popular'
 
 export function buildHomepageUrl(domain: string, category: HomepageCategory): string {
   if (category === 'recommended') {
-    return `https://${domain}/`
+    return `https://${domain}/albums?o=tf`
   }
   const order = category === 'latest' ? 'mr' : 'mv'
   return `https://${domain}/albums?o=${order}`

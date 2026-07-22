@@ -14,9 +14,9 @@ function test(name: string, fn: () => void): void {
 
 // ─── buildHomepageUrl ──────────────────────────────────────────────
 
-test('recommended returns homepage root URL', () => {
+test('recommended returns /albums with o=tf', () => {
   const url = buildHomepageUrl('18comic.vip', 'recommended')
-  assert.strictEqual(url, 'https://18comic.vip/')
+  assert.strictEqual(url, 'https://18comic.vip/albums?o=tf')
 })
 
 test('latest returns /albums with o=mr', () => {
