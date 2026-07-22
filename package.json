@@ -49,8 +49,7 @@
       "output": "dist-electron"
     },
     "files": [
-      "out/**/*",
-      "!node_modules"
+      "out/**/*"
     ],
     "win": {
       "target": [
