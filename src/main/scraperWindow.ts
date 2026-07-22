@@ -3,6 +3,7 @@ import { writeFileSync, mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
 import { getActiveDomain } from './networkProbe'
 import { buildHomepageUrl, buildHomepageCacheKey, type HomepageCategory } from './homepageLogic'
+import { diffCards, shouldStopPolling } from './homepageStream'
 
 let scraperWin: BrowserWindow | null = null
 
@@ -157,7 +158,7 @@ async function extract<T>(script: string): Promise<T> {
 // Robust extraction: multiple strategies, detailed debugging
 // ═══════════════════════════════════════════════════════════
 
-interface MangaCard {
+export interface MangaCard {
   id: string; title: string; coverUrl: string; author?: string; chapter?: string
 }
 
@@ -380,6 +381,85 @@ export async function extractHomepage(category: HomepageCategory): Promise<{
     const result = { cards, debug }
     cacheSet(cacheKey, result)
     return result
+  })
+}
+
+const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms))
+
+export async function extractHomepageStream(
+  category: HomepageCategory,
+  onBatch: (cards: MangaCard[], done: boolean) => void,
+  signal: { aborted: boolean }
+): Promise<{ cards: MangaCard[]; debug?: string }> {
+  const cacheKey = buildHomepageCacheKey(category)
+  const cached = cacheGet<{ cards: MangaCard[]; debug?: string }>(cacheKey)
+  if (cached) {
+    console.log('[scraper] homepage stream cache hit:', cacheKey)
+    onBatch(cached.cards, true)
+    return cached
+  }
+
+  return withScraperLock(async () => {
+    if (signal.aborted) return { cards: [], debug: 'aborted before navigate' }
+
+    const domain = getActiveDomain()
+    const url = buildHomepageUrl(domain, category)
+    console.log('[scraper] extractHomepageStream navigating to:', url.slice(0, 120))
+    await navigateAndWait(url, 200)
+
+    const knownIds = new Set<string>()
+    const countHistory: number[] = []
+    const startTime = Date.now()
+    let lastCards: MangaCard[] = []
+    let everHadCards = false
+
+    while (true) {
+      if (signal.aborted) {
+        console.log('[scraper] stream aborted for:', category)
+        onBatch([], true)
+        return { cards: [], debug: 'aborted' }
+      }
+
+      const { cards } = await extractAllCards()
+      lastCards = cards
+
+      if (cards.length > 0) everHadCards = true
+
+      const newCards = diffCards(knownIds, cards)
+      if (signal.aborted) break
+      if (newCards.length > 0) {
+        onBatch(newCards, false)
+        newCards.forEach((c) => knownIds.add(c.id))
+      }
+
+      countHistory.push(cards.length)
+
+      if (cards.length > 0 && shouldStopPolling(countHistory, 3)) {
+        break
+      }
+
+      if (!everHadCards && Date.now() - startTime > 3000 && cards.length === 0) {
+        console.log('[scraper] stream no cards after 3s, exiting early for:', category)
+        break
+      }
+
+      if (Date.now() - startTime > 10000) {
+        console.log('[scraper] stream timeout for:', category, 'got', knownIds.size, 'cards')
+        break
+      }
+
+      await sleep(150)
+    }
+
+    onBatch([], true)
+
+    if (lastCards.length > 0) {
+      cacheSet(cacheKey, { cards: lastCards, debug: '' })
+    } else if (knownIds.size === 0) {
+      console.warn('[scraper] stream extracted 0 cards for:', category)
+    }
+
+    return { cards: lastCards }
   })
 }
 

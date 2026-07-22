@@ -100,16 +100,17 @@ export default function HomePage(): JSX.Element {
   const setCurrentMangaId = useAppStore((s) => s.setCurrentMangaId)
   const [tab, setTab] = React.useState<'recommended' | 'latest' | 'popular'>('recommended')
   const [loading, setLoading] = React.useState(true)
+  const [loadingMore, setLoadingMore] = React.useState(false)
   const [warmingUp, setWarmingUp] = React.useState(true)
   const [allCards, setAllCards] = React.useState<MangaCardData[]>([])
   const loadedTabs = React.useRef(new Set<string>())
+  const streamOff = React.useRef<(() => void) | null>(null)
   const [sections, setSections] = React.useState<{
     recommended: MangaCardData[]
     latest: MangaCardData[]
     popular: MangaCardData[]
   }>({ recommended: [], latest: [], popular: [] })
   const [error, setError] = React.useState('')
-  const [debugInfo, setDebugInfo] = React.useState('')
 
   const handleCardClick = React.useCallback((mangaId: string) => {
     if (mangaId === '__random__') {
@@ -121,39 +122,59 @@ export default function HomePage(): JSX.Element {
     }
   }, [allCards, setCurrentMangaId])
 
-  const fetchCategory = React.useCallback(async (category: 'recommended' | 'latest' | 'popular', cancelled: { current: boolean }) => {
+  const fetchCategory = React.useCallback((category: 'recommended' | 'latest' | 'popular', cancelled: { current: boolean }) => {
     if (loadedTabs.current.has(category)) return
 
-    try {
-      const result = await window.electronAPI?.contentHomepage(category)
-      if (cancelled.current) return
+    let hasCards = false
+    const off = window.electronAPI?.onHomepageBatch((payload) => {
+      if (payload.category !== category) return
 
-      if (result?.ok) {
-        const data = result.data as MangaCardData[]
+      if (cancelled.current) {
+        off?.()
+        return
+      }
 
-        if (data.length === 0) {
-          if (cancelled.current) return
-          setDebugInfo((result as any).debug ?? '')
-          setError(`"${category === 'recommended' ? '推荐' : category === 'latest' ? '最新' : '热门'}"分类暂无可显示的内容。\n\n调试信息:\n${(result as any).debug ?? ''}`)
-          return
+      if (payload.error) {
+        off?.()
+        setLoadingMore(false)
+        setLoading(false)
+        if (!hasCards) {
+          setError(payload.error)
         }
+        return
+      }
 
-        if (cancelled.current) return
-        setSections((prev) => ({ ...prev, [category]: data }))
+      const cards = payload.cards as unknown as MangaCardData[]
+      if (cards.length > 0) {
+        hasCards = true
+        setSections((prev) => {
+          const seen = new Set(prev[category].map((c) => c.id))
+          const newCards = cards.filter((c) => !seen.has(c.id))
+          return { ...prev, [category]: [...prev[category], ...newCards] }
+        })
         setAllCards((prev) => {
           const seen = new Set(prev.map((c) => c.id))
-          const newCards = data.filter((c) => !seen.has(c.id))
+          const newCards = cards.filter((c) => !seen.has(c.id))
           return [...prev, ...newCards]
         })
-        loadedTabs.current.add(category)
-      } else {
-        if (cancelled.current) return
-        setDebugInfo((result as any)?.debug ?? '')
-        setError((result?.error || '获取内容失败') + (((result as any)?.debug) ? `\n\n调试:\n${(result as any).debug}` : ''))
+        setLoading(false)
       }
-    } catch (err) {
-      if (!cancelled.current) setError(String(err))
-    }
+
+      if (payload.done) {
+        off?.()
+        setLoadingMore(false)
+        setLoading(false)
+        if (!hasCards) {
+          setError(`"${category === 'recommended' ? '推荐' : category === 'latest' ? '最新' : '热门'}"分类暂无可显示的内容，请切换其它分类或重试。`)
+        } else {
+          loadedTabs.current.add(category)
+        }
+      }
+    })
+
+    streamOff.current = off ?? null
+    setLoadingMore(true)
+    window.electronAPI?.contentHomepageStream(category)
   }, [])
 
   // Load current tab on mount and when tab switches
@@ -186,8 +207,7 @@ export default function HomePage(): JSX.Element {
         setWarmingUp(false)
       }
 
-      await fetchCategory(tab, cancelled)
-      if (!cancelled.current) setLoading(false)
+      fetchCategory(tab, cancelled)
     }
 
     if (!loadedTabs.current.has(tab)) {
@@ -196,7 +216,14 @@ export default function HomePage(): JSX.Element {
       setLoading(false)
     }
 
-    return () => { cancelled.current = true }
+    return () => {
+      cancelled.current = true
+      if (streamOff.current) {
+        streamOff.current()
+        streamOff.current = null
+      }
+      window.electronAPI?.contentHomepageCancel(tab)
+    }
   }, [tab, fetchCategory])
 
   if (warmingUp) {
@@ -234,13 +261,13 @@ export default function HomePage(): JSX.Element {
         </TabList>
       </div>
 
-      {loading ? (
+      {loading && sections[tab].length === 0 ? (
         <div className={styles.shimmerGrid}>
           {Array.from({ length: 12 }).map((_, i) => (
             <MangaCardSkeleton key={i} />
           ))}
         </div>
-      ) : error ? (
+      ) : error && sections[tab].length === 0 ? (
         <div className={styles.statusMsg}>
           <Text size={500} weight="semibold">⚠️ 内容加载失败</Text>
           <pre style={{
@@ -254,17 +281,34 @@ export default function HomePage(): JSX.Element {
             请确认：1. 网络已连接  2. 代理已开启  3. 在浏览器中能打开 18comic.vip
           </Text>
         </div>
-      ) : allCards.length === 0 ? (
+      ) : !loading && !loadingMore && sections[tab].length === 0 ? (
         <div className={styles.statusMsg}>
           <Text size={400}>暂无内容</Text>
           <Text size={200} style={{ opacity: 0.6 }}>请尝试切换到其他分类或进行搜索</Text>
         </div>
       ) : (
-        <div className={styles.grid}>
-          {[RANDOM_CARD, ...sections[tab]].map((m, i) => (
-            <MangaCard key={m.id} manga={m} onClick={handleCardClick} index={i} />
-          ))}
-        </div>
+        <>
+          {error && sections[tab].length > 0 && (
+            <div style={{
+              background: 'var(--ac-glass-bg)', borderRadius: 'var(--ac-radius-row)',
+              padding: '8px 16px', marginBottom: '12px',
+              color: 'var(--ac-text-3)', fontSize: '13px'
+            }}>
+              ⚠️ {error}
+            </div>
+          )}
+          <div className={styles.grid}>
+            {[RANDOM_CARD, ...sections[tab]].map((m, i) => (
+              <MangaCard key={m.id} manga={m} onClick={handleCardClick} index={i} />
+            ))}
+          </div>
+          {loadingMore && (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0' }}>
+              <Spinner size="small" />
+              <Text size={200} style={{ marginLeft: '8px', color: 'var(--ac-text-3)' }}>加载更多...</Text>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
