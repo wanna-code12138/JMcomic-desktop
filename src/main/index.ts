@@ -8,7 +8,8 @@ import { warmupSession } from './sessionWarmup'
 import { registerImageProtocol, registerImageScheme } from './imageProtocol'
 import { setImageCacheLimit } from './imageLoader'
 import { getSettings } from './settingsStore'
-import { applyWindowBackground } from './windowChrome'
+import type { AppSettings } from './settingsCore'
+import { applyWindowBackground, backgroundMaterialFor, windowBackgroundColorFor } from './windowChrome'
 import './downloadManager'
 import './contentApi'
 
@@ -28,7 +29,7 @@ function applyCaptionTheme(dark: boolean): void {
   mainWindow?.setTitleBarOverlay(dark ? CAPTION_DARK : CAPTION_LIGHT)
 }
 
-function createWindow(): void {
+function createWindow(settings: AppSettings): void {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 860,
@@ -38,7 +39,8 @@ function createWindow(): void {
     icon: join(__dirname, '../../build/icons/icon-256.png'),
     titleBarStyle: 'hidden',
     titleBarOverlay: CAPTION_LIGHT,
-    backgroundColor: '#00000000',
+    backgroundColor: windowBackgroundColorFor(settings),
+    backgroundMaterial: backgroundMaterialFor(settings),
     // 不设 transparent: true —— 该选项会强制分层合成路径，禁用 DWM 的
     // Win11 圆角与 Snap 拖拽预览。Mica 由 setBackgroundMaterial 提供。
     webPreferences: {
@@ -49,9 +51,6 @@ function createWindow(): void {
       nodeIntegration: false
     }
   })
-
-  // Windows 11 Mica material
-  mainWindow.setBackgroundMaterial('mica')
 
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show()
@@ -85,7 +84,7 @@ app.whenReady().then(async () => {
   const settings = await getSettings()
   setImageCacheLimit(settings.cacheLimitMb * 1024 * 1024)
 
-  createWindow()
+  createWindow(settings)
   applyWindowBackground(settings)
   await applyManualProxy(settings.proxyEnabled, settings.proxyUrl)
 
@@ -101,7 +100,9 @@ app.whenReady().then(async () => {
   }
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) {
+      getSettings().then((s) => createWindow(s))
+    }
   })
 })
 

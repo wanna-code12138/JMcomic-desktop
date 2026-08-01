@@ -6,29 +6,40 @@ import type { AppSettings } from './settingsCore'
 const SOLID_LIGHT = '#f4f6ff'
 const SOLID_DARK = '#0f0f1e'
 
-export function applyWindowBackground(settings: AppSettings): void {
-  const dark =
+export function backgroundMaterialFor(settings: AppSettings): 'mica' | 'acrylic' | 'none' {
+  if (settings.micaEnabled) return 'mica'
+  if (settings.solidWindow) return 'none'
+  return 'acrylic'
+}
+
+function isDarkTheme(settings: AppSettings): boolean {
+  return (
     settings.themeMode === 'dark' ||
     (settings.themeMode === 'system' && nativeTheme.shouldUseDarkColors)
-  const solidColor = dark ? SOLID_DARK : SOLID_LIGHT
+  )
+}
 
+export function windowBackgroundColorFor(settings: AppSettings): string {
+  return backgroundMaterialFor(settings) === 'none'
+    ? isDarkTheme(settings)
+      ? SOLID_DARK
+      : SOLID_LIGHT
+    : '#00000000'
+}
+
+export function applyWindowBackground(settings: AppSettings): void {
+  const material = backgroundMaterialFor(settings)
+  const bgColor = windowBackgroundColorFor(settings)
+  const fallbackColor = isDarkTheme(settings) ? SOLID_DARK : SOLID_LIGHT
   for (const win of BrowserWindow.getAllWindows()) {
     try {
-      if (settings.micaEnabled) {
-        win.setBackgroundMaterial('mica')
-        win.setBackgroundColor('#00000000')
-      } else if (settings.solidWindow) {
-        win.setBackgroundMaterial('none')
-        win.setBackgroundColor(solidColor)
-      } else {
-        win.setBackgroundMaterial('acrylic')
-        win.setBackgroundColor('#00000000')
-      }
+      win.setBackgroundMaterial(material)
+      win.setBackgroundColor(bgColor)
     } catch (err) {
       // 非 Win11 或系统不支持该材质时回退纯色，保证窗口可读
       console.warn('[window] background material failed, falling back to solid:', err)
       win.setBackgroundMaterial('none')
-      win.setBackgroundColor(solidColor)
+      win.setBackgroundColor(fallbackColor)
     }
   }
 }
