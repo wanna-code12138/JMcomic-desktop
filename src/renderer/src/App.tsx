@@ -182,7 +182,7 @@ interface AppProps {
 export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Element {
   const styles = useStyles()
   const { currentPage, setCurrentPage, networkStatus } = useAppStore()
-  const [appVersion, setAppVersion] = React.useState('1.0.2')
+  const [appVersion, setAppVersion] = React.useState('1.0.3')
 
   React.useEffect(() => {
     window.electronAPI?.appVersion().then((v) => {
