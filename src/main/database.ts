@@ -103,6 +103,13 @@ function initTables(d: SqlJsDatabase): void {
     )
   `)
 
+  d.run(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )
+  `)
+
   // ── reading_history 迁移：移除对 manga_cache 的外键 + 补展示列 + 唯一索引 ──
   // 原始 schema 含 FOREIGN KEY (manga_id) REFERENCES manga_cache(id)，
   // 但 manga_cache 从未被写入，导致 PRAGMA foreign_keys=ON 时所有 INSERT 失败。

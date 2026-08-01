@@ -1,9 +1,10 @@
 import { ipcMain, net, session } from 'electron'
 import { getActiveDomain } from './networkProbe'
-import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs'
+import { existsSync, mkdirSync, writeFileSync, readdirSync, statSync, unlinkSync } from 'fs'
 import { join } from 'path'
-import { app } from 'electron'
 import * as crypto from 'crypto'
+import { selectEvictionCandidates } from './imageCacheCore'
+import { getAppDataDir } from './dataPaths'
 
 // ─── Image Loader Pipeline ────────────────────────────────────
 
@@ -31,11 +32,13 @@ const DEFAULT_OPTIONS: Required<ImageLoaderOptions> = {
   concurrency: 6,
   timeout: 15000,
   maxRetries: 3,
-  cacheDir: join(app.getPath('cache'), 'jmcomic-images')
+  // 图片缓存跟随便携数据目录，与数据库一起随 exe 走
+  cacheDir: join(getAppDataDir(), 'jmcomic-images')
 }
 
 // In-memory URL → local path cache
 const urlToPathCache = new Map<string, string>()
+let imageCacheLimitBytes = 1000 * 1024 * 1024
 
 function getCacheDir(): string {
   const dir = DEFAULT_OPTIONS.cacheDir
@@ -45,9 +48,11 @@ function getCacheDir(): string {
   return dir
 }
 
-function urlToFilename(url: string): string {
+function urlToFilename(url: string, contentType?: string): string {
   const hash = crypto.createHash('md5').update(url).digest('hex')
-  const ext = url.match(/\.(jpg|jpeg|png|webp|gif|bmp)/i)?.[1] ?? 'jpg'
+  const urlExt = url.match(/\.(jpg|jpeg|png|webp|gif|bmp)/i)?.[1]
+  const ctExt = contentType?.match(/^image\/(jpeg|png|webp|gif|bmp)/i)?.[1]
+  const ext = urlExt ?? (ctExt === 'jpeg' ? 'jpg' : ctExt) ?? 'jpg'
   return `${hash}.${ext}`
 }
 
@@ -58,6 +63,57 @@ function getCachedPath(url: string): string | null {
     return fullPath
   }
   return null
+}
+
+export function getCachedImagePath(url: string): string | null {
+  return getCachedPath(url)
+}
+
+/**
+ * 把已下载的图片写入磁盘缓存（供 jmimg:// 协议复用），并触发限额淘汰。
+ */
+export function storeImage(url: string, buffer: Buffer, contentType?: string): string {
+  const filename = urlToFilename(url, contentType)
+  const filepath = join(getCacheDir(), filename)
+  writeFileSync(filepath, buffer)
+  urlToPathCache.set(url, filepath)
+  enforceCacheLimit(getCacheDir())
+  return filepath
+}
+
+export function setImageCacheLimit(bytes: number): void {
+  imageCacheLimitBytes = Math.max(1, Math.floor(bytes))
+}
+
+export function getImageCacheLimitBytes(): number {
+  return imageCacheLimitBytes
+}
+
+function enforceCacheLimit(cacheDir: string): void {
+  if (imageCacheLimitBytes <= 0) return
+  let files: { name: string; size: number; mtimeMs: number }[] = []
+  try {
+    files = readdirSync(cacheDir)
+      .map((name) => {
+        const full = join(cacheDir, name)
+        try {
+          const st = statSync(full)
+          return st.isFile() ? { name, size: st.size, mtimeMs: st.mtimeMs } : null
+        } catch {
+          return null
+        }
+      })
+      .filter((f): f is { name: string; size: number; mtimeMs: number } => f !== null)
+  } catch {
+    return
+  }
+  for (const name of selectEvictionCandidates(files, imageCacheLimitBytes)) {
+    try {
+      unlinkSync(join(cacheDir, name))
+    } catch {
+      /* skip */
+    }
+  }
 }
 
 async function downloadImage(url: string, filepath: string, timeout: number): Promise<void> {
@@ -187,6 +243,9 @@ export async function loadImages(
       try {
         await downloadImage(url, filepath, opts.timeout)
         urlToPathCache.set(url, filepath)
+        if (cacheDir === DEFAULT_OPTIONS.cacheDir) {
+          enforceCacheLimit(cacheDir)
+        }
         results[index] = { url, localPath: filepath, cached: false }
         return
       } catch (err) {

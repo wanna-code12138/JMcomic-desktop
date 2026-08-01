@@ -3,10 +3,12 @@ import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import { registerIpcHandlers } from './ipc'
 import { closeDatabase } from './database'
-import { startPeriodicProbe } from './networkProbe'
+import { startPeriodicProbe, applyManualProxy } from './networkProbe'
 import { warmupSession } from './sessionWarmup'
 import { registerImageProtocol, registerImageScheme } from './imageProtocol'
-import './imageLoader'
+import { setImageCacheLimit } from './imageLoader'
+import { getSettings } from './settingsStore'
+import { applyWindowBackground } from './windowChrome'
 import './downloadManager'
 import './contentApi'
 
@@ -75,12 +77,17 @@ function createWindow(): void {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   registerIpcHandlers()
   registerImageProtocol()
   startPeriodicProbe()
 
+  const settings = await getSettings()
+  setImageCacheLimit(settings.cacheLimitMb * 1024 * 1024)
+
   createWindow()
+  applyWindowBackground(settings)
+  await applyManualProxy(settings.proxyEnabled, settings.proxyUrl)
 
   // Warm up session in background — bypass Cloudflare
   // 主窗口必须先创建，warmup 会把验证视图内嵌到主窗口内容区

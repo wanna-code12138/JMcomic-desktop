@@ -29,6 +29,11 @@ body {
   background: transparent;
 }
 
+/* 纯色窗口模式：Mica/亚克力关闭时用主题底色填充，避免露出透明黑底 */
+.ac-solid {
+  background-color: var(--ac-base-bg);
+}
+
 /* ===== Aurora Clay Design Tokens ===== */
 :root {
   /* 圆角档位 */

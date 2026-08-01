@@ -27,6 +27,8 @@ interface AppState {
   currentMangaId: string | null
   readerState: ReaderState | null
   networkStatus: 'online' | 'degraded' | 'offline'
+  micaEnabled: boolean
+  solidWindow: boolean
   pendingSearch: PendingSearch | null
   setThemeMode: (mode: ThemeMode) => void
   setDarkMode: (dark: boolean) => void
@@ -37,6 +39,8 @@ interface AppState {
   closeReader: () => void
   setFavoritesTab: (tab: string) => void
   setNetworkStatus: (status: 'online' | 'degraded' | 'offline') => void
+  setMicaEnabled: (enabled: boolean) => void
+  setSolidWindow: (solid: boolean) => void
   triggerTagSearch: (tag: string) => void
   clearPendingSearch: () => void
 }
@@ -55,6 +59,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   currentMangaId: null,
   readerState: null,
   networkStatus: 'online',
+  micaEnabled: true,
+  solidWindow: false,
   pendingSearch: null,
   setThemeMode: (mode) => {
     const dark =
@@ -92,6 +98,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     })),
   setFavoritesTab: (tab) => set({ favoritesTab: tab }),
   setNetworkStatus: (status) => set({ networkStatus: status }),
+  setMicaEnabled: (enabled) => set({ micaEnabled: enabled }),
+  setSolidWindow: (solid) => set({ solidWindow: solid }),
   triggerTagSearch: (tag) =>
     set({
       pendingSearch: { query: tag, mainTag: 0 },

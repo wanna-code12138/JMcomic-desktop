@@ -1,6 +1,8 @@
 import { net, session } from 'electron'
 import { ipcMain } from 'electron'
 import { execSync } from 'child_process'
+import { updateSettings } from './settingsStore'
+import { validateProxyUrl } from './settingsCore'
 
 export type NetworkStatus = 'online' | 'degraded' | 'offline'
 
@@ -39,9 +41,36 @@ export function getProxyUrl(): string | null {
   return manualProxyUrl ?? systemProxyUrl
 }
 
-export function setManualProxy(url: string | null): void {
-  manualProxyUrl = url
-  runNetworkProbe()
+/**
+ * 应用手动代理：true 时用 session.setProxy 固定代理规则（对页面抓取、
+ * 图片、下载全部生效），false 时恢复系统代理。成功后会持久化设置。
+ */
+export async function applyManualProxy(
+  enabled: boolean,
+  url: string
+): Promise<{ ok: boolean; error?: string; proxyUrl?: string }> {
+  const normalized = enabled ? validateProxyUrl(url) : null
+  if (enabled && !normalized) {
+    return {
+      ok: false,
+      error: '代理地址无效：需要 http://、https:// 或 socks5:// 并带端口，例如 http://127.0.0.1:7890'
+    }
+  }
+
+  manualProxyUrl = normalized
+  try {
+    if (manualProxyUrl) {
+      await session.defaultSession.setProxy({ mode: 'fixed_servers', proxyRules: manualProxyUrl })
+    } else {
+      await session.defaultSession.setProxy({ mode: 'system' })
+    }
+    await session.defaultSession.closeAllConnections().catch(() => {})
+  } catch (err) {
+    return { ok: false, error: `设置代理失败：${err instanceof Error ? err.message : String(err)}` }
+  }
+
+  await updateSettings({ proxyEnabled: enabled, proxyUrl: manualProxyUrl ?? '' })
+  return { ok: true, proxyUrl: manualProxyUrl ?? undefined }
 }
 
 /**
@@ -184,7 +213,9 @@ ipcMain.handle('network:status', () => {
   }
 })
 
-ipcMain.handle('network:setProxy', async (_event, url: string | null) => {
-  setManualProxy(url)
-  return runNetworkProbe()
+ipcMain.handle('network:applyProxy', async (_event, enabled: boolean, url: string) => {
+  const result = await applyManualProxy(Boolean(enabled), String(url ?? ''))
+  if (!result.ok) return result
+  const probe = await runNetworkProbe()
+  return { ok: true, proxyUrl: result.proxyUrl, probe }
 })

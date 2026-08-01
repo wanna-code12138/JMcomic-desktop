@@ -1,5 +1,7 @@
 import { protocol, net, session } from 'electron'
 import { getActiveDomain } from './networkProbe'
+import { getCachedImagePath, storeImage } from './imageLoader'
+import { readFileSync } from 'fs'
 
 // 必须与 httpClient.ts 保持完全一致，否则 Cloudflare 会因 UA 不完整
 // 把请求识别为爬虫并返回 403 / challenge 页面，<img> 就显示破损图标。
@@ -41,6 +43,25 @@ function base64UrlDecode(s: string): string {
   const pad = std.length % 4
   if (pad) std += '='.repeat(4 - pad)
   return Buffer.from(std, 'base64').toString('utf-8')
+}
+
+function contentTypeForCachedFile(filepath: string): string {
+  const ext = filepath.match(/\.(jpg|jpeg|png|webp|gif|bmp)$/i)?.[1]?.toLowerCase()
+  switch (ext) {
+    case 'jpg':
+    case 'jpeg':
+      return 'image/jpeg'
+    case 'png':
+      return 'image/png'
+    case 'webp':
+      return 'image/webp'
+    case 'gif':
+      return 'image/gif'
+    case 'bmp':
+      return 'image/bmp'
+    default:
+      return 'application/octet-stream'
+  }
 }
 
 /**
@@ -96,6 +117,24 @@ export function registerImageProtocol(): void {
         return new Response('Blocked: not a CDN URL', { status: 403 })
       }
 
+      // 磁盘缓存命中：直接返回本地文件，避免重复网络加载
+      const cachedPath = getCachedImagePath(realUrl)
+      if (cachedPath) {
+        try {
+          const buf = readFileSync(cachedPath)
+          return new Response(buf, {
+            status: 200,
+            headers: {
+              'Content-Type': contentTypeForCachedFile(cachedPath),
+              'Cache-Control': 'public, max-age=86400',
+              'Access-Control-Allow-Origin': '*'
+            }
+          })
+        } catch (err) {
+          console.warn('[jmimg] cache read failed, refetching:', err)
+        }
+      }
+
       // 从会话取 Cookie（Cloudflare cf_clearance 等）
       const cookies = await session.defaultSession.cookies.get({ url: realUrl })
       const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ')
@@ -137,6 +176,13 @@ export function registerImageProtocol(): void {
               return
             }
             console.log('[jmimg] OK:', realUrl.slice(0, 60), 'size:', buf.length, 'type:', ct)
+            if (ct.includes('image/')) {
+              try {
+                storeImage(realUrl, buf, ct)
+              } catch (err) {
+                console.warn('[jmimg] cache write failed:', err)
+              }
+            }
             const headers: Record<string, string> = {
               'Content-Type': ct || 'image/jpeg',
               'Cache-Control': 'public, max-age=86400',

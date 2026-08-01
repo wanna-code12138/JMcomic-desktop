@@ -44,7 +44,12 @@ const api = {
   // Network probe
   networkProbe: () => ipcRenderer.invoke('network:probe'),
   networkStatus: () => ipcRenderer.invoke('network:status'),
-  networkSetProxy: (url: string | null) => ipcRenderer.invoke('network:setProxy', url),
+  networkApplyProxy: (enabled: boolean, url: string) =>
+    ipcRenderer.invoke('network:applyProxy', enabled, url),
+
+  // Settings
+  settingsGet: () => ipcRenderer.invoke('settings:get'),
+  settingsSet: (patch: Record<string, unknown>) => ipcRenderer.invoke('settings:set', patch),
 
   // HTTP (from main process to bypass CORS)
   httpGet: (url: string, options?: Record<string, unknown>) =>

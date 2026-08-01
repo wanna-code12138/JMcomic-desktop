@@ -2,7 +2,9 @@ import { app, dialog, ipcMain } from 'electron'
 import { writeFileSync, readFileSync } from 'fs'
 import { getDatabase, saveDatabase } from './database'
 import { clearScraperCache } from './scraperWindow'
-import { clearImageCache } from './imageLoader'
+import { clearImageCache, setImageCacheLimit } from './imageLoader'
+import { getSettings, updateSettings } from './settingsStore'
+import { applyWindowBackground } from './windowChrome'
 import {
   exportPersonalData,
   importPersonalData,
@@ -215,6 +217,18 @@ export function registerIpcHandlers(): void {
 
   // App info
   ipcMain.handle('app:getVersion', () => app.getVersion())
+
+  // Settings
+  ipcMain.handle('settings:get', async () => {
+    return getSettings()
+  })
+
+  ipcMain.handle('settings:set', async (_event, patch: Record<string, unknown>) => {
+    const settings = await updateSettings(patch)
+    setImageCacheLimit(settings.cacheLimitMb * 1024 * 1024)
+    applyWindowBackground(settings)
+    return settings
+  })
 
   // Personal data: export / import / clear
   ipcMain.handle('data:exportPersonal', async () => {
