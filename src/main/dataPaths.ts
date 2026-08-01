@@ -32,6 +32,11 @@ export function getDatabasePath(dataDir = getAppDataDir()): string {
   return join(dataDir, DB_FILE_NAME)
 }
 
+/** 默认下载目录：系统"下载"文件夹下的 JMComic 子目录。 */
+export function getDefaultDownloadDir(): string {
+  return join(app.getPath('downloads'), 'JMComic')
+}
+
 export function getLegacyDatabasePath(userDataDir: string): string {
   return join(userDataDir, DB_FILE_NAME)
 }

@@ -66,7 +66,21 @@ const api = {
   // Downloads
   downloadAdd: (data: Record<string, unknown>) => ipcRenderer.invoke('download:add', data),
   downloadList: () => ipcRenderer.invoke('download:list'),
+  downloadSummary: () => ipcRenderer.invoke('download:summary'),
+  downloadMangaDetail: (mangaId: string) => ipcRenderer.invoke('download:mangaDetail', mangaId),
   downloadCancel: (taskId: number) => ipcRenderer.invoke('download:cancel', taskId),
+  downloadRetry: (taskId: number) => ipcRenderer.invoke('download:retry', taskId),
+  downloadRemove: (taskId: number, deleteFiles: boolean) =>
+    ipcRenderer.invoke('download:remove', taskId, deleteFiles),
+  downloadRemoveManga: (mangaId: string, deleteFiles: boolean) =>
+    ipcRenderer.invoke('download:removeManga', mangaId, deleteFiles),
+  downloadOpenTaskFolder: (taskId: number) =>
+    ipcRenderer.invoke('download:openTaskFolder', taskId),
+  downloadOpenMangaFolder: (mangaId: string) =>
+    ipcRenderer.invoke('download:openMangaFolder', mangaId),
+  downloadChapterPages: (mangaId: string, chapterIndex: number) =>
+    ipcRenderer.invoke('download:chapterPages', mangaId, chapterIndex),
+  downloadChooseDir: () => ipcRenderer.invoke('download:chooseDir'),
   downloadSetConcurrency: (n: number) => ipcRenderer.invoke('download:setConcurrency', n),
 
   onDownloadProgress: (callback: (progress: Record<string, unknown>) => void) => {

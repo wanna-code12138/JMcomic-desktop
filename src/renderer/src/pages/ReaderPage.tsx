@@ -440,6 +440,43 @@ export default function ReaderPage(): JSX.Element {
     setLoading(true)
     setError('')
 
+    // ── 本地模式：直接读取下载目录，不触发任何网页抓取 ──
+    if (readerState.local) {
+      const rs = readerState
+      window.electronAPI?.downloadChapterPages(rs.mangaId, rs.chapterIndex).then((result) => {
+        if (cancelled) return
+        const r = result as { ok: boolean; data?: PageData[]; chapterUrl?: string; error?: string } | undefined
+        if (!r?.ok) {
+          setError(r?.error ?? '本地章节加载失败')
+          setLoading(false)
+          return
+        }
+        const pageList = r.data ?? []
+        setScrambleId(0)
+        setPages(pageList)
+        setLoading(false)
+
+        if (!historyDone) {
+          historyDone = true
+          const resume = rs.resumePageIndex
+          if (typeof resume === 'number' && resume > 0 && resume < pageList.length) {
+            setCurrentPage(resume)
+          }
+          window.electronAPI?.historyUpsert({
+            manga_id: rs.mangaId,
+            manga_title: rs.mangaTitle,
+            chapter_index: rs.chapterIndex,
+            chapter_title: rs.chapterTitle,
+            chapter_url: r.chapterUrl ?? '',
+            cover_url: rs.mangaCoverUrl,
+            page_index: rs.resumePageIndex ?? 0,
+            total_pages: pageList.length
+          })
+        }
+      })
+      return () => { cancelled = true }
+    }
+
     const off = window.electronAPI?.onPagesBatch((payload) => {
       if (cancelled) {
         streamOffRef?.()
@@ -611,22 +648,26 @@ export default function ReaderPage(): JSX.Element {
             />
           </Tooltip>
         )}
-        <Tooltip content="下载本章" relationship="label">
-          <Button appearance="subtle" size="small" icon={<ArrowDownload20Regular />}
-            style={{ color: 'var(--ac-reader-text-2)' }}
-            onClick={async () => {
-              if (!window.electronAPI) return
-              await window.electronAPI.downloadAdd({
-                mangaId: '',
-                mangaTitle: readerState.mangaTitle,
-                chapterIndex: 0,
-                chapterTitle: readerState.chapterTitle,
-                imageUrls: pages.map((p) => p.imageUrl),
-                scrambleId
-              })
-            }}
-          />
-        </Tooltip>
+        {!readerState.local && (
+          <Tooltip content="下载本章" relationship="label">
+            <Button appearance="subtle" size="small" icon={<ArrowDownload20Regular />}
+              style={{ color: 'var(--ac-reader-text-2)' }}
+              onClick={async () => {
+                if (!window.electronAPI) return
+                await window.electronAPI.downloadAdd({
+                  mangaId: readerState.mangaId,
+                  mangaTitle: readerState.mangaTitle,
+                  chapterIndex: readerState.chapterIndex,
+                  chapterTitle: readerState.chapterTitle,
+                  chapterUrl: readerState.chapterUrl,
+                  coverUrl: readerState.mangaCoverUrl,
+                  imageUrls: pages.map((p) => p.imageUrl),
+                  scrambleId
+                })
+              }}
+            />
+          </Tooltip>
+        )}
       </div>
 
       {/* Viewer */}

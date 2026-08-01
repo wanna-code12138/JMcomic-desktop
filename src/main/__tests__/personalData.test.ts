@@ -51,6 +51,8 @@ async function createDb(): Promise<SqlJsDatabase> {
       manga_title TEXT,
       chapter_index INTEGER,
       chapter_title TEXT,
+      chapter_url TEXT,
+      cover_url TEXT,
       status TEXT DEFAULT 'pending',
       total_pages INTEGER DEFAULT 0,
       downloaded_pages INTEGER DEFAULT 0,

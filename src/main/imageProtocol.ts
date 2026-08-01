@@ -45,7 +45,7 @@ function base64UrlDecode(s: string): string {
   return Buffer.from(std, 'base64').toString('utf-8')
 }
 
-function contentTypeForCachedFile(filepath: string): string {
+export function contentTypeForFile(filepath: string): string {
   const ext = filepath.match(/\.(jpg|jpeg|png|webp|gif|bmp)$/i)?.[1]?.toLowerCase()
   switch (ext) {
     case 'jpg':
@@ -125,7 +125,7 @@ export function registerImageProtocol(): void {
           return new Response(buf, {
             status: 200,
             headers: {
-              'Content-Type': contentTypeForCachedFile(cachedPath),
+            'Content-Type': contentTypeForFile(cachedPath),
               'Cache-Control': 'public, max-age=86400',
               'Access-Control-Allow-Origin': '*'
             }

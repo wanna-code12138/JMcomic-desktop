@@ -6,10 +6,12 @@ import {
 import {
   BookOpen20Regular, ArrowDownload20Regular,
   Heart20Regular, Heart20Filled, ArrowLeft20Regular,
-  ChevronDown20Regular, ChevronUp20Regular
+  ChevronDown20Regular, ChevronUp20Regular,
+  FolderOpen20Regular, CheckmarkCircle20Regular, DismissCircle20Regular
 } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
 import { toJmImg } from '../utils/image'
+import ChapterSelectDialog from '../components/ChapterSelectDialog'
 
 const useStyles = makeStyles({
   root: { height: '100%', overflow: 'auto' },
@@ -135,12 +137,26 @@ const useStyles = makeStyles({
 interface DetailData {
   id: string; title: string; author: string; coverUrl: string
   tags: string[]; description: string
-  chapters: { index: number; title: string; url: string }[]
+  chapters: { index: number; title: string; url: string; status?: string; taskId?: number }[]
+}
+
+interface MangaDownloadGroup {
+  mangaId: string
+  mangaTitle: string
+  coverUrl: string
+  tasks: Array<{
+    id: number
+    chapter_index: number
+    chapter_title: string
+    chapter_url: string
+    status: string
+  }>
 }
 
 export default function MangaDetailPage(): JSX.Element {
   const styles = useStyles()
   const currentMangaId = useAppStore((s) => s.currentMangaId)
+  const detailSource = useAppStore((s) => s.detailSource)
   const setCurrentPage = useAppStore((s) => s.setCurrentPage)
   const previousPage = useAppStore((s) => s.previousPage)
   const openReader = useAppStore((s) => s.openReader)
@@ -151,6 +167,9 @@ export default function MangaDetailPage(): JSX.Element {
   const [coverLoaded, setCoverLoaded] = React.useState(false)
   const [manga, setManga] = React.useState<DetailData | null>(null)
   const [error, setError] = React.useState('')
+  const [selectOpen, setSelectOpen] = React.useState(false)
+  const [addingChapters, setAddingChapters] = React.useState<number[]>([])
+  const [addStatus, setAddStatus] = React.useState('')
 
   React.useEffect(() => {
     if (!currentMangaId) return
@@ -161,9 +180,32 @@ export default function MangaDetailPage(): JSX.Element {
       setCoverLoaded(false)
       setError('')
       try {
-        const result = await window.electronAPI?.contentDetail(currentMangaId!)
+        const result = detailSource === 'local'
+          ? await window.electronAPI?.downloadMangaDetail(currentMangaId!)
+          : await window.electronAPI?.contentDetail(currentMangaId!)
         if (cancelled) return
-        if (result?.ok) {
+        if (detailSource === 'local') {
+          const group = result as MangaDownloadGroup | null
+          if (group) {
+            setManga({
+              id: group.mangaId,
+              title: group.mangaTitle,
+              author: '',
+              coverUrl: group.coverUrl,
+              tags: [],
+              description: '',
+              chapters: group.tasks.map((t) => ({
+                index: t.chapter_index,
+                title: t.chapter_title,
+                url: t.chapter_url ?? '',
+                status: t.status,
+                taskId: t.id
+              }))
+            })
+          } else {
+            setError('本地没有该漫画的下载记录')
+          }
+        } else if (result?.ok) {
           setManga(result.data as DetailData)
         } else {
           setError(result?.error || '加载失败')
@@ -176,7 +218,7 @@ export default function MangaDetailPage(): JSX.Element {
 
     load()
     return () => { cancelled = true }
-  }, [currentMangaId])
+  }, [currentMangaId, detailSource])
 
   React.useEffect(() => {
     if (!currentMangaId) return
@@ -220,6 +262,58 @@ export default function MangaDetailPage(): JSX.Element {
   }
 
   const chapters = orderAsc ? [...manga.chapters].reverse() : manga.chapters
+
+  const downloadChapters = async (indices: number[]): Promise<void> => {
+    if (!window.electronAPI) return
+    setAddingChapters(indices)
+    setAddStatus('')
+    try {
+      for (const index of indices) {
+        const ch = manga.chapters.find((c) => c.index === index)
+        if (!ch) continue
+        setAddStatus(`正在获取第 ${ch.index + 1} 章图片列表…`)
+        const pagesResult = await window.electronAPI.contentPages(ch.url)
+        if (!pagesResult?.ok || !pagesResult.data) {
+          setAddStatus(`第 ${ch.index + 1} 章获取失败：${pagesResult?.error ?? '未知错误'}`)
+          return
+        }
+        await window.electronAPI.downloadAdd({
+          mangaId: manga.id,
+          mangaTitle: manga.title,
+          chapterIndex: ch.index,
+          chapterTitle: ch.title,
+          chapterUrl: ch.url,
+          coverUrl: manga.coverUrl,
+          imageUrls: (pagesResult.data as { imageUrl: string }[]).map((p) => p.imageUrl),
+          scrambleId: (pagesResult as unknown as { scrambleId?: number }).scrambleId ?? 0
+        })
+      }
+      setAddStatus(`已加入下载队列 ${indices.length} 章`)
+    } finally {
+      setAddingChapters([])
+      setSelectOpen(false)
+    }
+  }
+
+  const handleDownloadClick = (): void => {
+    if (manga.chapters.length > 1) {
+      setSelectOpen(true)
+    } else if (manga.chapters.length === 1) {
+      void downloadChapters([manga.chapters[0].index])
+    }
+  }
+
+  const openLocalReader = (ch: { index: number; title: string; url: string }): void => {
+    openReader({
+      mangaId: manga.id,
+      mangaTitle: manga.title,
+      mangaCoverUrl: manga.coverUrl,
+      chapterIndex: ch.index,
+      chapterTitle: ch.title,
+      chapterUrl: ch.url,
+      local: true
+    })
+  }
 
   return (
     <div className={styles.root}>
@@ -266,7 +360,15 @@ export default function MangaDetailPage(): JSX.Element {
           )}
           {manga.description && <div className={styles.description}>{manga.description}</div>}
           <div className={styles.actions}>
-            {manga.chapters.length > 0 && (
+            {detailSource === 'local' ? (
+              <Button appearance="primary" size="large" icon={<FolderOpen20Regular />}
+                onClick={async () => {
+                  await window.electronAPI?.downloadOpenMangaFolder(manga.id)
+                }}
+              >
+                打开文件夹
+              </Button>
+            ) : manga.chapters.length > 0 && (
               <Button appearance="primary" size="large" icon={<BookOpen20Regular />}
                 onClick={() => openReader({
                   mangaId: manga.id,
@@ -280,48 +382,43 @@ export default function MangaDetailPage(): JSX.Element {
                 开始阅读
               </Button>
             )}
-            <Button size="large" icon={<ArrowDownload20Regular />}
-              onClick={async () => {
-                if (!window.electronAPI || manga.chapters.length === 0) return
-                // Download first chapter images
-                const pagesResult = await window.electronAPI.contentPages(manga.chapters[0].url)
-                if (pagesResult?.ok && pagesResult.data) {
-                  const pages = pagesResult.data as { imageUrl: string }[]
-                  await window.electronAPI.downloadAdd({
-                    mangaId: manga.id,
-                    mangaTitle: manga.title,
-                    chapterIndex: 0,
-                    chapterTitle: manga.chapters[0].title,
-                    imageUrls: pages.map((p: { imageUrl: string }) => p.imageUrl),
-                    scrambleId: (pagesResult as any).scrambleId ?? 0
-                  })
-                }
-              }}
-            >下载</Button>
-            <Tooltip content={liked ? '取消收藏' : '收藏'} relationship="label">
-              <Button size="large"
-                icon={liked ? <Heart20Filled style={{ color: 'var(--ac-danger)' }} /> : <Heart20Regular />}
-                onClick={async () => {
-                  if (!window.electronAPI) return
-                  const wasLiked = liked
-                  setLiked(!wasLiked)
-                  try {
-                    if (wasLiked) {
-                      await window.electronAPI.favoritesRemove(manga.id)
-                    } else {
-                      await window.electronAPI.favoritesAdd({
-                        mangaId: manga.id,
-                        title: manga.title,
-                        coverUrl: manga.coverUrl
-                      })
-                    }
-                  } catch {
-                    setLiked(wasLiked) // 回滚
-                  }
-                }}
-              />
-            </Tooltip>
+            {detailSource !== 'local' && (
+              <>
+                <Button size="large" icon={<ArrowDownload20Regular />}
+                  disabled={addingChapters.length > 0 || manga.chapters.length === 0}
+                  onClick={handleDownloadClick}
+                >
+                  {addingChapters.length > 0 ? '添加中…' : '下载'}
+                </Button>
+                <Tooltip content={liked ? '取消收藏' : '收藏'} relationship="label">
+                  <Button size="large"
+                    icon={liked ? <Heart20Filled style={{ color: 'var(--ac-danger)' }} /> : <Heart20Regular />}
+                    onClick={async () => {
+                      if (!window.electronAPI) return
+                      const wasLiked = liked
+                      setLiked(!wasLiked)
+                      try {
+                        if (wasLiked) {
+                          await window.electronAPI.favoritesRemove(manga.id)
+                        } else {
+                          await window.electronAPI.favoritesAdd({
+                            mangaId: manga.id,
+                            title: manga.title,
+                            coverUrl: manga.coverUrl
+                          })
+                        }
+                      } catch {
+                        setLiked(wasLiked) // 回滚
+                      }
+                    }}
+                  />
+                </Tooltip>
+              </>
+            )}
           </div>
+          {addStatus && (
+            <Text size={200} style={{ color: 'var(--ac-text-3)' }}>{addStatus}</Text>
+          )}
         </div>
       </div>
 
@@ -341,24 +438,55 @@ export default function MangaDetailPage(): JSX.Element {
             <div className={styles.chapterList}>
               {chapters.map((ch) => (
                 <div key={ch.index} className={styles.chapterItem} role="button" tabIndex={0}
-                  onClick={() => openReader({
-                    mangaId: manga.id,
-                    mangaTitle: manga.title,
-                    mangaCoverUrl: manga.coverUrl,
-                    chapterIndex: ch.index,
-                    chapterTitle: ch.title,
-                    chapterUrl: ch.url
-                  })}
-                  onKeyDown={(e) => { if (e.key === 'Enter') openReader({ mangaId: manga.id, mangaTitle: manga.title, mangaCoverUrl: manga.coverUrl, chapterIndex: ch.index, chapterTitle: ch.title, chapterUrl: ch.url }) }}
+                  onClick={() => detailSource === 'local'
+                    ? openLocalReader(ch)
+                    : openReader({
+                        mangaId: manga.id,
+                        mangaTitle: manga.title,
+                        mangaCoverUrl: manga.coverUrl,
+                        chapterIndex: ch.index,
+                        chapterTitle: ch.title,
+                        chapterUrl: ch.url
+                      })}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { detailSource === 'local' ? openLocalReader(ch) : openReader({ mangaId: manga.id, mangaTitle: manga.title, mangaCoverUrl: manga.coverUrl, chapterIndex: ch.index, chapterTitle: ch.title, chapterUrl: ch.url }) } }}
                 >
                   <div className={styles.chapterIndex}>{ch.index + 1}</div>
                   <div className={styles.chapterTitle}>{ch.title}</div>
+                  {detailSource === 'local' ? (
+                    <>
+                      {ch.status === 'completed' && <CheckmarkCircle20Regular style={{ color: 'var(--ac-green, #4caf50)' }} />}
+                      {ch.status === 'failed' && <DismissCircle20Regular style={{ color: 'var(--ac-danger, #d13438)' }} />}
+                      {ch.status === 'downloading' && <Text size={200} style={{ color: 'var(--ac-text-3)' }}>下载中</Text>}
+                      <Button size="small" appearance="subtle" icon={<FolderOpen20Regular />}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (ch.taskId) void window.electronAPI?.downloadOpenTaskFolder(ch.taskId)
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <Button size="small" appearance="subtle" icon={<ArrowDownload20Regular />}
+                      disabled={addingChapters.length > 0}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        void downloadChapters([ch.index])
+                      }}
+                    />
+                  )}
                 </div>
               ))}
             </div>
           </div>
         </>
       )}
+      <ChapterSelectDialog
+        open={selectOpen}
+        chapters={manga.chapters.map((c) => ({ index: c.index, title: c.title }))}
+        busy={addingChapters.length > 0}
+        busyText={addStatus || '正在添加下载任务…'}
+        onConfirm={(indices) => void downloadChapters(indices)}
+        onCancel={() => setSelectOpen(false)}
+      />
     </div>
   )
 }

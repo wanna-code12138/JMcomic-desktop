@@ -70,6 +70,8 @@ function initTables(d: SqlJsDatabase): void {
       manga_title TEXT,
       chapter_index INTEGER,
       chapter_title TEXT,
+      chapter_url TEXT,
+      cover_url TEXT,
       status TEXT DEFAULT 'pending',
       total_pages INTEGER DEFAULT 0,
       downloaded_pages INTEGER DEFAULT 0,
@@ -149,6 +151,21 @@ function initTables(d: SqlJsDatabase): void {
     }
   }
   d.run('CREATE UNIQUE INDEX IF NOT EXISTS idx_history_manga ON reading_history(manga_id)')
+
+  // downloads 迁移：补展示/续传所需的 chapter_url、cover_url 列
+  const downloadCols = d.exec('PRAGMA table_info(downloads)')
+  const existingDownloadCols = new Set(
+    downloadCols.length > 0 ? downloadCols[0].values.map((r) => String(r[1])) : []
+  )
+  const newDownloadCols: Array<[string, string]> = [
+    ['chapter_url', 'TEXT'],
+    ['cover_url', 'TEXT']
+  ]
+  for (const [col, type] of newDownloadCols) {
+    if (!existingDownloadCols.has(col)) {
+      d.run(`ALTER TABLE downloads ADD COLUMN ${col} ${type}`)
+    }
+  }
 }
 
 export function saveDatabase(): void {

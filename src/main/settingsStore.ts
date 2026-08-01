@@ -1,5 +1,6 @@
 import { getDatabase, saveDatabase } from './database'
 import { normalizeSettings, type AppSettings } from './settingsCore'
+import { getDefaultDownloadDir } from './dataPaths'
 
 let cached: AppSettings | null = null
 
@@ -20,6 +21,9 @@ export async function getSettings(): Promise<AppSettings> {
     }
   }
   cached = normalizeSettings(raw)
+  if (!cached.downloadDir) {
+    cached.downloadDir = getDefaultDownloadDir()
+  }
   return cached
 }
 

@@ -6,6 +6,7 @@ import { closeDatabase } from './database'
 import { startPeriodicProbe, applyManualProxy } from './networkProbe'
 import { warmupSession } from './sessionWarmup'
 import { registerImageProtocol, registerImageScheme } from './imageProtocol'
+import { registerLocalImageProtocol, registerLocalImageScheme } from './localImageProtocol'
 import { setImageCacheLimit } from './imageLoader'
 import { getSettings } from './settingsStore'
 import type { AppSettings } from './settingsCore'
@@ -18,6 +19,7 @@ let mainWindow: BrowserWindow | null = null
 // 必须在 app.ready 之前注册自定义协议为 standard scheme，
 // 否则 jmimg:// 的 URL 解析行为不确定，会导致图片加载失败。
 registerImageScheme()
+registerLocalImageScheme()
 
 // Windows 11 caption overlay 配色 —— 跟随应用主题切换
 // color 用透明，让 Mica 材质透过原生 caption 按钮区显示（与标题栏融为一体）；
@@ -79,6 +81,7 @@ function createWindow(settings: AppSettings): void {
 app.whenReady().then(async () => {
   registerIpcHandlers()
   registerImageProtocol()
+  registerLocalImageProtocol()
   startPeriodicProbe()
 
   const settings = await getSettings()

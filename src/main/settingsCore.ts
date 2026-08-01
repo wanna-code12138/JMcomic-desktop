@@ -7,6 +7,14 @@ export interface AppSettings {
   proxyEnabled: boolean
   proxyUrl: string
   cacheLimitMb: number
+  /** 下载目录；空字符串表示使用系统默认（系统下载/JMComic） */
+  downloadDir: string
+  /** 同时下载的章节任务数 1..8 */
+  downloadConcurrency: number
+  /** 单张图片失败重试次数 0..6 */
+  downloadRetries: number
+  /** 启动时自动继续未完成的任务 */
+  downloadResumeOnStartup: boolean
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -15,11 +23,18 @@ export const DEFAULT_SETTINGS: AppSettings = {
   solidWindow: false,
   proxyEnabled: false,
   proxyUrl: '',
-  cacheLimitMb: 1000
+  cacheLimitMb: 1000,
+  downloadDir: '',
+  downloadConcurrency: 4,
+  downloadRetries: 3,
+  downloadResumeOnStartup: true
 }
 
 export const CACHE_LIMIT_MIN_MB = 100
 export const CACHE_LIMIT_MAX_MB = 5000
+export const DOWNLOAD_CONCURRENCY_MIN = 1
+export const DOWNLOAD_CONCURRENCY_MAX = 8
+export const DOWNLOAD_RETRIES_MAX = 6
 
 const THEME_MODES: ThemeMode[] = ['system', 'light', 'dark']
 const SUPPORTED_PROXY_SCHEMES = new Set(['http:', 'https:', 'socks5:', 'socks5h:'])
@@ -50,13 +65,25 @@ export function normalizeSettings(raw: Record<string, unknown>): AppSettings {
     CACHE_LIMIT_MAX_MB,
     Math.max(CACHE_LIMIT_MIN_MB, toNumber(raw.cacheLimitMb, DEFAULT_SETTINGS.cacheLimitMb))
   )
+  const downloadConcurrency = Math.min(
+    DOWNLOAD_CONCURRENCY_MAX,
+    Math.max(DOWNLOAD_CONCURRENCY_MIN, toNumber(raw.downloadConcurrency, DEFAULT_SETTINGS.downloadConcurrency))
+  )
+  const downloadRetries = Math.min(
+    DOWNLOAD_RETRIES_MAX,
+    Math.max(0, toNumber(raw.downloadRetries, DEFAULT_SETTINGS.downloadRetries))
+  )
   return {
     themeMode,
     micaEnabled: toBoolean(raw.micaEnabled, DEFAULT_SETTINGS.micaEnabled),
     solidWindow: toBoolean(raw.solidWindow, DEFAULT_SETTINGS.solidWindow),
     proxyEnabled: toBoolean(raw.proxyEnabled, DEFAULT_SETTINGS.proxyEnabled),
     proxyUrl: typeof raw.proxyUrl === 'string' ? raw.proxyUrl.trim() : DEFAULT_SETTINGS.proxyUrl,
-    cacheLimitMb
+    cacheLimitMb,
+    downloadDir: typeof raw.downloadDir === 'string' ? raw.downloadDir.trim() : DEFAULT_SETTINGS.downloadDir,
+    downloadConcurrency,
+    downloadRetries,
+    downloadResumeOnStartup: toBoolean(raw.downloadResumeOnStartup, DEFAULT_SETTINGS.downloadResumeOnStartup)
   }
 }
 

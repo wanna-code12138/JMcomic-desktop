@@ -93,6 +93,13 @@ export default function SettingsPage(): JSX.Element {
   const [cacheStatus, setCacheStatus] = React.useState('')
   const cacheTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // 下载
+  const [downloadDir, setDownloadDir] = React.useState('')
+  const [downloadConcurrency, setDownloadConcurrency] = React.useState(4)
+  const [downloadRetries, setDownloadRetries] = React.useState(3)
+  const [downloadResumeOnStartup, setDownloadResumeOnStartup] = React.useState(true)
+  const downloadTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
   React.useEffect(() => {
     window.electronAPI?.appVersion().then((v) => {
       if (v) setAppVersion(String(v))
@@ -103,6 +110,10 @@ export default function SettingsPage(): JSX.Element {
       setProxyEnabled(s.proxyEnabled)
       setProxyUrl(s.proxyUrl)
       setCacheLimitMb(s.cacheLimitMb)
+      setDownloadDir(s.downloadDir)
+      setDownloadConcurrency(s.downloadConcurrency)
+      setDownloadRetries(s.downloadRetries)
+      setDownloadResumeOnStartup(s.downloadResumeOnStartup)
     })
 
     window.electronAPI?.imageCacheSize().then((bytes) => {
@@ -118,6 +129,7 @@ export default function SettingsPage(): JSX.Element {
 
     return () => {
       if (cacheTimer.current) clearTimeout(cacheTimer.current)
+      if (downloadTimer.current) clearTimeout(downloadTimer.current)
     }
   }, [setNetworkStatus])
 
@@ -201,6 +213,41 @@ export default function SettingsPage(): JSX.Element {
     const bytes = await window.electronAPI?.imageCacheSize()
     if (typeof bytes === 'number') setCacheSize(bytes)
     setCacheStatus(`已清空 ${Number(count ?? 0)} 个图片缓存文件`)
+  }
+
+  const handleChooseDownloadDir = async (): Promise<void> => {
+    const result = await window.electronAPI?.downloadChooseDir()
+    if (!result || result.canceled || !result.path) return
+    setDownloadDir(String(result.path))
+    await window.electronAPI?.settingsSet({ downloadDir: String(result.path) })
+  }
+
+  const handleDownloadDirApply = async (): Promise<void> => {
+    const dir = downloadDir.trim()
+    if (!dir) return
+    setDownloadDir(dir)
+    await window.electronAPI?.settingsSet({ downloadDir: dir })
+  }
+
+  const handleConcurrencyChange = (value: number): void => {
+    setDownloadConcurrency(value)
+    if (downloadTimer.current) clearTimeout(downloadTimer.current)
+    downloadTimer.current = setTimeout(() => {
+      window.electronAPI?.settingsSet({ downloadConcurrency: value })
+    }, 400)
+  }
+
+  const handleRetriesChange = (value: number): void => {
+    setDownloadRetries(value)
+    if (downloadTimer.current) clearTimeout(downloadTimer.current)
+    downloadTimer.current = setTimeout(() => {
+      window.electronAPI?.settingsSet({ downloadRetries: value })
+    }, 400)
+  }
+
+  const handleResumeChange = (checked: boolean): void => {
+    setDownloadResumeOnStartup(checked)
+    window.electronAPI?.settingsSet({ downloadResumeOnStartup: checked })
   }
 
   const handleExportPersonalData = async (): Promise<void> => {
@@ -347,6 +394,77 @@ export default function SettingsPage(): JSX.Element {
             <Button size="small" icon={<ArrowSync20Regular />} disabled={probeBusy} onClick={handleProbe}>
               {probeBusy ? '探测中…' : '重新探测'}
             </Button>
+          </div>
+        </Card>
+      </div>
+
+      {/* Downloads */}
+      <div className={styles.section}>
+        <Text size={500} weight="semibold" className={styles.sectionTitle}>下载</Text>
+        <Card className={styles.card}>
+          <div className={styles.row}>
+            <div>
+              <Text weight="semibold">下载目录</Text>
+              <div>
+                <Text size={200} style={{ color: 'var(--ac-text-3)' }}>
+                  漫画按「目录/漫画名/章节名」保存，新任务使用此目录
+                </Text>
+              </div>
+            </div>
+            <Button size="small" appearance="secondary" onClick={handleChooseDownloadDir}>选择…</Button>
+          </div>
+          <div className={styles.buttonRow} style={{ marginTop: '12px' }}>
+            <Input
+              style={{ flex: 1 }}
+              value={downloadDir}
+              placeholder="下载目录"
+              onChange={(_e, d) => setDownloadDir(d.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleDownloadDirApply() }}
+            />
+            <Button size="small" appearance="secondary" onClick={handleDownloadDirApply}>应用</Button>
+          </div>
+        </Card>
+        <Card className={styles.card}>
+          <div style={{ marginBottom: '8px' }}>
+            <Text weight="semibold">同时下载章节数</Text>
+            <Text size={200} style={{ color: 'var(--ac-text-3)', display: 'block', marginTop: '2px' }}>
+              当前 {downloadConcurrency} 个任务并行（1–8）
+            </Text>
+          </div>
+          <Slider
+            min={1}
+            max={8}
+            step={1}
+            value={downloadConcurrency}
+            onChange={(_e, d) => handleConcurrencyChange(d.value)}
+          />
+        </Card>
+        <Card className={styles.card}>
+          <div style={{ marginBottom: '8px' }}>
+            <Text weight="semibold">图片失败重试次数</Text>
+            <Text size={200} style={{ color: 'var(--ac-text-3)', display: 'block', marginTop: '2px' }}>
+              当前 {downloadRetries} 次（0–6，单张图片下载失败后自动重试）
+            </Text>
+          </div>
+          <Slider
+            min={0}
+            max={6}
+            step={1}
+            value={downloadRetries}
+            onChange={(_e, d) => handleRetriesChange(d.value)}
+          />
+        </Card>
+        <Card className={styles.card}>
+          <div className={styles.row}>
+            <div>
+              <Text weight="semibold">启动时自动续传</Text>
+              <div>
+                <Text size={200} style={{ color: 'var(--ac-text-3)' }}>
+                  打开应用后自动继续未完成（含上次中断）的下载任务
+                </Text>
+              </div>
+            </div>
+            <Switch checked={downloadResumeOnStartup} onChange={(_e, d) => handleResumeChange(d.checked)} />
           </div>
         </Card>
       </div>

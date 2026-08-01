@@ -8,6 +8,8 @@ interface ReaderState {
   chapterTitle: string
   chapterUrl: string
   resumePageIndex?: number
+  /** true 表示从本地下载目录读取，不触发网页抓取 */
+  local?: boolean
 }
 
 interface PendingSearch {
@@ -22,6 +24,7 @@ interface AppState {
   darkMode: boolean
   currentPage: string
   previousPage: string
+  detailSource: 'web' | 'local'
   readerSourcePage: string
   favoritesTab: string
   currentMangaId: string | null
@@ -35,6 +38,7 @@ interface AppState {
   toggleDarkMode: () => void
   setCurrentPage: (page: string) => void
   setCurrentMangaId: (id: string | null) => void
+  setCurrentLocalMangaId: (id: string) => void
   openReader: (state: ReaderState) => void
   closeReader: () => void
   setFavoritesTab: (tab: string) => void
@@ -54,6 +58,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   darkMode: systemDark,
   currentPage: 'home',
   previousPage: 'home',
+  detailSource: 'web',
   readerSourcePage: 'home',
   favoritesTab: 'local-fav',
   currentMangaId: null,
@@ -79,9 +84,20 @@ export const useAppStore = create<AppState>((set, get) => ({
   setCurrentMangaId: (id) =>
     set((s) => ({
       currentMangaId: id,
+      detailSource: 'web',
       currentPage: id ? 'detail' : s.currentPage,
       previousPage:
         id && s.currentPage !== 'detail' && s.currentPage !== 'reader'
+          ? s.currentPage
+          : s.previousPage
+    })),
+  setCurrentLocalMangaId: (id) =>
+    set((s) => ({
+      currentMangaId: id,
+      detailSource: 'local',
+      currentPage: 'detail',
+      previousPage:
+        s.currentPage !== 'detail' && s.currentPage !== 'reader'
           ? s.currentPage
           : s.previousPage
     })),

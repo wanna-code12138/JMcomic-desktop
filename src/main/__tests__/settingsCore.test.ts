@@ -26,7 +26,11 @@ test('parses stored string values', () => {
     solidWindow: 'true',
     proxyEnabled: 'true',
     proxyUrl: 'http://127.0.0.1:7890',
-    cacheLimitMb: '2048'
+    cacheLimitMb: '2048',
+    downloadDir: 'D:\\manga\\downloads',
+    downloadConcurrency: '6',
+    downloadRetries: '2',
+    downloadResumeOnStartup: 'false'
   })
   assert.strictEqual(s.themeMode, 'dark')
   assert.strictEqual(s.micaEnabled, false)
@@ -34,6 +38,10 @@ test('parses stored string values', () => {
   assert.strictEqual(s.proxyEnabled, true)
   assert.strictEqual(s.proxyUrl, 'http://127.0.0.1:7890')
   assert.strictEqual(s.cacheLimitMb, 2048)
+  assert.strictEqual(s.downloadDir, 'D:\\manga\\downloads')
+  assert.strictEqual(s.downloadConcurrency, 6)
+  assert.strictEqual(s.downloadRetries, 2)
+  assert.strictEqual(s.downloadResumeOnStartup, false)
 })
 
 test('accepts boolean/number inputs from IPC patch', () => {
@@ -52,6 +60,15 @@ test('invalid values fall back to defaults', () => {
 test('cacheLimitMb clamps to 100..5000', () => {
   assert.strictEqual(normalizeSettings({ cacheLimitMb: 1 }).cacheLimitMb, 100)
   assert.strictEqual(normalizeSettings({ cacheLimitMb: 99999 }).cacheLimitMb, 5000)
+})
+
+test('download settings clamp ranges and fall back', () => {
+  const s = normalizeSettings({ downloadConcurrency: 99, downloadRetries: -1 })
+  assert.strictEqual(s.downloadConcurrency, 8)
+  assert.strictEqual(s.downloadRetries, 0)
+  assert.strictEqual(normalizeSettings({ downloadConcurrency: 'abc' }).downloadConcurrency, 4)
+  assert.strictEqual(normalizeSettings({ downloadResumeOnStartup: 'maybe' }).downloadResumeOnStartup, true)
+  assert.strictEqual(normalizeSettings({ downloadDir: 123 }).downloadDir, '')
 })
 
 test('partial patch keeps other settings', () => {

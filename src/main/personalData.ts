@@ -139,9 +139,11 @@ export function importPersonalData(db: SqlJsDatabase, payload: unknown): ImportS
     const safeStatus = status === 'pending' || status === 'downloading' ? 'failed' : status
     db.run(
       `INSERT OR IGNORE INTO downloads
-         (id, manga_id, manga_title, chapter_index, chapter_title, status, total_pages, downloaded_pages, save_path, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (id, manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url,
+          status, total_pages, downloaded_pages, save_path, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [id, mangaId, asString(raw.manga_title), asNumber(raw.chapter_index), asString(raw.chapter_title),
+       asString(raw.chapter_url), asString(raw.cover_url),
        safeStatus, asNumber(raw.total_pages), asNumber(raw.downloaded_pages), asString(raw.save_path), asNumber(raw.created_at)]
     )
     imported.downloads += db.getRowsModified()
