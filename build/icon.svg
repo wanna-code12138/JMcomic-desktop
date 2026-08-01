@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bgAppleBlue" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#57c7fc"/>
+      <stop offset="0.5" stop-color="#2e9bf7"/>
+      <stop offset="1" stop-color="#1b74f2"/>
+    </linearGradient>
+    <linearGradient id="topLight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="0.22" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="botShade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0.78" stop-color="#0a3d8f" stop-opacity="0"/>
+      <stop offset="1" stop-color="#0a3d8f" stop-opacity="0.12"/>
+    </linearGradient>
+    <linearGradient id="letterWhite" gradientUnits="userSpaceOnUse" x1="0" y1="290" x2="0" y2="740">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#e6f0fd"/>
+    </linearGradient>
+    <clipPath id="iosCorner">
+      <rect width="1024" height="1024" rx="225" ry="225"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#iosCorner)">
+    <rect width="1024" height="1024" fill="url(#bgAppleBlue)"/>
+
+    <g transform="translate(0 10)" stroke="#0a3d8f" stroke-opacity="0.22" stroke-width="76" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M 346 300 L 346 580 Q 346 700 236 700 Q 194 700 184 632"/>
+      <path d="M 606 700 L 606 300 L 723 490 L 840 300 L 840 700"/>
+    </g>
+
+    <g stroke="url(#letterWhite)" stroke-width="76" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M 346 300 L 346 580 Q 346 700 236 700 Q 194 700 184 632"/>
+      <path d="M 606 700 L 606 300 L 723 490 L 840 300 L 840 700"/>
+    </g>
+
+    <rect width="1024" height="1024" fill="url(#topLight)"/>
+    <rect width="1024" height="1024" fill="url(#botShade)"/>
+    <rect x="4" y="4" width="1016" height="1016" rx="221" ry="221" fill="none" stroke="#ffffff" stroke-opacity="0.14" stroke-width="2"/>
+  </g>
+</svg>
+
+

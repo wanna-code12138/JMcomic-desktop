@@ -33,6 +33,7 @@ function createWindow(): void {
     minWidth: 960,
     minHeight: 640,
     show: false,
+    icon: join(__dirname, '../../build/icons/icon-256.png'),
     titleBarStyle: 'hidden',
     titleBarOverlay: CAPTION_LIGHT,
     backgroundColor: '#00000000',

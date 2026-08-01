@@ -49,7 +49,8 @@
       "output": "dist-electron"
     },
     "files": [
-      "out/**/*"
+      "out/**/*",
+      "build/icons/icon-256.png"
     ],
     "win": {
       "target": [
@@ -60,15 +61,15 @@
           ]
         }
       ],
-      "icon": null
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": null,
-      "uninstallerIcon": null,
-      "installerHeaderIcon": null,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "JMComic Desktop",
@@ -76,7 +77,8 @@
       "installerLanguages": [
         "zh-CN",
         "en-US"
-      ]
+      ],
+      "deleteAppDataOnUninstall": true
     }
   }
 }
