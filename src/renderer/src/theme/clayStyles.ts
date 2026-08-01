@@ -101,7 +101,8 @@ export const auroraBody: GriffelStyle = {
   overflow: 'hidden',
   minHeight: 0,
   position: 'relative',
-  backgroundColor: 'var(--ac-base-bg)',
+  // 必须透明，Mica/亚克力材质才能从窗口透出来；
+  // 纯色模式由 .ac-solid 在更外层提供不透明底色
   backgroundImage:
     'radial-gradient(circle at 12% 18%, var(--ac-aurora-1), transparent 45%),' +
     'radial-gradient(circle at 88% 12%, var(--ac-aurora-2), transparent 40%),' +
