@@ -17,6 +17,7 @@ interface DownloadRow {
   chapter_title: string
   chapter_url?: string
   cover_url?: string
+  error?: string
   status: string
   total_pages: number
   downloaded_pages: number
@@ -183,6 +184,10 @@ export default function DownloadsPage(): JSX.Element {
     () => groups.flatMap((g) => g.tasks).sort((a, b) => b.created_at - a.created_at),
     [groups]
   )
+  const completedGroups = React.useMemo(
+    () => groups.filter((g) => g.completedChapters > 0),
+    [groups]
+  )
 
   const handleRemoveManga = async (group: MangaGroup, deleteFiles: boolean): Promise<void> => {
     const confirmed = window.confirm(
@@ -218,14 +223,14 @@ export default function DownloadsPage(): JSX.Element {
       {loading ? (
         <div className={styles.statusMsg}><Text size={300}>加载中…</Text></div>
       ) : mainTab === 'manga' ? (
-        groups.length === 0 ? (
+        completedGroups.length === 0 ? (
           <div className={styles.statusMsg}>
-            <Text size={400}>📥 还没有下载记录</Text>
-            <Text size={200}>在漫画详情页点击下载，即可在这里离线阅读</Text>
+            <Text size={400}>📥 还没有下载完成的漫画</Text>
+            <Text size={200}>下载完成后会出现在这里，点击即可离线阅读</Text>
           </div>
         ) : (
           <div className={styles.grid}>
-            {groups.map((g) => (
+            {completedGroups.map((g) => (
               <div
                 key={g.mangaId}
                 className={styles.mangaCard}
@@ -291,6 +296,11 @@ export default function DownloadsPage(): JSX.Element {
                     {STATUS_LABEL[task.status] ?? task.status}
                     {active && ` · ${task.downloaded_pages}/${task.total_pages} 页`}
                   </div>
+                  {(task.status === 'failed' || task.status === 'cancelled') && task.error && (
+                    <Text size={200} style={{ color: 'var(--ac-danger, #d13438)', display: 'block', marginTop: '2px' }}>
+                      {task.error}
+                    </Text>
+                  )}
                   {(task.status === 'downloading' || task.status === 'pending') && (
                     <div className={styles.taskProgress} style={{ marginTop: '6px', height: '4px', borderRadius: '2px', backgroundColor: 'var(--ac-glass-border)', overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: `${Math.round(progress * 100)}%`, backgroundColor: 'var(--ac-brand)', transition: 'width 0.2s ease' }} />

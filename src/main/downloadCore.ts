@@ -19,6 +19,7 @@ export interface DownloadTaskRow {
   createdAt: number
   coverUrl?: string
   chapterUrl?: string
+  error?: string
 }
 
 export interface MangaDownloadGroup {
@@ -36,16 +37,18 @@ export interface MangaDownloadGroup {
 }
 
 export function sanitizeFileName(name: string): string {
-  return name.replace(/[<>:"/\\|?*]/g, '_').trim()
+  return name.replace(/[<>:"/\\|?*]/g, '_').replace(/\s+/g, ' ').trim()
 }
 
 export function buildChapterSaveDir(
   savePath: string,
   mangaTitle: string,
-  chapterTitle: string
+  chapterTitle: string,
+  chapterIndex?: number
 ): string {
   const manga = sanitizeFileName(mangaTitle) || '未命名漫画'
-  const chapter = sanitizeFileName(chapterTitle) || '未命名章节'
+  const chapter = sanitizeFileName(chapterTitle) ||
+    (typeof chapterIndex === 'number' ? `第 ${chapterIndex + 1} 話` : '未命名章节')
   return join(savePath, manga, chapter)
 }
 

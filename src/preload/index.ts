@@ -65,6 +65,8 @@ const api = {
 
   // Downloads
   downloadAdd: (data: Record<string, unknown>) => ipcRenderer.invoke('download:add', data),
+  downloadAddChapters: (data: Record<string, unknown>) =>
+    ipcRenderer.invoke('download:addChapters', data),
   downloadList: () => ipcRenderer.invoke('download:list'),
   downloadSummary: () => ipcRenderer.invoke('download:summary'),
   downloadMangaDetail: (mangaId: string) => ipcRenderer.invoke('download:mangaDetail', mangaId),
@@ -88,6 +90,13 @@ const api = {
     ipcRenderer.on('download:progress', handler)
     return () => {
       ipcRenderer.removeListener('download:progress', handler)
+    }
+  },
+  onDownloadAddStatus: (callback: (status: Record<string, unknown>) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, status: Record<string, unknown>): void => callback(status)
+    ipcRenderer.on('download:addStatus', handler)
+    return () => {
+      ipcRenderer.removeListener('download:addStatus', handler)
     }
   },
 

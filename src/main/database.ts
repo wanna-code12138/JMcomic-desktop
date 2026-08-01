@@ -72,6 +72,7 @@ function initTables(d: SqlJsDatabase): void {
       chapter_title TEXT,
       chapter_url TEXT,
       cover_url TEXT,
+      error TEXT,
       status TEXT DEFAULT 'pending',
       total_pages INTEGER DEFAULT 0,
       downloaded_pages INTEGER DEFAULT 0,
@@ -159,7 +160,8 @@ function initTables(d: SqlJsDatabase): void {
   )
   const newDownloadCols: Array<[string, string]> = [
     ['chapter_url', 'TEXT'],
-    ['cover_url', 'TEXT']
+    ['cover_url', 'TEXT'],
+    ['error', 'TEXT']
   ]
   for (const [col, type] of newDownloadCols) {
     if (!existingDownloadCols.has(col)) {

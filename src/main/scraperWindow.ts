@@ -525,6 +525,14 @@ export async function extractMangaDetail(mangaId: string): Promise<MangaDetailRe
 
         var chapters = [];
         var chapterSeen = {};
+        // 清理章节标题：压缩空白、去掉「[n]」与「最新」等页面垃圾后缀，
+        // 并过滤「開始閱讀」这类按钮文字，避免被当成章节名。
+        function cleanChapterTitle(raw) {
+          var title = (raw || '').replace(/\\s+/g, ' ').trim();
+          title = title.replace(/\\[\\s*\\d+\\s*\\]\\s*$/, '').replace(/\\s+最新\\s*$/, '').trim();
+          if (!title || /^(開始閱讀|开始阅读|閱讀|阅读|read|最新|下一頁|下一页|more)$/i.test(title)) return '';
+          return title;
+        }
         document.querySelectorAll('a[href*="/photo/"]').forEach(function(a) {
           var href = a.getAttribute('href');
           var photoMatch = href.match(/\\/photo\\/(\\d+)/);
@@ -532,9 +540,13 @@ export async function extractMangaDetail(mangaId: string): Promise<MangaDetailRe
           var key = photoMatch[1];
           if (chapterSeen[key]) return;
           chapterSeen[key] = true;
+          // 优先取链接内的标题元素；很多页面的章节链接里嵌了「開始閱讀」按钮
+          var titleEl = a.querySelector('.episode, .title, .chapter, .video-title');
+          var raw = titleEl ? titleEl.textContent : a.textContent;
+          var title = cleanChapterTitle(raw) || ('第 ' + (chapters.length + 1) + ' 話');
           chapters.push({
             index: chapters.length,
-            title: a.textContent.trim() || ('第 ' + (chapters.length + 1) + ' 話'),
+            title: title,
             url: href.startsWith('/') ? href : '/photo/' + photoMatch[1]
           });
         });
@@ -542,11 +554,11 @@ export async function extractMangaDetail(mangaId: string): Promise<MangaDetailRe
         if (chapters.length === 0) {
           document.querySelectorAll('[data-album]').forEach(function(el) {
             var aid = el.getAttribute('data-album');
-            chapters.push({
-              index: chapters.length,
-              title: el.textContent.trim() || ('第 ' + (chapters.length + 1) + ' 話'),
-              url: '/photo/' + aid
-            });
+          chapters.push({
+            index: chapters.length,
+            title: cleanChapterTitle(el.textContent) || ('第 ' + (chapters.length + 1) + ' 話'),
+            url: '/photo/' + aid
+          });
           });
         }
 

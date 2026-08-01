@@ -53,11 +53,20 @@ test('sanitizeFileName trims whitespace', () => {
   assert.strictEqual(sanitizeFileName('  漫画  '), '漫画')
 })
 
+test('sanitizeFileName collapses internal whitespace and newlines', () => {
+  assert.strictEqual(sanitizeFileName('第2話 \n  [2]'), '第2話 [2]')
+})
+
 // ─── buildChapterSaveDir ──────────────────────────────────────────
 
 test('buildChapterSaveDir nests manga and chapter folders', () => {
   const dir = buildChapterSaveDir('D:\\downloads', '我的漫画', '第 3 话')
   assert.strictEqual(dir, join('D:\\downloads', '我的漫画', '第 3 话'))
+})
+
+test('buildChapterSaveDir falls back to numbered chapter folder when title empty', () => {
+  const dir = buildChapterSaveDir('D:\\downloads', '我的漫画', '   ', 4)
+  assert.strictEqual(dir, join('D:\\downloads', '我的漫画', '第 5 話'))
 })
 
 // ─── toLocalImageUrl ──────────────────────────────────────────────

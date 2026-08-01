@@ -147,11 +147,7 @@ function getDescrambleWindow(): BrowserWindow {
   return _descrambleWin
 }
 
-/**
- * 反打乱一张图片。算法与阅读器 ReaderPage.tsx 的 DescrambledImage
- * 组件完全一致，通过隐藏 BrowserWindow 中的 Canvas drawImage 实现。
- */
-export async function descrambleImage(
+async function doDescramble(
   inputBuffer: Buffer,
   scrambleId: number,
   imageUrl: string
@@ -169,4 +165,22 @@ export async function descrambleImage(
   )
 
   return Buffer.from(resultBase64, 'base64')
+}
+
+// 反打乱窗口是单例，多个下载任务并发调用 executeJavaScript 会互相干扰，
+// 这里用 Promise 链串行化所有反打乱请求。
+let descrambleQueue: Promise<unknown> = Promise.resolve()
+
+/**
+ * 反打乱一张图片。算法与阅读器 ReaderPage.tsx 的 DescrambledImage
+ * 组件完全一致，通过隐藏 BrowserWindow 中的 Canvas drawImage 实现。
+ */
+export function descrambleImage(
+  inputBuffer: Buffer,
+  scrambleId: number,
+  imageUrl: string
+): Promise<Buffer> {
+  const run = descrambleQueue.then(() => doDescramble(inputBuffer, scrambleId, imageUrl))
+  descrambleQueue = run.catch(() => {})
+  return run
 }
