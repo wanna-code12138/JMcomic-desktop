@@ -55,7 +55,7 @@
     "win": {
       "target": [
         {
-          "target": "nsis",
+          "target": "portable",
           "arch": [
             "x64"
           ]
@@ -63,22 +63,8 @@
       ],
       "icon": "build/icon.ico"
     },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico",
-      "installerHeaderIcon": "build/icon.ico",
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "JMComic Desktop",
-      "unicode": true,
-      "installerLanguages": [
-        "zh-CN",
-        "en-US"
-      ],
-      "deleteAppDataOnUninstall": true
+    "portable": {
+      "artifactName": "JMComic Desktop Portable ${version}.exe"
     }
   }
 }

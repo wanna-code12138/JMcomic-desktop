@@ -22,7 +22,7 @@
 | 内容提取 | 隐藏 BrowserWindow + executeJavaScript（scraperWindow，主路径） |
 | 图片缓存 | 磁盘文件缓存（MD5 hash 文件名）+ 内存 URL→path 映射 |
 | 图片代理 | 自定义 `jmimg://` 协议（主进程代理 CDN 请求，加 Referer + Cookie） |
-| 打包 | electron-builder (NSIS, Windows .exe) |
+| 打包 | electron-builder (portable 单文件, Windows .exe) |
 
 ---
 
@@ -86,7 +86,7 @@ npm run dev
 # 构建
 npm run build
 
-# 打包为 .exe
+# 打包为便携版单文件 .exe（免安装，无外部依赖）
 npm run package
 ```
 
