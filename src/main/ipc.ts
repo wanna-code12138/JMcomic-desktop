@@ -1,7 +1,13 @@
-import { ipcMain } from 'electron'
+import { app, dialog, ipcMain } from 'electron'
+import { writeFileSync, readFileSync } from 'fs'
 import { getDatabase, saveDatabase } from './database'
 import { clearScraperCache } from './scraperWindow'
 import { clearImageCache } from './imageLoader'
+import {
+  exportPersonalData,
+  importPersonalData,
+  clearPersonalData
+} from './personalData'
 
 export function registerIpcHandlers(): void {
   // Database queries (generic)
@@ -205,6 +211,55 @@ export function registerIpcHandlers(): void {
     const imgCount = clearImageCache()
     clearScraperCache()
     return { imageFilesRemoved: imgCount }
+  })
+
+  // App info
+  ipcMain.handle('app:getVersion', () => app.getVersion())
+
+  // Personal data: export / import / clear
+  ipcMain.handle('data:exportPersonal', async () => {
+    const db = await getDatabase()
+    const payload = exportPersonalData(db)
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: '导出个人数据',
+      defaultPath: `jmcomic-personal-data-${new Date().toISOString().slice(0, 10)}.json`,
+      filters: [{ name: 'JSON', extensions: ['json'] }]
+    })
+    if (canceled || !filePath) return { canceled: true }
+    writeFileSync(filePath, JSON.stringify(payload, null, 2), 'utf-8')
+    return { canceled: false, path: filePath }
+  })
+
+  ipcMain.handle('data:importPersonal', async () => {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      title: '导入个人数据',
+      properties: ['openFile'],
+      filters: [{ name: 'JSON', extensions: ['json'] }]
+    })
+    if (canceled || !filePaths[0]) return { canceled: true }
+
+    let payload: unknown
+    try {
+      payload = JSON.parse(readFileSync(filePaths[0], 'utf-8'))
+    } catch (err) {
+      return { canceled: false, error: `文件解析失败: ${err instanceof Error ? err.message : String(err)}` }
+    }
+
+    const db = await getDatabase()
+    try {
+      const result = importPersonalData(db, payload)
+      saveDatabase()
+      return { canceled: false, ...result, path: filePaths[0] }
+    } catch (err) {
+      return { canceled: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle('data:clearPersonal', async () => {
+    const db = await getDatabase()
+    const counts = clearPersonalData(db)
+    saveDatabase()
+    return counts
   })
 }
 

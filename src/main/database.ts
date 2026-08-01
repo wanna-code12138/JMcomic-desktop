@@ -1,10 +1,15 @@
 import initSqlJs, { Database as SqlJsDatabase } from 'sql.js'
 import { app } from 'electron'
-import { join } from 'path'
 import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
+import {
+  getAppDataDir,
+  getDatabasePath,
+  getLegacyDatabasePath,
+  migrateLegacyDatabase
+} from './dataPaths'
 
 let db: SqlJsDatabase | null = null
-const DB_PATH = join(app.getPath('userData'), 'jmcomic.db')
+const DB_PATH = getDatabasePath()
 
 export async function getDatabase(): Promise<SqlJsDatabase> {
   if (db) return db
@@ -15,9 +20,16 @@ export async function getDatabase(): Promise<SqlJsDatabase> {
     const buffer = readFileSync(DB_PATH)
     db = new SQL.Database(buffer)
   } else {
-    const dir = app.getPath('userData')
+    // 便携版首次升级：把旧版 userData 里的数据库复制到 exe 旁边
+    migrateLegacyDatabase({
+      legacyPath: getLegacyDatabasePath(app.getPath('userData')),
+      targetPath: DB_PATH
+    })
+    const dir = getAppDataDir()
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
-    db = new SQL.Database()
+    db = existsSync(DB_PATH)
+      ? new SQL.Database(readFileSync(DB_PATH))
+      : new SQL.Database()
   }
 
   db.run('PRAGMA journal_mode = WAL')

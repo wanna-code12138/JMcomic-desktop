@@ -182,6 +182,13 @@ interface AppProps {
 export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Element {
   const styles = useStyles()
   const { currentPage, setCurrentPage, networkStatus } = useAppStore()
+  const [appVersion, setAppVersion] = React.useState('1.0.2')
+
+  React.useEffect(() => {
+    window.electronAPI?.appVersion().then((v) => {
+      if (v) setAppVersion(String(v))
+    })
+  }, [])
 
   const ActivePage = pageComponents[currentPage as PageId] ?? HomePage
 
@@ -242,7 +249,7 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
               {networkLabel()}
             </span>
             <span className={styles.statusSeparator} />
-            <span className={styles.statusVersion}>JMComic Desktop v1.0.0</span>
+            <span className={styles.statusVersion}>JMComic Desktop v{appVersion}</span>
           </div>
         </div>
       </div>

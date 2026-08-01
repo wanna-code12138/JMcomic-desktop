@@ -117,7 +117,15 @@ const api = {
   historyListLocal: () => ipcRenderer.invoke('history:listLocal'),
   historyGetLocal: (mangaId: string) => ipcRenderer.invoke('history:getLocal', mangaId),
   historyRemoveLocal: (mangaId: string) => ipcRenderer.invoke('history:removeLocal', mangaId),
-  historyClearLocal: () => ipcRenderer.invoke('history:clearLocal')
+  historyClearLocal: () => ipcRenderer.invoke('history:clearLocal'),
+
+  // Personal data (export / import / clear)
+  personalDataExport: () => ipcRenderer.invoke('data:exportPersonal'),
+  personalDataImport: () => ipcRenderer.invoke('data:importPersonal'),
+  personalDataClear: () => ipcRenderer.invoke('data:clearPersonal'),
+
+  // App info
+  appVersion: () => ipcRenderer.invoke('app:getVersion')
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)
