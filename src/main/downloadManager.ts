@@ -11,6 +11,7 @@ import {
   buildChapterSaveDir,
   groupTasksByManga,
   normalizeTaskRow,
+  pickRetryableTasks,
   resolveLocalChapterPages,
   sanitizeFileName,
   type DownloadTaskRow
@@ -547,6 +548,35 @@ ipcMain.handle('download:retry', async (_event, taskId: number) => {
   downloadQueue.push(task)
   void processDownloadQueue()
   return { ok: true }
+})
+
+/** 一键重试全部失败/已取消任务，返回实际重新入队的数量。 */
+ipcMain.handle('download:retryFailed', async () => {
+  const db = await getDatabase()
+  const rows = execRows(
+    db,
+    `SELECT * FROM downloads WHERE status IN ('failed', 'cancelled') ORDER BY created_at`
+  )
+  const queuedIds = new Set(
+    downloadQueue
+      .filter((t) => t.status === 'pending' || t.status === 'downloading')
+      .map((t) => t.id)
+  )
+  const targets = pickRetryableTasks(rows).filter((t) => !queuedIds.has(t.id))
+
+  let retried = 0
+  for (const row of targets) {
+    db.run(
+      `UPDATE downloads SET status = 'pending', downloaded_pages = 0, error = NULL WHERE id = ?`,
+      [row.id]
+    )
+    removeFromQueue(row.id)
+    downloadQueue.push(rowToTask({ ...row, status: 'pending', downloadedPages: 0, error: undefined }))
+    retried++
+  }
+  saveDatabase()
+  void processDownloadQueue()
+  return { ok: true, retried }
 })
 
 ipcMain.handle('download:remove', async (_event, taskId: number, deleteFiles: boolean) => {

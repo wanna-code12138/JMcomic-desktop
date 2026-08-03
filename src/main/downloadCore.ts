@@ -64,6 +64,11 @@ export function normalizeTaskRow(raw: Record<string, unknown>): DownloadTaskRow 
   }
 }
 
+/** 筛选可重试的任务（失败/已取消），供任务页"一键重试"批量入队。 */
+export function pickRetryableTasks(rows: DownloadTaskRow[]): DownloadTaskRow[] {
+  return rows.filter((t) => t.status === 'failed' || t.status === 'cancelled')
+}
+
 export function sanitizeFileName(name: string): string {
   return name.replace(/[<>:"/\\|?*]/g, '_').replace(/\s+/g, ' ').trim()
 }
