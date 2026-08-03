@@ -26,6 +26,8 @@ const useStyles = makeStyles({
     height: TITLE_BAR_HEIGHT,
     paddingLeft: '14px',
     paddingRight: '4px',
+    position: 'relative',
+    zIndex: 1000,
     backgroundColor: 'var(--ac-glass-bg)',
     backdropFilter: 'blur(var(--ac-blur-toolbar))',
     WebkitBackdropFilter: 'blur(var(--ac-blur-toolbar))',
