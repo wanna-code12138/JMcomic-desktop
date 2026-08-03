@@ -28,4 +28,9 @@ npm-debug.log*
 # Agent workspace
 .reasonix/
 .superpowers/
+.opencode/
+.agents/
+.codex/
 work/
+AGENTS.md
+PROGRESS.md

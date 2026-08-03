@@ -5,6 +5,14 @@
   "main": "./out/main/index.js",
   "author": "JMComic Desktop",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wanna-code12138/jmcomic-desktop.git"
+  },
+  "homepage": "https://github.com/wanna-code12138/jmcomic-desktop#readme",
+  "bugs": {
+    "url": "https://github.com/wanna-code12138/jmcomic-desktop/issues"
+  },
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
@@ -63,6 +71,11 @@
         }
       ],
       "icon": "build/icon.ico"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "wanna-code12138",
+      "repo": "jmcomic-desktop"
     },
     "portable": {
       "artifactName": "JMComic Desktop Portable ${version}.exe"

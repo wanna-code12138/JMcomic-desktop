@@ -1,0 +1,38 @@
+name: Bug 报告
+description: 提交一个可复现的问题
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: 应用版本（Release 文件名或 package.json 中的 version）
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: 系统
+      description: Windows 版本（例如 Windows 11 23H2）
+    validations:
+      required: true
+  - type: textarea
+    id: describe
+    attributes:
+      label: 问题描述
+      description: 发生了什么？期望行为是什么？
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 复现步骤
+      description: 尽量给出可复现的最小步骤
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 截图
+      description: 相关日志或截图（注意打码个人数据）
