@@ -148,8 +148,9 @@ test('resolveLocalChapterPages returns sorted numbered images', () => {
     }
     const pages = resolveLocalChapterPages(join(root, '章'))
     assert.deepStrictEqual(pages.map((p) => p.index), [0, 1, 2])
-    assert.ok(pages[0].url.startsWith('jmlocal://img/'))
-    const encoded = pages[2].url.slice('jmlocal://img/'.length)
+    assert.ok(pages[0].imageUrl.startsWith('jmlocal://img/'))
+    assert.strictEqual((pages[0] as { url?: string }).url, undefined)
+    const encoded = pages[2].imageUrl.slice('jmlocal://img/'.length)
     const decoded = Buffer.from(encoded.replace(/-/g, '+').replace(/_/g, '/') + '==', 'base64').toString('utf-8')
     assert.ok(decoded.endsWith('0010.png'))
   } finally {

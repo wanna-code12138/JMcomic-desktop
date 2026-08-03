@@ -100,8 +100,11 @@ export function toLocalImageUrl(absolutePath: string): string {
 
 const IMAGE_EXT_RE = /\.(jpg|jpeg|png|webp|gif|bmp)$/i
 
-/** 扫描章节保存目录，返回按序号排序的本地图片（不存在的目录返回空数组）。 */
-export function resolveLocalChapterPages(saveDir: string): Array<{ index: number; url: string }> {
+/**
+ * 扫描章节保存目录，返回按序号排序的本地图片（不存在的目录返回空数组）。
+ * 字段与阅读器 PageData 保持一致：index + imageUrl（jmlocal:// 直读 URL）。
+ */
+export function resolveLocalChapterPages(saveDir: string): Array<{ index: number; imageUrl: string }> {
   if (!existsSync(saveDir)) return []
   const names = readdirSync(saveDir).filter((name) => {
     if (!IMAGE_EXT_RE.test(name)) return false
@@ -119,7 +122,7 @@ export function resolveLocalChapterPages(saveDir: string): Array<{ index: number
   })
   return names.map((name, index) => ({
     index,
-    url: toLocalImageUrl(join(saveDir, name))
+    imageUrl: toLocalImageUrl(join(saveDir, name))
   }))
 }
 
