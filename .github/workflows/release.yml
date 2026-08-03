@@ -36,7 +36,9 @@ jobs:
           if ($failed) { exit 1 }
 
       - name: Build portable package
-        run: npm run package
+        # 只构建不发布：electron-builder 检测到 tag 会自动尝试上传，
+        # 这里显式禁用，统一由下方的 gh release create 步骤发布。
+        run: npm run package -- --publish never
 
       - name: Upload portable exe
         uses: actions/upload-artifact@v4
