@@ -1,6 +1,7 @@
 import React from 'react'
 import {
-  Button, makeStyles, Tab, TabList, Text, Tooltip
+  Button, Dialog, DialogActions, DialogBody, DialogContent,
+  DialogSurface, DialogTitle, makeStyles, Tab, TabList, Text, Tooltip
 } from '@fluentui/react-components'
 import {
   ArrowClockwise20Regular, Dismiss20Regular, FolderOpen20Regular,
@@ -11,18 +12,18 @@ import { toJmImg } from '../utils/image'
 
 interface DownloadRow {
   id: number
-  manga_id: string
-  manga_title: string
-  chapter_index: number
-  chapter_title: string
-  chapter_url?: string
-  cover_url?: string
+  mangaId: string
+  mangaTitle: string
+  chapterIndex: number
+  chapterTitle: string
+  chapterUrl?: string
+  coverUrl?: string
   error?: string
   status: string
-  total_pages: number
-  downloaded_pages: number
-  save_path: string
-  created_at: number
+  totalPages: number
+  downloadedPages: number
+  savePath: string
+  createdAt: number
 }
 
 interface MangaGroup {
@@ -165,8 +166,15 @@ export default function DownloadsPage(): JSX.Element {
   const [mainTab, setMainTab] = React.useState<MainTab>('manga')
   const [groups, setGroups] = React.useState<MangaGroup[]>([])
   const [loading, setLoading] = React.useState(true)
+  const [actionError, setActionError] = React.useState('')
+  const [confirm, setConfirm] = React.useState<{
+    title: string
+    body: string
+    onConfirm: () => void
+  } | null>(null)
 
   const load = React.useCallback(async (): Promise<void> => {
+    setActionError('')
     const list = (await window.electronAPI?.downloadSummary()) as MangaGroup[] | undefined
     setGroups(list ?? [])
     setLoading(false)
@@ -181,7 +189,7 @@ export default function DownloadsPage(): JSX.Element {
   }, [load])
 
   const allTasks = React.useMemo(
-    () => groups.flatMap((g) => g.tasks).sort((a, b) => b.created_at - a.created_at),
+    () => groups.flatMap((g) => g.tasks).sort((a, b) => b.createdAt - a.createdAt),
     [groups]
   )
   const completedGroups = React.useMemo(
@@ -189,26 +197,34 @@ export default function DownloadsPage(): JSX.Element {
     [groups]
   )
 
-  const handleRemoveManga = async (group: MangaGroup, deleteFiles: boolean): Promise<void> => {
-    const confirmed = window.confirm(
-      deleteFiles
-        ? `确定删除《${group.mangaTitle}》的 ${group.tasks.length} 条下载记录，并删除本地文件吗？\n此操作不可恢复。`
-        : `确定删除《${group.mangaTitle}》的 ${group.tasks.length} 条下载记录吗？\n本地文件将保留。`
-    )
-    if (!confirmed) return
-    await window.electronAPI?.downloadRemoveManga(group.mangaId, deleteFiles)
-    void load()
+  const askRemoveManga = (group: MangaGroup, deleteFiles: boolean): void => {
+    setConfirm({
+      title: deleteFiles ? '删除记录和本地文件' : '删除下载记录',
+      body: deleteFiles
+        ? `确定删除《${group.mangaTitle}》的 ${group.tasks.length} 条下载记录，并删除本地文件吗？此操作不可恢复。`
+        : `确定删除《${group.mangaTitle}》的 ${group.tasks.length} 条下载记录吗？本地文件将保留。`,
+      onConfirm: () => {
+        void window.electronAPI?.downloadRemoveManga(group.mangaId, deleteFiles).then((r) => {
+          if (!r?.ok) setActionError(r?.error ?? '删除失败')
+          void load()
+        })
+      }
+    })
   }
 
-  const handleRemoveTask = async (task: DownloadRow, deleteFiles: boolean): Promise<void> => {
-    const confirmed = window.confirm(
-      deleteFiles
-        ? `确定删除任务《${task.manga_title} - ${task.chapter_title}》并删除本地文件吗？`
-        : `确定删除任务《${task.manga_title} - ${task.chapter_title}》吗？\n本地文件将保留。`
-    )
-    if (!confirmed) return
-    await window.electronAPI?.downloadRemove(task.id, deleteFiles)
-    void load()
+  const askRemoveTask = (task: DownloadRow, deleteFiles: boolean): void => {
+    setConfirm({
+      title: deleteFiles ? '删除记录和本地文件' : '删除下载记录',
+      body: deleteFiles
+        ? `确定删除任务《${task.mangaTitle} - ${task.chapterTitle}》并删除本地文件吗？此操作不可恢复。`
+        : `确定删除任务《${task.mangaTitle} - ${task.chapterTitle}》吗？本地文件将保留。`,
+      onConfirm: () => {
+        void window.electronAPI?.downloadRemove(task.id, deleteFiles).then((r) => {
+          if (!r?.ok) setActionError(r?.error ?? '删除失败')
+          void load()
+        })
+      }
+    })
   }
 
   return (
@@ -219,6 +235,11 @@ export default function DownloadsPage(): JSX.Element {
           <Tab value="tasks">任务</Tab>
         </TabList>
       </div>
+      {actionError && (
+        <Text size={200} style={{ color: 'var(--ac-danger, #d13438)', display: 'block', marginBottom: '10px' }}>
+          {actionError}
+        </Text>
+      )}
 
       {loading ? (
         <div className={styles.statusMsg}><Text size={300}>加载中…</Text></div>
@@ -251,15 +272,17 @@ export default function DownloadsPage(): JSX.Element {
                   >
                     <Tooltip content="打开文件夹" relationship="label">
                       <Button size="small" appearance="secondary" icon={<FolderOpen20Regular />}
-                        onClick={() => void window.electronAPI?.downloadOpenMangaFolder(g.mangaId)} />
+                        onClick={() => void window.electronAPI?.downloadOpenMangaFolder(g.mangaId).then((r) => {
+                          if (!r?.ok) setActionError(r?.error ?? '打开文件夹失败')
+                        })} />
                     </Tooltip>
                     <Tooltip content="删除记录" relationship="label">
                       <Button size="small" appearance="secondary" icon={<Delete20Regular />}
-                        onClick={() => void handleRemoveManga(g, false)} />
+                        onClick={() => askRemoveManga(g, false)} />
                     </Tooltip>
                     <Tooltip content="删除记录+文件" relationship="label">
                       <Button size="small" appearance="secondary" icon={<Dismiss20Regular />}
-                        onClick={() => void handleRemoveManga(g, true)} />
+                        onClick={() => askRemoveManga(g, true)} />
                     </Tooltip>
                   </div>
                 </div>
@@ -281,8 +304,8 @@ export default function DownloadsPage(): JSX.Element {
       ) : (
         <div className={styles.taskList}>
           {allTasks.map((task) => {
-            const progress = task.total_pages > 0
-              ? Math.min(1, task.downloaded_pages / task.total_pages)
+            const progress = task.totalPages > 0
+              ? Math.min(1, task.downloadedPages / task.totalPages)
               : 0
             const active = task.status === 'pending' || task.status === 'downloading'
             const retryable = task.status === 'failed' || task.status === 'cancelled'
@@ -290,11 +313,11 @@ export default function DownloadsPage(): JSX.Element {
               <div key={task.id} className={styles.taskItem}>
                 <div className={styles.taskInfo}>
                   <div className={styles.taskTitle}>
-                    {task.manga_title} - {task.chapter_title}
+                    {task.mangaTitle} - {task.chapterTitle}
                   </div>
                   <div className={styles.taskMeta}>
                     {STATUS_LABEL[task.status] ?? task.status}
-                    {active && ` · ${task.downloaded_pages}/${task.total_pages} 页`}
+                    {active && ` · ${task.downloadedPages}/${task.totalPages} 页`}
                   </div>
                   {(task.status === 'failed' || task.status === 'cancelled') && task.error && (
                     <Text size={200} style={{ color: 'var(--ac-danger, #d13438)', display: 'block', marginTop: '2px' }}>
@@ -322,15 +345,17 @@ export default function DownloadsPage(): JSX.Element {
                   )}
                   <Tooltip content="打开文件夹" relationship="label">
                     <Button size="small" appearance="subtle" icon={<FolderOpen20Regular />}
-                      onClick={() => void window.electronAPI?.downloadOpenTaskFolder(task.id)} />
+                      onClick={() => void window.electronAPI?.downloadOpenTaskFolder(task.id).then((r) => {
+                        if (!r?.ok) setActionError(r?.error ?? '打开文件夹失败')
+                      })} />
                   </Tooltip>
                   <Tooltip content="删除记录" relationship="label">
                     <Button size="small" appearance="subtle" icon={<Delete20Regular />}
-                      onClick={() => void handleRemoveTask(task, false)} />
+                      onClick={() => askRemoveTask(task, false)} />
                   </Tooltip>
                   <Tooltip content="删除记录+文件" relationship="label">
                     <Button size="small" appearance="subtle" icon={<Dismiss20Regular />}
-                      onClick={() => void handleRemoveTask(task, true)} />
+                      onClick={() => askRemoveTask(task, true)} />
                   </Tooltip>
                 </div>
               </div>
@@ -338,6 +363,29 @@ export default function DownloadsPage(): JSX.Element {
           })}
         </div>
       )}
+      <Dialog open={confirm !== null} onOpenChange={(_e, d) => { if (!d.open) setConfirm(null) }}>
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>{confirm?.title}</DialogTitle>
+            <DialogContent>
+              <Text size={300} style={{ whiteSpace: 'pre-line' }}>{confirm?.body}</Text>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="secondary" onClick={() => setConfirm(null)}>取消</Button>
+              <Button
+                appearance="primary"
+                style={{ backgroundColor: 'var(--ac-danger, #d13438)' }}
+                onClick={() => {
+                  confirm?.onConfirm()
+                  setConfirm(null)
+                }}
+              >
+                删除
+              </Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
     </div>
   )
 }

@@ -146,9 +146,9 @@ interface MangaDownloadGroup {
   coverUrl: string
   tasks: Array<{
     id: number
-    chapter_index: number
-    chapter_title: string
-    chapter_url: string
+    chapterIndex: number
+    chapterTitle: string
+    chapterUrl: string
     status: string
     error?: string
   }>
@@ -195,9 +195,9 @@ export default function MangaDetailPage(): JSX.Element {
               tags: [],
               description: '',
               chapters: group.tasks.map((t) => ({
-                index: t.chapter_index,
-                title: t.chapter_title,
-                url: t.chapter_url ?? '',
+                index: t.chapterIndex,
+                title: t.chapterTitle,
+                url: t.chapterUrl ?? '',
                 status: t.status,
                 taskId: t.id,
                 error: t.error

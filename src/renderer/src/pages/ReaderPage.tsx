@@ -473,6 +473,11 @@ export default function ReaderPage(): JSX.Element {
             total_pages: pageList.length
           })
         }
+      }).catch((err) => {
+        if (!cancelled) {
+          setError(String(err))
+          setLoading(false)
+        }
       })
       return () => { cancelled = true }
     }
