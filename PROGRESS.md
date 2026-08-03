@@ -1,6 +1,6 @@
 # JMComic Desktop 1.0.4 开发进度
 
-> 更新日期：2026-08-02
+> 更新日期：2026-08-03
 
 ## 一、版本目标
 
@@ -89,8 +89,29 @@
    - PowerShell 对含 `[ ]` 的路径会按通配符处理，排查目录时曾误判"文件丢失"（需 `-LiteralPath` / `-Force`）
    - 仓库存在一批历史 tsc 类型错误（contentApi / ipc / siteAdapter / sessionWarmup / MangaCard / auroraTheme 等），与本次任务无关，未处理
 
+9. **详情页大概率显示 `jmcomic.me` 占位符（进行中，尚未修复）**
+
+   现象：从主页点进详情页，大概率标题显示 `jmcomic.me`、内容无法正常加载；其他功能也可能连带不可用（2026-08-03 反馈）。
+
+   根因分析（代码审计结论，本机沙箱无法直连站点复现）：
+   - `networkProbe` 轮询时只要求 `HEAD /` 状态码 < 500 就判可用（`networkProbe.ts:117`），`jmcomic.me` 返回的占位页是 200，会被误选为 `activeDomain`（硬编码候选 `DEFAULT_DOMAINS` 含 `jmcomic.me`）；之后所有抓取都导航到占位页，标题就提取成 `jmcomic.me`
+   - 官方 JM 库（hect0x7/JMComic-Crawler-Python）说明网页域名动态变化：`jm365.work/3YeBdF` 永久跳转 + `jmcomicgo.org` 发布页动态获取；`jmcomic.me` 不在官方域名语义内
+   - `scraperWindow.navigateAndWait` 超时或 `ERR_ABORTED` 后仍直接继续提取，可能对旧页面/占位页执行 DOM 提取
+   - `extractMangaDetail` 提取后无条件 `cacheSet`（TTL 10 分钟），坏结果会滞留并反复命中
+
+   已做：
+   - 新增 `src/main/__tests__/networkCore.test.ts`（TDD 红阶段，尚未运行通过）：规划纯逻辑模块 `networkCore.ts`，导出域名规范化、发布页域名提取、JM 页面真伪校验、路径匹配四个函数
+   - 已调研官方 JM 库的域名机制与解析正则（`jm_config.py` / `jm_toolkit.py`）
+
+   还没做：
+   - `networkCore.ts` 尚未实现，测试未跑通
+   - `networkProbe` 接入"真页面校验 + 动态域名表 + 探测失败不改 activeDomain"未完成
+   - `scraperWindow` 导航目标校验/重试、提取前页面真伪校验、坏结果不缓存未完成
+   - 未建分支、未提交、未合入 main
+
 ## 四、尚未完成 / 待办
 
+- **详情页占位符 bug（进行中）**：见"三、遇到的问题与修复"第 9 条，修复方案已定、尚未实施
 - **封面仍是网络代理加载**：下载记录里的封面走 `jmimg://`，离线时封面可能不显示（本地未保存封面）
 - **旧目录不自动迁移**：已产生的脏目录（如 `開始閱讀`）不会自动改名/搬移，需手动删除后重新下载
 - **打包未验证**：还没跑 `npm run package` 产出 1.0.4 便携 exe
@@ -112,7 +133,13 @@
 
 - `c7a26a5` feat(1.0.4): 实现下载页与本地离线阅读
 - `66feaa6` fix(1.0.4): 修复下载失败与目录结构，下载进度移至顶部栏
+- `42ef4a2` docs: 新增 PROGRESS.md 记录 1.0.4 进度、遗留问题与踩坑
 - 分支 `feat/1.0.4-downloads`、`fix/1.0.4-download-issues` 已合并并删除
+
+### 进行中的改动（未提交）
+
+- `src/main/__tests__/networkCore.test.ts`：新增的详情页占位符修复测试，尚未实现对应模块
+- 工作区另有未提交的 `README.md`、`docs/superpowers/*` 删除（非本任务改动，保持原状未动）
 
 ## 六、自测步骤
 
