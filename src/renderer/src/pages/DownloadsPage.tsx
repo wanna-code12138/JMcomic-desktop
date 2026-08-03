@@ -167,6 +167,8 @@ export default function DownloadsPage(): JSX.Element {
   const [groups, setGroups] = React.useState<MangaGroup[]>([])
   const [loading, setLoading] = React.useState(true)
   const [actionError, setActionError] = React.useState('')
+  const [actionMsg, setActionMsg] = React.useState('')
+  const [retrying, setRetrying] = React.useState(false)
   const [confirm, setConfirm] = React.useState<{
     title: string
     body: string
@@ -175,6 +177,7 @@ export default function DownloadsPage(): JSX.Element {
 
   const load = React.useCallback(async (): Promise<void> => {
     setActionError('')
+    setActionMsg('')
     const list = (await window.electronAPI?.downloadSummary()) as MangaGroup[] | undefined
     setGroups(list ?? [])
     setLoading(false)
@@ -196,6 +199,31 @@ export default function DownloadsPage(): JSX.Element {
     () => groups.filter((g) => g.completedChapters > 0),
     [groups]
   )
+  const retryableCount = React.useMemo(
+    () => allTasks.filter((t) => t.status === 'failed' || t.status === 'cancelled').length,
+    [allTasks]
+  )
+
+  const handleRetryAllFailed = async (): Promise<void> => {
+    setRetrying(true)
+    setActionMsg('')
+    setActionError('')
+    try {
+      const r = await window.electronAPI?.downloadRetryFailed()
+      if (!r?.ok) {
+        setActionError(r?.error ?? '重试失败')
+      } else if (r.retried > 0) {
+        setActionMsg(`已重新加入队列 ${r.retried} 个任务`)
+      } else {
+        setActionMsg('没有可重试的失败任务')
+      }
+    } catch (err) {
+      setActionError(String(err))
+    } finally {
+      setRetrying(false)
+      void load()
+    }
+  }
 
   const askRemoveManga = (group: MangaGroup, deleteFiles: boolean): void => {
     setConfirm({
@@ -238,6 +266,11 @@ export default function DownloadsPage(): JSX.Element {
       {actionError && (
         <Text size={200} style={{ color: 'var(--ac-danger, #d13438)', display: 'block', marginBottom: '10px' }}>
           {actionError}
+        </Text>
+      )}
+      {actionMsg && (
+        <Text size={200} style={{ color: 'var(--ac-green, #4caf50)', display: 'block', marginBottom: '10px' }}>
+          {actionMsg}
         </Text>
       )}
 
@@ -302,8 +335,22 @@ export default function DownloadsPage(): JSX.Element {
           <Text size={200}>开始下载后可以在这里查看进度和管理任务</Text>
         </div>
       ) : (
-        <div className={styles.taskList}>
-          {allTasks.map((task) => {
+        <>
+          {retryableCount > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
+              <Button
+                size="small"
+                appearance="secondary"
+                icon={<ArrowClockwise20Regular />}
+                disabled={retrying}
+                onClick={() => void handleRetryAllFailed()}
+              >
+                {retrying ? '正在重试…' : `重试全部失败 (${retryableCount})`}
+              </Button>
+            </div>
+          )}
+          <div className={styles.taskList}>
+            {allTasks.map((task) => {
             const progress = task.totalPages > 0
               ? Math.min(1, task.downloadedPages / task.totalPages)
               : 0
@@ -360,8 +407,9 @@ export default function DownloadsPage(): JSX.Element {
                 </div>
               </div>
             )
-          })}
-        </div>
+            })}
+          </div>
+        </>
       )}
       <Dialog open={confirm !== null} onOpenChange={(_e, d) => { if (!d.open) setConfirm(null) }}>
         <DialogSurface>

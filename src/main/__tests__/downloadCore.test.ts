@@ -7,6 +7,7 @@ import {
   groupTasksByManga,
   isLocalImagePathSafe,
   normalizeTaskRow,
+  pickRetryableTasks,
   resolveLocalChapterPages,
   sanitizeFileName,
   toLocalImageUrl,
@@ -210,6 +211,24 @@ test('groupTasksByManga groups rows by manga and counts chapters', () => {
 
 test('groupTasksByManga returns empty for empty input', () => {
   assert.deepStrictEqual(groupTasksByManga([]), [])
+})
+
+// ─── pickRetryableTasks ───────────────────────────────────────────
+
+test('pickRetryableTasks returns failed and cancelled tasks in order', () => {
+  const rows = [
+    row({ id: 1, status: 'failed' }),
+    row({ id: 2, status: 'cancelled' }),
+    row({ id: 3, status: 'completed' }),
+    row({ id: 4, status: 'pending' }),
+    row({ id: 5, status: 'downloading' })
+  ]
+  const picked = pickRetryableTasks(rows)
+  assert.deepStrictEqual(picked.map((t) => t.id), [1, 2])
+})
+
+test('pickRetryableTasks returns empty when nothing is retryable', () => {
+  assert.deepStrictEqual(pickRetryableTasks([row({ id: 1, status: 'completed' })]), [])
 })
 
 console.log('\nAll tests completed.')

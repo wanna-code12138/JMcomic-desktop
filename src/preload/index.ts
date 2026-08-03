@@ -72,6 +72,7 @@ const api = {
   downloadMangaDetail: (mangaId: string) => ipcRenderer.invoke('download:mangaDetail', mangaId),
   downloadCancel: (taskId: number) => ipcRenderer.invoke('download:cancel', taskId),
   downloadRetry: (taskId: number) => ipcRenderer.invoke('download:retry', taskId),
+  downloadRetryFailed: () => ipcRenderer.invoke('download:retryFailed'),
   downloadRemove: (taskId: number, deleteFiles: boolean) =>
     ipcRenderer.invoke('download:remove', taskId, deleteFiles),
   downloadRemoveManga: (mangaId: string, deleteFiles: boolean) =>
