@@ -109,9 +109,39 @@
    - `scraperWindow` 导航目标校验/重试、提取前页面真伪校验、坏结果不缓存未完成
    - 未建分支、未提交、未合入 main
 
+10. **下载页多环节失效：sql.js 行的 snake_case 键被代码当 camelCase 读（已修复）**
+
+    现象（2026-08-03 反馈）：
+    - 已下载页的漫画大卡片点进去一直转圈，看不到任何内容
+    - 任务页删除记录 / 删除记录+文件的弹窗是原生 confirm，格式差
+    - 打开文件夹按钮点了没反应
+    - 重试任务报"缺少章节地址，无法重新获取图片列表"
+    - 本地章节一直加载不出来
+
+    根因：sql.js 的 `db.exec` / `getAsObject` 返回的键是数据库列名（`manga_id`、`chapter_url`、`save_path`），而 `downloadManager` 里统一用 camelCase 读取（`mangaId`、`chapterUrl`、`savePath`），导致所有从数据库行重建的任务字段全是 `undefined`：
+    - `groupTasksByManga` 把所有任务并成一个 `mangaId=undefined` 的分组 → 已下载合并成一张空卡；点进去 `currentMangaId` 为 `undefined`，详情页 effect 提前 return，`loading` 永远为 true → 无限转圈
+    - `download:retry` → `rowToTask` 读到 `chapterUrl=undefined` → `resolveTaskUrls` 抛"缺少章节地址"（实测任务 8 的 DB 记录 error 正是这条，而它的 `chapter_url` 列实际有值）
+    - `download:openTaskFolder` / `openMangaFolder` → `savePath=undefined` → 目标路径为空 → `shell.openPath` 失败
+    - `download:chapterPages` → 目录算错 → 本地章节报"章节目录中没有图片文件"；`loadQueueFromDb` 同理导致重启续传失败
+
+    修复：
+    - 新增 `normalizeTaskRow()`（downloadCore，纯逻辑可测），把 snake_case 行统一转成 camelCase；`execRows` / `findTaskRow` / `loadQueueFromDb` 全部接入
+    - 重试/续传时若章节地址缺失，先从漫画详情页按章节序号自动找回并回写 `chapter_url`，找回失败才报错
+    - 打开文件夹对空/无效保存路径做兜底（回退到下载根目录、再回退系统下载目录），失败时把错误返回给页面显示
+    - 新增 2 个 `normalizeTaskRow` 单测（snake_case→camelCase、null 字段容错）
+
+11. **删除确认弹窗格式差（已修复）**
+
+    原生 `window.confirm` 换成了 Fluent UI Dialog：标题（删除下载记录 / 删除记录和本地文件）+ 正文（不可恢复提示）+ 取消/删除按钮，删除操作失败会在页面上方显示错误。
+
+12. **顶部栏下载指示新增 hover 进度预览（新功能）**
+
+    鼠标悬停在顶部栏"下载中 n"指示上，会弹出小浮层：逐任务显示漫画-章节、x/y 页与百分比进度条；"添加章节 x/y"阶段也会显示抓取进度。点击指示仍直达下载页。
+
 ## 四、尚未完成 / 待办
 
 - **详情页占位符 bug（进行中）**：见"三、遇到的问题与修复"第 9 条，修复方案已定、尚未实施
+- **历史失败任务重试**：本轮修复后已有失败任务可直接点重试（自动找回章节地址）；若自动找回失败（详情页也抓不到），需重新从详情页添加下载
 - **封面仍是网络代理加载**：下载记录里的封面走 `jmimg://`，离线时封面可能不显示（本地未保存封面）
 - **旧目录不自动迁移**：已产生的脏目录（如 `開始閱讀`）不会自动改名/搬移，需手动删除后重新下载
 - **打包未验证**：还没跑 `npm run package` 产出 1.0.4 便携 exe

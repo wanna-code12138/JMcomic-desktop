@@ -6,10 +6,11 @@ import { getDatabase, saveDatabase } from './database'
 import { loadImages } from './imageLoader'
 import { descrambleImage } from './imageDescrambler'
 import { getSettings, updateSettings } from './settingsStore'
-import { extractChapterPages } from './scraperWindow'
+import { extractChapterPages, extractMangaDetail } from './scraperWindow'
 import {
   buildChapterSaveDir,
   groupTasksByManga,
+  normalizeTaskRow,
   resolveLocalChapterPages,
   sanitizeFileName,
   type DownloadTaskRow
@@ -102,7 +103,7 @@ async function loadQueueFromDb(): Promise<void> {
   downloadQueue = results[0].values.map((row) => {
     const obj: Record<string, unknown> = {}
     columns.forEach((c, i) => { obj[c] = row[i] })
-    return rowToTask(obj as unknown as DownloadTaskRow)
+    return rowToTask(normalizeTaskRow(obj))
   })
 
   void processDownloadQueue()
@@ -190,7 +191,25 @@ async function processDownloadQueue(): Promise<void> {
 async function resolveTaskUrls(task: DownloadTask): Promise<void> {
   if (task.imageUrls.length > 0) return
   if (!task.chapterUrl) {
-    throw new Error('缺少章节地址，无法重新获取图片列表')
+    // 旧任务可能没有记录章节地址：尝试从漫画详情页按章节序号找回
+    try {
+      const detail = await extractMangaDetail(task.mangaId)
+      const ch = detail.chapters.find((c) => c.index === task.chapterIndex)
+      if (ch?.url) {
+        const recoveredUrl = ch.url
+        task.chapterUrl = recoveredUrl
+        getDatabase().then((d) => {
+          d.run('UPDATE downloads SET chapter_url = ? WHERE id = ?', [recoveredUrl, task.id])
+          saveDatabase()
+        })
+        console.log('[download] recovered chapter url for task', task.id, ':', task.chapterUrl)
+      }
+    } catch (err) {
+      console.warn('[download] recover chapter url failed for task', task.id, ':', err)
+    }
+  }
+  if (!task.chapterUrl) {
+    throw new Error('缺少章节地址，无法重新获取图片列表（自动找回章节地址失败）')
   }
   const data = await extractChapterPages(task.chapterUrl)
   if (data.pages.length === 0) {
@@ -326,7 +345,7 @@ function execRows(db: SqlJsDatabase, sql: string, params?: unknown[]): DownloadT
   return results[0].values.map((row) => {
     const obj: Record<string, unknown> = {}
     columns.forEach((c, i) => { obj[c] = row[i] })
-    return obj as unknown as DownloadTaskRow
+    return normalizeTaskRow(obj)
   })
 }
 
@@ -335,7 +354,7 @@ async function findTaskRow(taskId: number): Promise<DownloadTaskRow | null> {
   const stmt = db.prepare('SELECT * FROM downloads WHERE id = ?')
   stmt.bind([taskId])
   let row: DownloadTaskRow | null = null
-  if (stmt.step()) row = stmt.getAsObject() as unknown as DownloadTaskRow
+  if (stmt.step()) row = normalizeTaskRow(stmt.getAsObject() as unknown as Record<string, unknown>)
   stmt.free()
   return row
 }
@@ -566,13 +585,17 @@ ipcMain.handle('download:removeManga', async (_event, mangaId: string, deleteFil
 ipcMain.handle('download:openTaskFolder', async (_event, taskId: number) => {
   const row = await findTaskRow(taskId)
   if (!row) return { ok: false, error: '任务不存在' }
+  const root = row.savePath || app.getPath('downloads')
   const dir = buildChapterSaveDir(
-    row.savePath ?? '',
+    root,
     row.mangaTitle ?? '',
     row.chapterTitle ?? '',
     row.chapterIndex
   )
-  const target = existsSync(dir) ? dir : (row.savePath ?? '')
+  const target = existsSync(dir) ? dir : root
+  if (!target || !isAbsolute(target)) {
+    return { ok: false, error: '下载目录无效' }
+  }
   const err = await shell.openPath(target)
   return err ? { ok: false, error: err } : { ok: true }
 })
@@ -589,9 +612,13 @@ ipcMain.handle('download:openMangaFolder', async (_event, mangaId: string) => {
   const { columns } = results[0]
   const obj: Record<string, unknown> = {}
   columns.forEach((c, i) => { obj[c] = results[0].values[0][i] })
-  const row = obj as unknown as DownloadTaskRow
-  const mangaDir = join(row.savePath ?? '', sanitizeFileName(row.mangaTitle ?? ''))
-  const target = existsSync(mangaDir) ? mangaDir : (row.savePath ?? '')
+  const row = normalizeTaskRow(obj)
+  const root = row.savePath || app.getPath('downloads')
+  const mangaDir = join(root, sanitizeFileName(row.mangaTitle ?? ''))
+  const target = existsSync(mangaDir) ? mangaDir : root
+  if (!target || !isAbsolute(target)) {
+    return { ok: false, error: '下载目录无效' }
+  }
   const err = await shell.openPath(target)
   return err ? { ok: false, error: err } : { ok: true }
 })
@@ -604,12 +631,13 @@ ipcMain.handle('download:chapterPages', async (_event, mangaId: string, chapterI
   )
   stmt.bind([mangaId, chapterIndex])
   let row: DownloadTaskRow | null = null
-  if (stmt.step()) row = stmt.getAsObject() as unknown as DownloadTaskRow
+  if (stmt.step()) row = normalizeTaskRow(stmt.getAsObject() as unknown as Record<string, unknown>)
   stmt.free()
   if (!row) return { ok: false, error: '本地没有该章节' }
 
+  const root = row.savePath || app.getPath('downloads')
   const saveDir = buildChapterSaveDir(
-    row.savePath ?? '',
+    root,
     row.mangaTitle ?? '',
     row.chapterTitle ?? '',
     row.chapterIndex

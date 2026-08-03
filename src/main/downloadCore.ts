@@ -36,6 +36,34 @@ export interface MangaDownloadGroup {
   failedTasks: number
 }
 
+/**
+ * 把 sql.js 返回的 snake_case 数据库行（manga_id / chapter_url / save_path...）
+ * 归一化为代码里统一使用的 camelCase DownloadTaskRow。
+ * sql.js 的 db.exec / getAsObject 都以原始列名作为键，直接读取 camelCase
+ * 会全部得到 undefined，导致分组、重试、打开文件夹、本地章节等功能失效。
+ */
+export function normalizeTaskRow(raw: Record<string, unknown>): DownloadTaskRow {
+  return {
+    id: Number(raw.id ?? 0),
+    mangaId: String(raw.manga_id ?? ''),
+    mangaTitle: String(raw.manga_title ?? ''),
+    chapterIndex: Number(raw.chapter_index ?? 0),
+    chapterTitle: String(raw.chapter_title ?? ''),
+    status: String(raw.status ?? 'pending'),
+    totalPages: Number(raw.total_pages ?? 0),
+    downloadedPages: Number(raw.downloaded_pages ?? 0),
+    savePath: typeof raw.save_path === 'string' ? raw.save_path : '',
+    createdAt: Number(raw.created_at ?? 0),
+    chapterUrl: typeof raw.chapter_url === 'string' && raw.chapter_url
+      ? raw.chapter_url
+      : undefined,
+    coverUrl: typeof raw.cover_url === 'string' && raw.cover_url
+      ? raw.cover_url
+      : undefined,
+    error: typeof raw.error === 'string' && raw.error ? raw.error : undefined
+  }
+}
+
 export function sanitizeFileName(name: string): string {
   return name.replace(/[<>:"/\\|?*]/g, '_').replace(/\s+/g, ' ').trim()
 }

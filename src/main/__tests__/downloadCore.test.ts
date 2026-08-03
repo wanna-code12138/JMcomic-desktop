@@ -6,6 +6,7 @@ import {
   buildChapterSaveDir,
   groupTasksByManga,
   isLocalImagePathSafe,
+  normalizeTaskRow,
   resolveLocalChapterPages,
   sanitizeFileName,
   toLocalImageUrl,
@@ -58,6 +59,62 @@ test('sanitizeFileName collapses internal whitespace and newlines', () => {
 })
 
 // ─── buildChapterSaveDir ──────────────────────────────────────────
+
+// ─── normalizeTaskRow ────────────────────────────────────────────
+
+test('normalizeTaskRow maps snake_case DB row to camelCase task', () => {
+  const task = normalizeTaskRow({
+    id: 11,
+    manga_id: '1193342',
+    manga_title: '富家女姐姐',
+    chapter_index: 10,
+    chapter_title: '第11話',
+    status: 'completed',
+    total_pages: 35,
+    downloaded_pages: 35,
+    save_path: 'C:\\Users\\David\\Downloads\\JMComic',
+    created_at: 1785722955,
+    chapter_url: '/photo/1187817',
+    cover_url: 'https://cdn.example.com/cover.jpg',
+    error: ''
+  })
+  assert.strictEqual(task.id, 11)
+  assert.strictEqual(task.mangaId, '1193342')
+  assert.strictEqual(task.mangaTitle, '富家女姐姐')
+  assert.strictEqual(task.chapterIndex, 10)
+  assert.strictEqual(task.chapterTitle, '第11話')
+  assert.strictEqual(task.status, 'completed')
+  assert.strictEqual(task.totalPages, 35)
+  assert.strictEqual(task.downloadedPages, 35)
+  assert.strictEqual(task.savePath, 'C:\\Users\\David\\Downloads\\JMComic')
+  assert.strictEqual(task.createdAt, 1785722955)
+  assert.strictEqual(task.chapterUrl, '/photo/1187817')
+  assert.strictEqual(task.coverUrl, 'https://cdn.example.com/cover.jpg')
+  assert.strictEqual(task.error, undefined)
+})
+
+test('normalizeTaskRow tolerates null/missing optional fields', () => {
+  const task = normalizeTaskRow({
+    id: 8,
+    manga_id: '423193',
+    manga_title: '测试',
+    chapter_index: 5,
+    chapter_title: '第6話',
+    status: 'failed',
+    total_pages: 0,
+    downloaded_pages: 0,
+    save_path: null,
+    created_at: 1,
+    chapter_url: null,
+    cover_url: null,
+    error: null
+  })
+  assert.strictEqual(task.chapterUrl, undefined)
+  assert.strictEqual(task.coverUrl, undefined)
+  assert.strictEqual(task.error, undefined)
+  assert.strictEqual(task.savePath, '')
+  assert.strictEqual(task.status, 'failed')
+})
 
 test('buildChapterSaveDir nests manga and chapter folders', () => {
   const dir = buildChapterSaveDir('D:\\downloads', '我的漫画', '第 3 话')
