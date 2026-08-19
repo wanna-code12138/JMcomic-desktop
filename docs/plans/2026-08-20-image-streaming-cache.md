@@ -27,7 +27,7 @@
 - `DescrambledImage` props and math remain unchanged.
 - Scroll-mode images receive a non-zero pre-decode layout box; single-page behavior is unchanged.
 
-- [ ] **Step 1: Write the failing layout contract**
+- [x] **Step 1: Write the failing layout contract**
 
 ```ts
 const text = readFileSync('src/renderer/src/pages/ReaderPage.tsx', 'utf8')
@@ -36,19 +36,19 @@ assert.match(text, /aspectRatio: 'auto 2 \/ 3'/)
 assert.doesNotMatch(text, /loading="lazy"[\s\S]{0,120}scrambleId=\{scrambleId\}/)
 ```
 
-- [ ] **Step 2: Run red and correctness green**
+- [x] **Step 2: Run red and correctness green**
 
 Run the new test and `imageCorrectnessContract.test.ts`. Expected: only layout assertions fail.
 
-- [ ] **Step 3: Apply the minimal renderer fix**
+- [x] **Step 3: Apply the minimal renderer fix**
 
 Give `.mangaImage` `width: '100%'` and `aspectRatio: 'auto 2 / 3'`; use eager loading for the already-virtualized scroll items. Keep `estimateSize`, `measureElement`, overscan, image order, and DescrambledImage body unchanged.
 
-- [ ] **Step 4: Verify real continuous mode**
+- [x] **Step 4: Verify real continuous mode**
 
 Open the same 34+ page chapter from a clean renderer. Assert the first four images reach non-zero natural size, canvas dimensions differ from 300×150, and only virtualized items mount. Run correctness and build.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Commit as `fix: 修复连续阅读首屏图片加载`.
 
@@ -135,4 +135,3 @@ Include count, p50, p95, max, mounted-image count, peak scheduler concurrency, a
 - [ ] **Step 3: Full verification and commit**
 
 Run all tests/build/diff checks; commit the report as `docs: 记录图片快速路径基准`.
-

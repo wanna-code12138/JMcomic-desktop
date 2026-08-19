@@ -74,8 +74,10 @@ const useStyles = makeStyles({
   },
   mangaImage: {
     display: 'block',
+    width: '100%',
     maxWidth: '100%',
     height: 'auto',
+    aspectRatio: 'auto 2 / 3',
     objectFit: 'contain'
   },
   navBtn: {
@@ -738,7 +740,6 @@ export default function ReaderPage(): JSX.Element {
                     src={imgSrc(page)}
                     imageUrl={page.imageUrl}
                     alt={`第 ${vi.index + 1} 页`}
-                    loading="lazy"
                     scrambleId={scrambleId}
                   />
                 </div>
