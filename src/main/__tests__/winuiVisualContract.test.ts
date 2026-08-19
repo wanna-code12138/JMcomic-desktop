@@ -28,3 +28,14 @@ assert.doesNotMatch(app, /backdropFilter|ac-page-enter/)
 assert.match(titleBar, /const TITLE_BAR_HEIGHT = '36px'/)
 assert.doesNotMatch(titleBar, /backdropFilter|borderRadius:\s*'999px'/)
 console.log('  PASS: application shell uses flat WinUI navigation and title chrome')
+
+const mangaCard = read('src/renderer/src/components/MangaCard.tsx')
+const loginDialog = read('src/renderer/src/components/LoginDialog.tsx')
+const chapterDialog = read('src/renderer/src/components/ChapterSelectDialog.tsx')
+assert.doesNotMatch(mangaCard, /translateY|scale\(1\.03\)|backdropFilter|ac-card-enter/)
+for (const dialog of [loginDialog, chapterDialog]) {
+  assert.match(dialog, /var\(--ui-bg-dialog\)/)
+  assert.match(dialog, /var\(--ui-stroke-card\)/)
+  assert.doesNotMatch(dialog, /backdropFilter/)
+}
+console.log('  PASS: cards and dialogs use restrained flat content surfaces')

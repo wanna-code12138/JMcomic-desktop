@@ -111,19 +111,19 @@ git commit -m "style: 重构 WinUI 应用壳层"
 **Interfaces:**
 - `MangaCardData` and every component prop remain unchanged.
 
-- [ ] **Step 1: Add failing component assertions**
+- [x] **Step 1: Add failing component assertions**
 
 Assert that MangaCard has no `translateY`, image zoom, or blur; dialogs must use `--ui-bg-dialog` and `--ui-stroke-card`.
 
-- [ ] **Step 2: Run red**
+- [x] **Step 2: Run red**
 
 Expected: assertions fail against current hover movement and glass dialog styles.
 
-- [ ] **Step 3: Implement restrained shared components**
+- [x] **Step 3: Implement restrained shared components**
 
 Keep fixed 3:4 cover sizing, replace shadows with strokes, use opacity/background hover only, retain the favorite button and keyboard behavior, and use 8px dialog corners.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 Run the visual test, correctness contract, and build; then commit as `style: 平面化公共内容组件`.
 
