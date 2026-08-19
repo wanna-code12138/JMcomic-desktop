@@ -4,6 +4,7 @@ import { getDatabase } from './database'
 import { isLocalImagePathSafe } from './downloadCore'
 import { getDefaultDownloadDir } from './dataPaths'
 import { contentTypeForFile } from './imageProtocol'
+import { beginMainPerfSpan } from './performanceTrace'
 
 /**
  * 自定义 jmlocal:// 协议：从下载目录直读已下载图片，不经过网络。
@@ -53,19 +54,23 @@ async function getAllowedRoots(): Promise<string[]> {
 
 export function registerLocalImageProtocol(): void {
   protocol.handle('jmlocal', async (request) => {
+    const perf = beginMainPerfSpan('image.local')
     try {
       const match = request.url.match(/^jmlocal:\/\/img\/(.+)$/)
       if (!match) {
+        perf.finish('error', { reason: 'bad-url' })
         return new Response('Bad URL format', { status: 400 })
       }
 
       const filepath = base64UrlDecode(match[1])
       if (!isLocalImagePathSafe(filepath, await getAllowedRoots())) {
         console.warn('[jmlocal] blocked path:', filepath.slice(0, 120))
+        perf.finish('error', { reason: 'blocked-path' })
         return new Response('Blocked: not a downloaded image', { status: 403 })
       }
 
       const buf = readFileSync(filepath)
+      perf.finish('ok', { bytes: buf.length })
       return new Response(buf, {
         status: 200,
         headers: {
@@ -76,6 +81,7 @@ export function registerLocalImageProtocol(): void {
       })
     } catch (err) {
       console.warn('[jmlocal] read failed:', err)
+      perf.finish('error', { reason: 'read' })
       return new Response('Not found', { status: 404 })
     }
   })

@@ -2,6 +2,7 @@ import { protocol, net, session } from 'electron'
 import { getActiveDomain } from './networkProbe'
 import { getCachedImagePath, storeImage } from './imageLoader'
 import { readFileSync } from 'fs'
+import { beginMainPerfSpan } from './performanceTrace'
 
 // 必须与 httpClient.ts 保持完全一致，否则 Cloudflare 会因 UA 不完整
 // 把请求识别为爬虫并返回 403 / challenge 页面，<img> 就显示破损图标。
@@ -92,12 +93,14 @@ export function registerImageScheme(): void {
 
 export function registerImageProtocol(): void {
   protocol.handle('jmimg', async (request) => {
+    const perf = beginMainPerfSpan('image.online')
     try {
       // URL 格式: jmimg://img/<base64url>
       // 用正则从 path 提取 base64url，避免 host 规范化问题
       const match = request.url.match(/^jmimg:\/\/img\/(.+)$/)
       if (!match) {
         console.warn('[jmimg] URL format mismatch:', request.url.slice(0, 100))
+        perf.finish('error', { reason: 'bad-url' })
         return new Response('Bad URL format', { status: 400 })
       }
 
@@ -106,6 +109,7 @@ export function registerImageProtocol(): void {
 
       if (!realUrl.startsWith('http')) {
         console.warn('[jmimg] decoded URL invalid:', realUrl.slice(0, 100))
+        perf.finish('error', { reason: 'bad-target' })
         return new Response('Invalid decoded URL', { status: 400 })
       }
 
@@ -114,6 +118,7 @@ export function registerImageProtocol(): void {
       const allowed = /^https:\/\/(cdn-.*18comic|.*\.18comic\.)/i.test(realUrl)
       if (!allowed) {
         console.warn('[jmimg] blocked non-CDN url:', realUrl.slice(0, 100))
+        perf.finish('error', { reason: 'blocked-target' })
         return new Response('Blocked: not a CDN URL', { status: 403 })
       }
 
@@ -122,6 +127,7 @@ export function registerImageProtocol(): void {
       if (cachedPath) {
         try {
           const buf = readFileSync(cachedPath)
+          perf.finish('ok', { cache: true, bytes: buf.length })
           return new Response(buf, {
             status: 200,
             headers: {
@@ -143,6 +149,7 @@ export function registerImageProtocol(): void {
 
       return await new Promise<Response>((resolve) => {
         const req = net.request({ method: 'GET', url: realUrl })
+        let receivedFirstByte = false
 
         req.setHeader('Referer', `https://${getActiveDomain()}/`)
         req.setHeader('User-Agent', FULL_USER_AGENT)
@@ -157,12 +164,19 @@ export function registerImageProtocol(): void {
             console.warn(`[jmimg] HTTP ${response.statusCode} for ${realUrl.slice(0, 80)}`)
             response.on('data', () => {})
             response.on('end', () => {
+              perf.finish('error', { status: response.statusCode })
               resolve(new Response('Image fetch failed', { status: response.statusCode }))
             })
             return
           }
 
-          response.on('data', (chunk: Buffer) => chunks.push(chunk))
+          response.on('data', (chunk: Buffer) => {
+            if (!receivedFirstByte) {
+              receivedFirstByte = true
+              perf.mark('first-byte')
+            }
+            chunks.push(chunk)
+          })
           response.on('end', () => {
             const buf = Buffer.concat(chunks)
             // Electron 的 response.headers 可能返回 string 或 string[]，
@@ -172,6 +186,7 @@ export function registerImageProtocol(): void {
             const ct = Array.isArray(rawCt) ? rawCt[0] ?? '' : (rawCt ?? '')
             if (ct.includes('text/html')) {
               console.warn('[jmimg] got HTML instead of image (Cloudflare?)')
+              perf.finish('error', { reason: 'html-response' })
               resolve(new Response('Blocked by Cloudflare', { status: 502 }))
               return
             }
@@ -188,15 +203,18 @@ export function registerImageProtocol(): void {
               'Cache-Control': 'public, max-age=86400',
               'Access-Control-Allow-Origin': '*'
             }
+            perf.finish('ok', { cache: false, bytes: buf.length })
             resolve(new Response(buf, { status: 200, headers }))
           })
           response.on('error', () => {
+            perf.finish('error', { reason: 'response-stream' })
             resolve(new Response('Image stream error', { status: 500 }))
           })
         })
 
         req.on('error', (err) => {
           console.warn('[jmimg] request error:', err.message)
+          perf.finish('error', { reason: 'request' })
           resolve(new Response('Image request failed', { status: 502 }))
         })
 
@@ -204,6 +222,7 @@ export function registerImageProtocol(): void {
       })
     } catch (err) {
       console.error('[jmimg] internal error:', err)
+      perf.finish('error', { reason: 'internal' })
       return new Response('Internal error', { status: 500 })
     }
   })

@@ -12,6 +12,7 @@ import {
   destroyScraper
 } from './scraperWindow'
 import { mapCardToMangaCardData } from './homepageLogic'
+import { beginMainPerfSpan } from './performanceTrace'
 
 // Ensure session is ready (Cloudflare warmup)
 async function ensureReady(): Promise<void> {
@@ -140,22 +141,43 @@ ipcMain.handle('content:pages', async (_event, chapterUrl: string) => {
 const pageStreams = new Map<string, { signal: { aborted: boolean } }>()
 
 ipcMain.on('content:pages:stream', async (event, chapterUrl?: string) => {
+  const perf = beginMainPerfSpan('content.pages')
   const url = chapterUrl ?? ''
   const prev = pageStreams.get(url)
   if (prev) prev.signal.aborted = true
   const signal = { aborted: false }
+  let pageCount = 0
+  let scrambleIdSeen = 0
+  let sentFirstBatch = false
   pageStreams.set(url, { signal })
   const send = (payload: { chapterUrl: string; pages: unknown[]; scrambleId: number; done: boolean; debug?: string; error?: string }): void => {
     if (!event.sender.isDestroyed()) event.sender.send('content:pages:batch', payload)
   }
   try {
     await ensureReady()
-    if (signal.aborted) return
+    if (signal.aborted) {
+      perf.finish('cancelled')
+      return
+    }
     await extractChapterPagesStream(url, (pages, scrambleId, done, debug) => {
       if (signal.aborted) return
+      pageCount = pages.length
+      scrambleIdSeen = scrambleId
+      if (!sentFirstBatch && pages.length > 0) {
+        sentFirstBatch = true
+        perf.mark('first-batch', { count: pages.length })
+      }
       send({ chapterUrl: url, pages, scrambleId, done, debug })
     }, signal)
+    perf.finish(signal.aborted ? 'cancelled' : 'ok', {
+      count: pageCount,
+      scramble: scrambleIdSeen > 0
+    })
   } catch (err) {
+    perf.finish(signal.aborted ? 'cancelled' : 'error', {
+      count: pageCount,
+      scramble: scrambleIdSeen > 0
+    })
     if (!signal.aborted) send({ chapterUrl: url, error: String(err), done: true })
   } finally {
     if (pageStreams.get(url)?.signal === signal) pageStreams.delete(url)

@@ -7,6 +7,7 @@ import {
   getLegacyDatabasePath,
   migrateLegacyDatabase
 } from './dataPaths'
+import { beginMainPerfSpan } from './performanceTrace'
 
 let db: SqlJsDatabase | null = null
 const DB_PATH = getDatabasePath()
@@ -172,9 +173,16 @@ function initTables(d: SqlJsDatabase): void {
 
 export function saveDatabase(): void {
   if (!db) return
-  const data = db.export()
-  const buffer = Buffer.from(data)
-  writeFileSync(DB_PATH, buffer)
+  const perf = beginMainPerfSpan('database.save')
+  try {
+    const data = db.export()
+    const buffer = Buffer.from(data)
+    writeFileSync(DB_PATH, buffer)
+    perf.finish('ok', { bytes: buffer.length })
+  } catch (err) {
+    perf.finish('error')
+    throw err
+  }
 }
 
 export function closeDatabase(): void {
