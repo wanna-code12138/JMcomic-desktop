@@ -22,14 +22,36 @@ const root = process.cwd()
 const source = (path: string): string =>
   readFileSync(resolve(root, path), 'utf-8').replace(/\r\n/g, '\n')
 
-test('reader descramble source region is unchanged', () => {
+test('reader MD5 source region is unchanged', () => {
   assert.strictEqual(
     sourceRegionSha256(
       resolve(root, 'src/renderer/src/pages/ReaderPage.tsx'),
-      '// ─── 图片反打乱',
-      'export default function ReaderPage'
+      'function md5',
+      '// get_num：'
     ),
-    '45bbee055f93ec0c826819242d3cab7f1afe52004b5078267322debf69c9c6e6'
+    'd9e9704e9b1796c0e4321d7d002a54e8005690422d7477a9ec1b287e58f9a8b9'
+  )
+})
+
+test('reader getNum source region is unchanged', () => {
+  assert.strictEqual(
+    sourceRegionSha256(
+      resolve(root, 'src/renderer/src/pages/ReaderPage.tsx'),
+      'function getNum',
+      '// DescrambledImage'
+    ),
+    '76e0aae8d56435a2785bdaf36bf1d5a691c9adeacb1ff03ed57ede1366e02bdf'
+  )
+})
+
+test('reader strip drawing source region is unchanged', () => {
+  assert.strictEqual(
+    sourceRegionSha256(
+      resolve(root, 'src/renderer/src/pages/ReaderPage.tsx'),
+      '    // 反打乱算法',
+      '    // DESCRAMBLE MATH END'
+    ),
+    '45812838e4077fe7552a9ee33320621909cb002e080971dbc25c810808c38c44'
   )
 })
 

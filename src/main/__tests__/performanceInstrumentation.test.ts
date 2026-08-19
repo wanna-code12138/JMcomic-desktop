@@ -29,3 +29,8 @@ for (const [path, marker] of required) {
     assert.ok(read(path).includes(marker))
   })
 }
+
+test('ReaderPage records reader.image', () => {
+  const text = read('src/renderer/src/pages/ReaderPage.tsx')
+  assert.ok(text.includes("startPerfSpan('reader.image'"))
+})

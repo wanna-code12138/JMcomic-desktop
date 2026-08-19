@@ -8,6 +8,11 @@ import {
 } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
 import { toJmImg } from '../utils/image'
+import {
+  formatPerfEvent,
+  startPerfSpan,
+  type PerfSpan
+} from '../../../shared/performanceTraceCore'
 
 const TOOLBAR_HEIGHT = 48
 
@@ -323,9 +328,18 @@ function DescrambledImage(props: {
   const { src, imageUrl, alt, className, style, loading, scrambleId } = props
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const imgRef = React.useRef<HTMLImageElement>(null)
+  const perfRef = React.useRef<PerfSpan | null>(null)
   const [loaded, setLoaded] = React.useState(false)
 
-  React.useEffect(() => { setLoaded(false) }, [src])
+  React.useEffect(() => {
+    setLoaded(false)
+    perfRef.current = startPerfSpan('reader.image',
+      { source: imageUrl.startsWith('jmlocal:') ? 'local' : 'online' },
+      undefined,
+      (event) => console.info(formatPerfEvent(event))
+    )
+    return () => { perfRef.current?.finish('cancelled') }
+  }, [src, imageUrl])
 
   const handleLoad = (): void => {
     const img = imgRef.current
@@ -340,6 +354,7 @@ function DescrambledImage(props: {
 
     const w = img.naturalWidth
     const h = img.naturalHeight
+    perfRef.current?.mark('decoded', { width: w, height: h })
 
     // 计算条带数量（每页可能不同）
     const c = getNum(scrambleId, aid, filename)
@@ -350,6 +365,7 @@ function DescrambledImage(props: {
       img.style.display = 'block'
       img.style.visibility = 'visible'
       setLoaded(true)
+      perfRef.current?.finish('ok', { scrambled: false, width: w, height: h })
       return
     }
 
@@ -378,10 +394,13 @@ function DescrambledImage(props: {
       ctx.drawImage(img, 0, srcY, r, stripH, 0, dstY, r, stripH)
     }
 
+    // DESCRAMBLE MATH END
+
     // 隐藏原图，显示 canvas
     img.style.display = 'none'
     canvas.style.display = 'block'
     setLoaded(true)
+    perfRef.current?.finish('ok', { scrambled: true, width: w, height: h })
   }
 
   return (
