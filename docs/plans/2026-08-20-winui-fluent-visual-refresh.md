@@ -77,23 +77,23 @@ git commit -m "style: 建立 WinUI Fluent 视觉基础"
 - Consumes semantic `--ui-*` tokens and surface styles.
 - Preserves `PageId`, `navItems`, `pageComponents`, network status, title-bar window controls, and download indicators.
 
-- [ ] **Step 1: Add failing shell assertions**
+- [x] **Step 1: Add failing shell assertions**
 
 Assert that `App.tsx` contains a 2px active indicator and does not import `clayStyles`; assert that `TitleBar.tsx` has no `backdropFilter` or `borderRadius: '999px'`.
 
-- [ ] **Step 2: Run red**
+- [x] **Step 2: Run red**
 
 Run the visual contract test and expect the shell assertions to fail.
 
-- [ ] **Step 3: Implement the flat shell**
+- [x] **Step 3: Implement the flat shell**
 
 Use a 208px navigation pane, 36px title bar, neutral background, 2px left active indicator, 8px nav radius, and color-only 120ms interaction states. Remove page rise animation and glass status bar; keep status text and icons.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run the visual contract test, correctness contract, and production build. Launch the app in light and dark mode and confirm keyboard focus remains visible on every navigation item.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add src/renderer/src/App.tsx src/renderer/src/components/TitleBar.tsx src/main/__tests__/winuiVisualContract.test.ts

@@ -12,7 +12,7 @@ import {
 } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
 
-const TITLE_BAR_HEIGHT = '32px'
+const TITLE_BAR_HEIGHT = '36px'
 
 // Windows 11 native caption buttons (min/max/close) are drawn by the OS as an
 // overlay ~138px wide on the right edge. We must reserve that space so our own
@@ -28,10 +28,8 @@ const useStyles = makeStyles({
     paddingRight: '4px',
     position: 'relative',
     zIndex: 1000,
-    backgroundColor: 'var(--ac-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-toolbar))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-toolbar))',
-    borderBottom: '1px solid var(--ac-glass-border)',
+    backgroundColor: 'var(--ui-bg-pane)',
+    borderBottom: '1px solid var(--ui-stroke-card)',
     WebkitAppRegion: 'drag',
     userSelect: 'none',
     flexShrink: 0
@@ -39,7 +37,7 @@ const useStyles = makeStyles({
   title: {
     fontSize: '12px',
     fontWeight: 600,
-    color: 'var(--ac-text-2)',
+    color: 'var(--ui-text-secondary)',
     marginLeft: '4px',
     flex: 1
   },
@@ -61,16 +59,16 @@ const useStyles = makeStyles({
     alignItems: 'center',
     gap: '6px',
     padding: '3px 10px',
-    borderRadius: '999px',
+    borderRadius: 'var(--ui-radius-md)',
     fontSize: '12px',
     fontWeight: 500,
-    color: 'var(--ac-brand)',
-    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 12%, transparent)',
+    color: 'var(--ui-brand)',
+    backgroundColor: 'var(--ui-bg-selected)',
     cursor: 'pointer',
     marginRight: '6px',
-    transition: 'background-color 0.15s',
+    transition: 'background-color var(--ui-motion-fast) ease-out',
     ':hover': {
-      backgroundColor: 'color-mix(in srgb, var(--ac-brand) 20%, transparent)'
+      backgroundColor: 'var(--ui-bg-hover)'
     }
   },
   downloadPopover: {
@@ -81,12 +79,10 @@ const useStyles = makeStyles({
     maxHeight: '280px',
     overflowY: 'auto',
     padding: '10px 12px',
-    borderRadius: 'var(--ac-radius-card)',
-    backgroundColor: 'var(--ac-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-panel))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-panel))',
-    border: '1px solid var(--ac-glass-border)',
-    boxShadow: '0 8px 24px var(--ac-glass-shadow)',
+    borderRadius: 'var(--ui-radius-lg)',
+    backgroundColor: 'var(--ui-bg-dialog)',
+    border: '1px solid var(--ui-stroke-card)',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16)',
     zIndex: 100,
     display: 'flex',
     flexDirection: 'column',
@@ -100,19 +96,19 @@ const useStyles = makeStyles({
   popTitle: {
     fontSize: '12px',
     fontWeight: 500,
-    color: 'var(--ac-text-1)',
+    color: 'var(--ui-text-primary)',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap'
   },
   popMeta: {
     fontSize: '11px',
-    color: 'var(--ac-text-3)'
+    color: 'var(--ui-text-tertiary)'
   },
   popProgress: {
     height: '4px',
     borderRadius: '2px',
-    backgroundColor: 'var(--ac-glass-border)',
+    backgroundColor: 'var(--ui-stroke-card)',
     overflow: 'hidden'
   }
 })
@@ -255,8 +251,8 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
                             style={{
                               height: '100%',
                               width: `${pct}%`,
-                              backgroundColor: 'var(--ac-brand)',
-                              transition: 'width 0.2s ease'
+                              backgroundColor: 'var(--ui-brand)',
+                              transition: 'width var(--ui-motion-standard) ease-out'
                             }}
                           />
                         </div>
