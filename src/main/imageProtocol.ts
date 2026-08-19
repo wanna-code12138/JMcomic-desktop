@@ -1,7 +1,6 @@
 import { protocol, net, session } from 'electron'
 import { getActiveDomain } from './networkProbe'
-import { getCachedImagePath, storeImage } from './imageLoader'
-import { readFileSync } from 'fs'
+import { readCachedImage, storeImage } from './imageLoader'
 import { beginMainPerfSpan } from './performanceTrace'
 import { createImageRequestScheduler } from './imageRequestScheduler'
 
@@ -67,7 +66,7 @@ async function fetchOnlineImage(
         }
         chunks.push(chunk)
       })
-      response.on('end', () => {
+      response.on('end', async () => {
         const buf = Buffer.concat(chunks)
         const rawCt = response.headers['content-type']
         const ct = Array.isArray(rawCt) ? rawCt[0] ?? '' : (rawCt ?? '')
@@ -79,7 +78,7 @@ async function fetchOnlineImage(
         console.log('[jmimg] OK:', realUrl.slice(0, 60), 'size:', buf.length, 'type:', ct)
         if (ct.includes('image/')) {
           try {
-            storeImage(realUrl, buf, ct)
+            await storeImage(realUrl, buf, ct)
           } catch (err) {
             console.warn('[jmimg] cache write failed:', err)
           }
@@ -223,22 +222,17 @@ export function registerImageProtocol(): void {
       }
 
       // 磁盘缓存命中：直接返回本地文件，避免重复网络加载
-      const cachedPath = getCachedImagePath(realUrl)
-      if (cachedPath) {
-        try {
-          const buf = readFileSync(cachedPath)
-          perf.finish('ok', { cache: true, bytes: buf.length })
-          return new Response(buf, {
-            status: 200,
-            headers: {
-            'Content-Type': contentTypeForFile(cachedPath),
-              'Cache-Control': 'public, max-age=86400',
-              'Access-Control-Allow-Origin': '*'
-            }
-          })
-        } catch (err) {
-          console.warn('[jmimg] cache read failed, refetching:', err)
-        }
+      const cached = await readCachedImage(realUrl)
+      if (cached) {
+        perf.finish('ok', { cache: true, bytes: cached.buffer.length })
+        return new Response(cached.buffer, {
+          status: 200,
+          headers: {
+            'Content-Type': contentTypeForFile(cached.filepath),
+            'Cache-Control': 'public, max-age=86400',
+            'Access-Control-Allow-Origin': '*'
+          }
+        })
       }
 
       const result = await imageRequestScheduler.run(realUrl, () =>

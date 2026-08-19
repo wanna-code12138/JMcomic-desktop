@@ -95,23 +95,23 @@ Commit as `perf: 合并重复图片请求并限制并发`.
 - Produces async `readCachedImage(url)`, `storeImage(url, bytes, contentType)`, and `scheduleCacheMaintenance()`.
 - Existing download `loadImages` result ordering remains unchanged.
 
-- [ ] **Step 1: Write failing async-I/O contract tests**
+- [x] **Step 1: Write failing async-I/O contract tests**
 
 Assert the protocol source contains no `readFileSync`; assert one hundred stores schedule at most one maintenance pass until it completes; assert eviction selection stays oldest-first.
 
-- [ ] **Step 2: Run red**
+- [x] **Step 2: Run red**
 
 Expected: sync-I/O and maintenance coalescing assertions fail.
 
-- [ ] **Step 3: Implement async reads, atomic writes, and coalesced maintenance**
+- [x] **Step 3: Implement async reads, atomic writes, and coalesced maintenance**
 
 Use `fs/promises.readFile`, write to a sibling temporary file, rename atomically, then schedule one asynchronous directory scan. Keep `urlToFilename` and eviction ordering unchanged.
 
-- [ ] **Step 4: Verify and benchmark**
+- [x] **Step 4: Verify and benchmark**
 
 Run cache tests, correctness, all tests, and build. Repeat warm/cold matrix and compare cache hit/miss p50/p95 against the baseline.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Commit as `perf: 异步化图片缓存读写`.
 

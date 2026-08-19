@@ -1,10 +1,12 @@
 import { ipcMain, net, session } from 'electron'
 import { getActiveDomain } from './networkProbe'
 import { existsSync, mkdirSync, writeFileSync, readdirSync, statSync, unlinkSync } from 'fs'
+import { mkdir, readFile, readdir, rename, stat, unlink, writeFile } from 'fs/promises'
 import { join } from 'path'
 import * as crypto from 'crypto'
 import { selectEvictionCandidates } from './imageCacheCore'
 import { getAppDataDir } from './dataPaths'
+import { createCacheMaintenanceScheduler } from './imageCacheMaintenance'
 
 // ─── Image Loader Pipeline ────────────────────────────────────
 
@@ -69,15 +71,46 @@ export function getCachedImagePath(url: string): string | null {
   return getCachedPath(url)
 }
 
+export interface CachedImage {
+  buffer: Buffer
+  filepath: string
+}
+
+export async function readCachedImage(url: string): Promise<CachedImage | null> {
+  const filepath = join(DEFAULT_OPTIONS.cacheDir, urlToFilename(url))
+  try {
+    return { buffer: await readFile(filepath), filepath }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      console.warn('[image-cache] read failed:', error)
+    }
+    return null
+  }
+}
+
 /**
  * 把已下载的图片写入磁盘缓存（供 jmimg:// 协议复用），并触发限额淘汰。
  */
-export function storeImage(url: string, buffer: Buffer, contentType?: string): string {
+let temporaryFileCounter = 0
+
+export async function storeImage(
+  url: string,
+  buffer: Buffer,
+  contentType?: string
+): Promise<string> {
   const filename = urlToFilename(url, contentType)
-  const filepath = join(getCacheDir(), filename)
-  writeFileSync(filepath, buffer)
+  await mkdir(DEFAULT_OPTIONS.cacheDir, { recursive: true })
+  const filepath = join(DEFAULT_OPTIONS.cacheDir, filename)
+  const temporaryPath = `${filepath}.${process.pid}.${++temporaryFileCounter}.tmp`
+  try {
+    await writeFile(temporaryPath, buffer)
+    await rename(temporaryPath, filepath)
+  } catch (error) {
+    await unlink(temporaryPath).catch(() => {})
+    throw error
+  }
   urlToPathCache.set(url, filepath)
-  enforceCacheLimit(getCacheDir())
+  void scheduleCacheMaintenance()
   return filepath
 }
 
@@ -114,6 +147,43 @@ function enforceCacheLimit(cacheDir: string): void {
       /* skip */
     }
   }
+}
+
+async function enforceCacheLimitAsync(cacheDir: string): Promise<void> {
+  if (imageCacheLimitBytes <= 0) return
+  let names: string[]
+  try {
+    names = await readdir(cacheDir)
+  } catch {
+    return
+  }
+
+  const entries = await Promise.all(
+    names.map(async (name) => {
+      try {
+        const fileStat = await stat(join(cacheDir, name))
+        return fileStat.isFile()
+          ? { name, size: fileStat.size, mtimeMs: fileStat.mtimeMs }
+          : null
+      } catch {
+        return null
+      }
+    })
+  )
+  const files = entries.filter(
+    (entry): entry is { name: string; size: number; mtimeMs: number } => entry !== null
+  )
+  for (const name of selectEvictionCandidates(files, imageCacheLimitBytes)) {
+    await unlink(join(cacheDir, name)).catch(() => {})
+  }
+}
+
+const cacheMaintenanceScheduler = createCacheMaintenanceScheduler(() =>
+  enforceCacheLimitAsync(DEFAULT_OPTIONS.cacheDir)
+)
+
+export function scheduleCacheMaintenance(): Promise<void> {
+  return cacheMaintenanceScheduler.schedule()
 }
 
 async function downloadImage(url: string, filepath: string, timeout: number): Promise<void> {
