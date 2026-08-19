@@ -10,11 +10,11 @@ function elements(values: string[]): FakeElement[] {
 function runExtraction(): { author: string; tags: string[] } {
   const document = {
     querySelectorAll(selector: string): FakeElement[] {
-      if (selector === '[data-type="author"] a') {
-        return elements([' MALPOI ', '達蘭', 'MALPOI', ''])
+      if (selector === '[data-type="author"] a[name="vote_"].visible') {
+        return elements([' MALPOI ', '達蘭', 'NTR', 'MALPOI', ''])
       }
-      if (selector === '[data-type="tags"] a') {
-        return elements(['护理师', '欲求不满', '护理师', ' '])
+      if (selector === '[data-type="tags"] a[name="vote_"].visible') {
+        return elements(['韓漫', '連載中', '剧情', '恋爱', '熟女', '像评论的长标签', '韓漫'])
       }
       throw new Error(`unexpected broad selector: ${selector}`)
     }
@@ -28,7 +28,7 @@ function runExtraction(): { author: string; tags: string[] } {
 
 const result = runExtraction()
 assert.equal(result.author, 'MALPOI, 達蘭')
-console.log('  PASS: detail author excludes works and actor metadata and removes responsive duplicates')
+console.log('  PASS: detail author keeps only the first two canonical visible values')
 
-assert.deepEqual(result.tags, ['护理师', '欲求不满'])
-console.log('  PASS: detail tags exclude recommendation cards and preserve first-seen order')
+assert.deepEqual(result.tags, ['韓漫', '連載中', '剧情', '恋爱', '熟女'])
+console.log('  PASS: detail tags keep only the first five canonical visible values')

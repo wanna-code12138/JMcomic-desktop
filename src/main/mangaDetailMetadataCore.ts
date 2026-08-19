@@ -1,5 +1,5 @@
-const AUTHOR_SELECTOR = '[data-type="author"] a'
-const TAG_SELECTOR = '[data-type="tags"] a'
+const AUTHOR_SELECTOR = '[data-type="author"] a[name="vote_"].visible'
+const TAG_SELECTOR = '[data-type="tags"] a[name="vote_"].visible'
 
 /**
  * 生成在 scraper BrowserWindow 内执行的元数据提取片段。
@@ -7,10 +7,11 @@ const TAG_SELECTOR = '[data-type="tags"] a'
  */
 export function buildDetailMetadataExtractionScript(): string {
   return `
-        function collectUniqueMetadata(selector) {
+        function collectUniqueMetadata(selector, limit) {
           var values = [];
           var seen = {};
           document.querySelectorAll(selector).forEach(function(el) {
+            if (values.length >= limit) return;
             var value = (el.textContent || '').trim();
             if (!value || seen[value]) return;
             seen[value] = true;
@@ -19,7 +20,7 @@ export function buildDetailMetadataExtractionScript(): string {
           return values;
         }
 
-        var author = collectUniqueMetadata('${AUTHOR_SELECTOR}').join(', ');
-        var tags = collectUniqueMetadata('${TAG_SELECTOR}');
+        var author = collectUniqueMetadata('${AUTHOR_SELECTOR}', 2).join(', ');
+        var tags = collectUniqueMetadata('${TAG_SELECTOR}', 5);
   `
 }
