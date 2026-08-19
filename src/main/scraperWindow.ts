@@ -5,6 +5,7 @@ import { getActiveDomain } from './networkProbe'
 import { buildHomepageUrl, buildHomepageCacheKey, type HomepageCategory } from './homepageLogic'
 import { diffCards, shouldStopPolling } from './homepageStream'
 import { beginMainPerfSpan } from './performanceTrace'
+import { buildDetailMetadataExtractionScript } from './mangaDetailMetadataCore'
 
 let scraperWin: BrowserWindow | null = null
 
@@ -509,10 +510,7 @@ export async function extractMangaDetail(mangaId: string): Promise<MangaDetailRe
         if (el) title = el.textContent.trim();
         if (!title) title = document.title.replace(/\\|.*/, '').trim();
 
-        var author = '';
-        document.querySelectorAll('span[itemprop="author"] a, .author a, [data-type="author"] a').forEach(function(a) {
-          author += (author ? ', ' : '') + a.textContent.trim();
-        });
+        ${buildDetailMetadataExtractionScript()}
 
         var coverImg = document.querySelector('img.img-responsive, .album-cover img, img.cover, .book-cover img, .video-cover img');
         var coverUrl = '';
@@ -521,12 +519,6 @@ export async function extractMangaDetail(mangaId: string): Promise<MangaDetailRe
         }
         if (!coverUrl) coverUrl = 'https://cdn-msp3.18comic.vip/media/albums/' + id + '.jpg';
         if (coverUrl.startsWith('//')) coverUrl = 'https:' + coverUrl;
-
-        var tags = [];
-        document.querySelectorAll('span[itemprop="genre"] a, .tags a, .tag-list a, .label-tag').forEach(function(el) {
-          var t = el.textContent.trim();
-          if (t) tags.push(t);
-        });
 
         var desc = '';
         var descEl = document.querySelector('.description, [itemprop="description"], .summary, .intro, .album-description, #album-description');
