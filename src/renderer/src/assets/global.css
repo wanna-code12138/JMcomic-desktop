@@ -30,12 +30,18 @@ body {
 }
 
 /* 纯色窗口模式：Mica/亚克力关闭时用主题底色填充，避免露出透明黑底 */
-.ac-solid {
-  background-color: var(--ac-base-bg);
+.ui-solid {
+  background-color: var(--ui-bg-app-solid);
 }
 
 /* ===== Aurora Clay Design Tokens ===== */
 :root {
+  --ui-radius-sm: 4px;
+  --ui-radius-md: 6px;
+  --ui-radius-lg: 8px;
+  --ui-motion-fast: 120ms;
+  --ui-motion-standard: 160ms;
+
   /* 圆角档位 */
   --ac-radius-window: 28px;
   --ac-radius-panel: 24px;
@@ -63,7 +69,29 @@ body {
 }
 
 /* 浅色 Aurora Clay Light */
-.ac-light {
+.ui-light {
+  --ui-bg-app: rgba(243, 243, 243, 0.72);
+  --ui-bg-app-solid: #f3f3f3;
+  --ui-bg-pane: rgba(249, 249, 249, 0.9);
+  --ui-bg-canvas: #ffffff;
+  --ui-bg-card: #ffffff;
+  --ui-bg-toolbar: rgba(255, 255, 255, 0.94);
+  --ui-bg-dialog: #ffffff;
+  --ui-bg-hover: #f5f5f5;
+  --ui-bg-selected: #e8f2fb;
+  --ui-stroke-card: #e5e5e5;
+  --ui-stroke-strong: #d1d1d1;
+  --ui-text-primary: #1b1a19;
+  --ui-text-secondary: #605e5c;
+  --ui-text-tertiary: #8a8886;
+  --ui-brand: #0f6cbd;
+  --ui-brand-hover: #115ea3;
+  --ui-success: #107c10;
+  --ui-warning: #9d5d00;
+  --ui-danger: #c42b1c;
+  --ui-scrollbar-thumb: rgba(0, 0, 0, 0.28);
+  --ui-scrollbar-thumb-hover: rgba(0, 0, 0, 0.42);
+
   --ac-aurora-1: rgba(167, 139, 250, 0.28);
   --ac-aurora-2: rgba(244, 114, 182, 0.22);
   --ac-aurora-3: rgba(96, 165, 250, 0.25);
@@ -94,7 +122,29 @@ body {
 }
 
 /* 深色 Aurora Clay Dark */
-.ac-dark {
+.ui-dark {
+  --ui-bg-app: rgba(32, 32, 32, 0.76);
+  --ui-bg-app-solid: #202020;
+  --ui-bg-pane: rgba(39, 39, 39, 0.92);
+  --ui-bg-canvas: #1f1f1f;
+  --ui-bg-card: #292929;
+  --ui-bg-toolbar: rgba(44, 44, 44, 0.96);
+  --ui-bg-dialog: #2b2b2b;
+  --ui-bg-hover: #333333;
+  --ui-bg-selected: #183b56;
+  --ui-stroke-card: #3d3d3d;
+  --ui-stroke-strong: #505050;
+  --ui-text-primary: #ffffff;
+  --ui-text-secondary: #d2d0ce;
+  --ui-text-tertiary: #a19f9d;
+  --ui-brand: #62abf5;
+  --ui-brand-hover: #83bff5;
+  --ui-success: #6ccb5f;
+  --ui-warning: #fce100;
+  --ui-danger: #ff99a4;
+  --ui-scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --ui-scrollbar-thumb-hover: rgba(255, 255, 255, 0.34);
+
   --ac-aurora-1: rgba(167, 139, 250, 0.5);
   --ac-aurora-2: rgba(244, 114, 182, 0.4);
   --ac-aurora-3: rgba(96, 165, 250, 0.45);
@@ -124,7 +174,7 @@ body {
   --ac-scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
 }
 
-/* Scrollbar styling — Aurora Clay */
+/* Compact WinUI-style scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -135,12 +185,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--ac-scrollbar-thumb);
+  background: var(--ui-scrollbar-thumb);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ac-scrollbar-thumb-hover);
+  background: var(--ui-scrollbar-thumb-hover);
 }
 
 /* Image rendering for manga pages */

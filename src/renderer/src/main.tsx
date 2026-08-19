@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import { FluentProvider } from '@fluentui/react-components'
 import { useAppStore, initSystemThemeListener } from './stores/appStore'
-import { auroraLightTheme, auroraDarkTheme } from './theme/auroraTheme'
+import { winuiLightTheme, winuiDarkTheme } from './theme/winuiTheme'
 import App from './App'
 import './assets/global.css'
 
@@ -33,11 +33,11 @@ function Root(): JSX.Element {
 
   return (
     <FluentProvider
-      theme={darkMode ? auroraDarkTheme : auroraLightTheme}
+      theme={darkMode ? winuiDarkTheme : winuiLightTheme}
       style={{ height: '100%' }}
     >
       <div
-        className={`${darkMode ? 'ac-dark' : 'ac-light'}${!micaEnabled && solidWindow ? ' ac-solid' : ''}`}
+        className={`${darkMode ? 'ui-dark' : 'ui-light'}${!micaEnabled && solidWindow ? ' ui-solid' : ''}`}
         style={{ height: '100%' }}
       >
         <App darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />

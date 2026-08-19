@@ -31,7 +31,7 @@
 - Produces `winuiLightTheme`, `winuiDarkTheme`, `appSurface`, `flatCard`, `flatToolbar`, and semantic `--ui-*` CSS tokens.
 - Existing pages continue to use FluentProvider and the current light/dark store values.
 
-- [ ] **Step 1: Write the failing contract test**
+- [x] **Step 1: Write the failing contract test**
 
 ```ts
 import assert from 'node:assert/strict'
@@ -45,21 +45,21 @@ assert.doesNotMatch(surfaces, /backdropFilter|radial-gradient|brand-glow/)
 assert.match(surfaces, /var\(--ui-stroke-card\)/)
 ```
 
-- [ ] **Step 2: Run red**
+- [x] **Step 2: Run red**
 
 Run: `npx tsx src/main/__tests__/winuiVisualContract.test.ts`
 
 Expected: module/file-not-found for the new theme files.
 
-- [ ] **Step 3: Implement the theme and semantic surfaces**
+- [x] **Step 3: Implement the theme and semantic surfaces**
 
 Use a Fluent brand ramp centered on Windows blue `#0f6cbd`. Define neutral background, stroke, text, status, radius, and motion tokens in `.ui-light` and `.ui-dark`. Implement `appSurface`, `flatCard`, and `flatToolbar` with opaque/low-transparency backgrounds and 1px strokes; no blur, gradients, glow, or hover translation.
 
-- [ ] **Step 4: Switch the root provider and verify green**
+- [x] **Step 4: Switch the root provider and verify green**
 
 Replace the Aurora theme imports in `main.tsx`, rename root classes to `ui-light`/`ui-dark`, run the target test, `imageCorrectnessContract.test.ts`, and `npm run build`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```powershell
 git add src/renderer/src/theme/winuiTheme.ts src/renderer/src/theme/surfaceStyles.ts src/renderer/src/main.tsx src/renderer/src/assets/global.css src/main/__tests__/winuiVisualContract.test.ts
@@ -167,4 +167,3 @@ Delete `auroraTheme.ts` and `clayStyles.ts` only after `rg -n 'auroraTheme|clayS
 - [ ] **Step 6: Full verification and commit**
 
 Run all main tests, the correctness contract, `npm run build`, `git diff --check`, and commit as `style: 完成 WinUI Fluent 页面重构`.
-
