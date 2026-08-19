@@ -58,25 +58,24 @@ const useStyles = makeStyles({
   },
   mangaCard: {
     cursor: 'pointer',
-    transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+    borderRadius: 'var(--ui-radius-lg)',
+    transition: 'background-color var(--ui-motion-fast) ease-out',
     ':hover': {
-      transform: 'translateY(-3px)',
-      boxShadow: '0 8px 20px var(--ac-glass-shadow)'
+      backgroundColor: 'var(--ui-bg-hover)'
     }
   },
   imageWrap: {
     position: 'relative',
-    borderRadius: 'var(--ac-radius-card)',
+    borderRadius: 'var(--ui-radius-md)',
     overflow: 'hidden',
-    border: '1px solid var(--ac-glass-border)',
-    boxShadow: 'inset 0 1px 0 var(--ac-glass-inset-hi), var(--ac-glass-shadow)'
+    border: '1px solid var(--ui-stroke-card)'
   },
   cover: {
     display: 'block',
     width: '100%',
     aspectRatio: '3/4',
     objectFit: 'cover',
-    backgroundColor: 'var(--ac-base-bg)'
+    backgroundColor: 'var(--ui-bg-canvas)'
   },
   coverPlaceholder: {
     display: 'flex',
@@ -84,8 +83,8 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     width: '100%',
     aspectRatio: '3/4',
-    color: 'var(--ac-text-3)',
-    backgroundColor: 'var(--ac-base-bg)'
+    color: 'var(--ui-text-tertiary)',
+    backgroundColor: 'var(--ui-bg-canvas)'
   },
   mangaActions: {
     position: 'absolute',
@@ -108,11 +107,11 @@ const useStyles = makeStyles({
     WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical',
     overflow: 'hidden',
-    color: 'var(--ac-text-1)'
+    color: 'var(--ui-text-primary)'
   },
   mangaMeta: {
     fontSize: '12px',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     marginTop: '4px'
   },
   statusMsg: {
@@ -121,7 +120,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
     justifyContent: 'center',
     padding: '60px 0',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     gap: '12px'
   },
   taskList: { display: 'flex', flexDirection: 'column', gap: '8px' },
@@ -130,23 +129,22 @@ const useStyles = makeStyles({
     alignItems: 'center',
     gap: '14px',
     padding: '12px 16px',
-    borderRadius: 'var(--ac-radius-row)',
-    backgroundColor: 'var(--ac-glass-bg)',
-    border: '1px solid var(--ac-glass-border)',
-    boxShadow: 'inset 0 1px 0 var(--ac-glass-inset-hi)'
+    borderRadius: 'var(--ui-radius-lg)',
+    backgroundColor: 'var(--ui-bg-card)',
+    border: '1px solid var(--ui-stroke-card)'
   },
   taskInfo: { flex: 1, minWidth: 0 },
   taskTitle: {
     fontSize: '14px',
     fontWeight: 500,
-    color: 'var(--ac-text-1)',
+    color: 'var(--ui-text-primary)',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap'
   },
   taskMeta: {
     fontSize: '12px',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     marginTop: '4px'
   },
   taskProgress: {
@@ -264,12 +262,12 @@ export default function DownloadsPage(): JSX.Element {
         </TabList>
       </div>
       {actionError && (
-        <Text size={200} style={{ color: 'var(--ac-danger, #d13438)', display: 'block', marginBottom: '10px' }}>
+        <Text size={200} style={{ color: 'var(--ui-danger)', display: 'block', marginBottom: '10px' }}>
           {actionError}
         </Text>
       )}
       {actionMsg && (
-        <Text size={200} style={{ color: 'var(--ac-green, #4caf50)', display: 'block', marginBottom: '10px' }}>
+        <Text size={200} style={{ color: 'var(--ui-success)', display: 'block', marginBottom: '10px' }}>
           {actionMsg}
         </Text>
       )}
@@ -367,13 +365,13 @@ export default function DownloadsPage(): JSX.Element {
                     {active && ` · ${task.downloadedPages}/${task.totalPages} 页`}
                   </div>
                   {(task.status === 'failed' || task.status === 'cancelled') && task.error && (
-                    <Text size={200} style={{ color: 'var(--ac-danger, #d13438)', display: 'block', marginTop: '2px' }}>
+                    <Text size={200} style={{ color: 'var(--ui-danger)', display: 'block', marginTop: '2px' }}>
                       {task.error}
                     </Text>
                   )}
                   {(task.status === 'downloading' || task.status === 'pending') && (
-                    <div className={styles.taskProgress} style={{ marginTop: '6px', height: '4px', borderRadius: '2px', backgroundColor: 'var(--ac-glass-border)', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${Math.round(progress * 100)}%`, backgroundColor: 'var(--ac-brand)', transition: 'width 0.2s ease' }} />
+                    <div className={styles.taskProgress} style={{ marginTop: '6px', height: '4px', borderRadius: '2px', backgroundColor: 'var(--ui-stroke-card)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${Math.round(progress * 100)}%`, backgroundColor: 'var(--ui-brand)', transition: 'width var(--ui-motion-standard) ease-out' }} />
                     </div>
                   )}
                 </div>
@@ -422,7 +420,7 @@ export default function DownloadsPage(): JSX.Element {
               <Button appearance="secondary" onClick={() => setConfirm(null)}>取消</Button>
               <Button
                 appearance="primary"
-                style={{ backgroundColor: 'var(--ac-danger, #d13438)' }}
+                style={{ backgroundColor: 'var(--ui-danger)' }}
                 onClick={() => {
                   confirm?.onConfirm()
                   setConfirm(null)

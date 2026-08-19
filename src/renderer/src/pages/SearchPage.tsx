@@ -16,7 +16,7 @@ const useStyles = makeStyles({
   searchBar: { display: 'flex', gap: '8px', maxWidth: '660px', marginBottom: '8px' },
   hint: {
     fontSize: '12px',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     marginTop: '4px',
     marginBottom: '20px'
   },
@@ -31,7 +31,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
     justifyContent: 'center',
     padding: '60px 0',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     gap: '12px'
   },
   pagination: {
@@ -44,7 +44,7 @@ const useStyles = makeStyles({
   },
   pageText: {
     fontSize: '13px',
-    color: 'var(--ac-text-2)',
+    color: 'var(--ui-text-secondary)',
     minWidth: '80px',
     textAlign: 'center'
   },
@@ -55,7 +55,7 @@ const useStyles = makeStyles({
   },
   shimmerCard: {
     aspectRatio: '3/4',
-    borderRadius: 'var(--ac-radius-card)'
+    borderRadius: 'var(--ui-radius-md)'
   },
   historySection: {
     maxWidth: '660px',
@@ -73,7 +73,7 @@ const useStyles = makeStyles({
     gap: '6px',
     fontSize: '13px',
     fontWeight: 600,
-    color: 'var(--ac-text-2)'
+    color: 'var(--ui-text-secondary)'
   },
   chipList: {
     display: 'flex',
@@ -86,16 +86,15 @@ const useStyles = makeStyles({
     gap: '4px',
     height: '32px',
     padding: '0 4px 0 12px',
-    borderRadius: 'var(--ac-radius-pill)',
-    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 12%, transparent)',
-    border: '1px solid color-mix(in srgb, var(--ac-brand) 18%, transparent)',
-    color: 'var(--ac-brand)',
+    borderRadius: 'var(--ui-radius-lg)',
+    backgroundColor: 'var(--ui-bg-card)',
+    border: '1px solid var(--ui-stroke-card)',
+    color: 'var(--ui-brand)',
     fontSize: '13px',
     cursor: 'pointer',
-    transition: 'background-color 0.15s, transform 0.15s',
+    transition: 'background-color var(--ui-motion-fast) ease-out',
     ':hover': {
-      backgroundColor: 'color-mix(in srgb, var(--ac-brand) 20%, transparent)',
-      transform: 'translateY(-1px)'
+      backgroundColor: 'var(--ui-bg-hover)'
     },
     ':active': {
       transform: 'scale(0.97)'
@@ -113,17 +112,17 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     width: '20px',
     height: '20px',
-    borderRadius: 'var(--ac-radius-badge)',
+    borderRadius: 'var(--ui-radius-sm)',
     cursor: 'pointer',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     ':hover': {
-      backgroundColor: 'color-mix(in srgb, var(--ac-danger) 20%, transparent)',
-      color: 'var(--ac-danger)'
+      backgroundColor: 'var(--ui-bg-hover)',
+      color: 'var(--ui-danger)'
     }
   },
   historyEmpty: {
     fontSize: '13px',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     padding: '8px 0'
   }
 })

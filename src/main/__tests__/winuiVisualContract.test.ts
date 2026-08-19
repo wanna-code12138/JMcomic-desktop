@@ -39,3 +39,17 @@ for (const dialog of [loginDialog, chapterDialog]) {
   assert.doesNotMatch(dialog, /backdropFilter/)
 }
 console.log('  PASS: cards and dialogs use restrained flat content surfaces')
+
+const migratedPages = [
+  'HomePage.tsx', 'CategoriesPage.tsx', 'SearchPage.tsx', 'FavoritesPage.tsx',
+  'DownloadsPage.tsx', 'SettingsPage.tsx', 'MangaDetailPage.tsx', 'ReaderPage.tsx'
+]
+const pageViolations: string[] = []
+for (const file of migratedPages) {
+  const text = read(`src/renderer/src/pages/${file}`)
+  const forbidden = text.match(/--ac-glass|--ac-clay|radial-gradient|brand-glow/gi) ?? []
+  if (file !== 'ReaderPage.tsx') forbidden.push(...(text.match(/translateY\(-[1-9]/g) ?? []))
+  if (forbidden.length > 0) pageViolations.push(`${file}: ${[...new Set(forbidden)].join(', ')}`)
+}
+assert.deepEqual(pageViolations, [], `Retired Aurora page styles remain:\n${pageViolations.join('\n')}`)
+console.log('  PASS: content pages and reader chrome contain no retired Aurora effects')

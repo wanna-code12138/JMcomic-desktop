@@ -17,16 +17,14 @@ const useStyles = makeStyles({
   sectionTitle: {
     marginBottom: '16px',
     display: 'block',
-    color: 'var(--ac-text-1)'
+    color: 'var(--ui-text-primary)'
   },
   card: {
     marginBottom: '16px',
-    backgroundColor: 'var(--ac-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-panel))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-panel))',
-    border: '1px solid var(--ac-glass-border)',
-    borderRadius: 'var(--ac-radius-card)',
-    boxShadow: 'inset 0 1px 0 var(--ac-glass-inset-hi), var(--ac-glass-shadow)'
+    backgroundColor: 'var(--ui-bg-card)',
+    border: '1px solid var(--ui-stroke-card)',
+    borderRadius: 'var(--ui-radius-lg)',
+    boxShadow: 'none'
   },
   row: {
     display: 'flex',
@@ -43,13 +41,13 @@ const useStyles = makeStyles({
   statusText: {
     display: 'block',
     marginTop: '10px',
-    color: 'var(--ac-text-2)',
+    color: 'var(--ui-text-secondary)',
     wordBreak: 'break-all'
   },
   subPanel: {
     marginTop: '14px',
     paddingTop: '12px',
-    borderTop: '1px dashed var(--ac-glass-border)'
+    borderTop: '1px solid var(--ui-stroke-card)'
   }
 })
 
@@ -301,9 +299,9 @@ export default function SettingsPage(): JSX.Element {
         <Card className={styles.card}>
           <div className={styles.row}>
             <div>
-              <Text weight="semibold" style={{ color: 'var(--ac-text-1)' }}>主题模式</Text>
+              <Text weight="semibold" style={{ color: 'var(--ui-text-primary)' }}>主题模式</Text>
               <div>
-                <Text size={200} style={{ color: 'var(--ac-text-3)' }}>
+                <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>
                   跟随系统 / 浅色 / 深色
                 </Text>
               </div>
@@ -329,7 +327,7 @@ export default function SettingsPage(): JSX.Element {
           <div className={styles.row}>
             <div>
               <Text weight="semibold">Mica 云母材质</Text>
-              <div><Text size={200} style={{ color: 'var(--ac-text-3)' }}>Windows 11 半透明背景效果</Text></div>
+              <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>Windows 11 半透明背景效果</Text></div>
             </div>
             <Switch checked={micaEnabled} onChange={(_e, d) => handleMicaChange(d.checked)} />
           </div>
@@ -338,7 +336,7 @@ export default function SettingsPage(): JSX.Element {
               <div className={styles.row}>
                 <div>
                   <Text weight="semibold">纯色不透明窗口</Text>
-                  <div><Text size={200} style={{ color: 'var(--ac-text-3)' }}>关闭时为亚克力；打开此开关用纯色背景，节省 GPU</Text></div>
+                  <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>关闭时为亚克力；打开此开关用纯色背景，节省 GPU</Text></div>
                 </div>
                 <Switch checked={solidWindow} onChange={(_e, d) => handleSolidChange(d.checked)} />
               </div>
@@ -354,7 +352,7 @@ export default function SettingsPage(): JSX.Element {
           <div className={styles.row}>
             <div>
               <Text weight="semibold">手动代理</Text>
-              <div><Text size={200} style={{ color: 'var(--ac-text-3)' }}>覆盖系统代理，填写 HTTP/SOCKS5 地址</Text></div>
+              <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>覆盖系统代理，填写 HTTP/SOCKS5 地址</Text></div>
             </div>
             <Switch checked={proxyEnabled} onChange={(_e, d) => handleProxyToggle(d.checked)} />
           </div>
@@ -383,7 +381,7 @@ export default function SettingsPage(): JSX.Element {
             <div>
               <Text weight="semibold">当前网络状态</Text>
               <div>
-                <Text size={200} style={{ color: 'var(--ac-text-3)' }}>
+                <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>
                   {networkStatus === 'online' ? '🟢 直连正常 — 可直接访问禁漫天堂'
                     : networkStatus === 'degraded' ? '🟡 代理连接 — 通过代理访问中'
                     : '🔴 无法访问 — 请检查代理或网络'}
@@ -406,7 +404,7 @@ export default function SettingsPage(): JSX.Element {
             <div>
               <Text weight="semibold">下载目录</Text>
               <div>
-                <Text size={200} style={{ color: 'var(--ac-text-3)' }}>
+                <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>
                   漫画按「目录/漫画名/章节名」保存，新任务使用此目录
                 </Text>
               </div>
@@ -427,7 +425,7 @@ export default function SettingsPage(): JSX.Element {
         <Card className={styles.card}>
           <div style={{ marginBottom: '8px' }}>
             <Text weight="semibold">同时下载章节数</Text>
-            <Text size={200} style={{ color: 'var(--ac-text-3)', display: 'block', marginTop: '2px' }}>
+            <Text size={200} style={{ color: 'var(--ui-text-tertiary)', display: 'block', marginTop: '2px' }}>
               当前 {downloadConcurrency} 个任务并行（1–8）
             </Text>
           </div>
@@ -442,7 +440,7 @@ export default function SettingsPage(): JSX.Element {
         <Card className={styles.card}>
           <div style={{ marginBottom: '8px' }}>
             <Text weight="semibold">图片失败重试次数</Text>
-            <Text size={200} style={{ color: 'var(--ac-text-3)', display: 'block', marginTop: '2px' }}>
+            <Text size={200} style={{ color: 'var(--ui-text-tertiary)', display: 'block', marginTop: '2px' }}>
               当前 {downloadRetries} 次（0–6，单张图片下载失败后自动重试）
             </Text>
           </div>
@@ -459,7 +457,7 @@ export default function SettingsPage(): JSX.Element {
             <div>
               <Text weight="semibold">启动时自动续传</Text>
               <div>
-                <Text size={200} style={{ color: 'var(--ac-text-3)' }}>
+                <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>
                   打开应用后自动继续未完成（含上次中断）的下载任务
                 </Text>
               </div>
@@ -476,7 +474,7 @@ export default function SettingsPage(): JSX.Element {
           <div style={{ marginBottom: '12px' }}>
             <Text weight="semibold">数据随程序文件存放</Text>
             <div>
-              <Text size={200} style={{ color: 'var(--ac-text-3)' }}>
+              <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>
                 便携版的数据保存在 exe 同目录的 JMComicData 文件夹中，复制整个文件夹即可随程序迁移
               </Text>
             </div>
@@ -491,7 +489,7 @@ export default function SettingsPage(): JSX.Element {
             <Button
               size="small"
               appearance="secondary"
-              style={{ color: 'var(--ac-danger, #d13438)' }}
+              style={{ color: 'var(--ui-danger)' }}
               onClick={handleClearPersonalData}
             >
               清除个人数据
@@ -510,9 +508,9 @@ export default function SettingsPage(): JSX.Element {
           <div className={styles.row}>
             <div>
               <Text weight="semibold">图片缓存</Text>
-              <div><Text size={200} style={{ color: 'var(--ac-text-3)' }}>缓存已浏览的漫画图片，重开阅读器不再重复下载</Text></div>
+              <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>缓存已浏览的漫画图片，重开阅读器不再重复下载</Text></div>
               {cacheSize > 0 && (
-                <Text size={200} style={{ color: 'var(--ac-text-3)', display: 'block', marginTop: '4px' }}>
+                <Text size={200} style={{ color: 'var(--ui-text-tertiary)', display: 'block', marginTop: '4px' }}>
                   当前占用 {formatBytes(cacheSize)}
                 </Text>
               )}
@@ -532,7 +530,7 @@ export default function SettingsPage(): JSX.Element {
             value={cacheLimitMb}
             onChange={(_e, d) => handleCacheLimitChange(d.value)}
           />
-          <Text size={200} style={{ color: 'var(--ac-text-3)', marginTop: '4px' }}>
+          <Text size={200} style={{ color: 'var(--ui-text-tertiary)', marginTop: '4px' }}>
             当前限制: {formatLimit(cacheLimitMb)}（超出后自动删除最旧的图片）
           </Text>
         </Card>
@@ -543,7 +541,7 @@ export default function SettingsPage(): JSX.Element {
         <Text size={500} weight="semibold" className={styles.sectionTitle}>关于</Text>
         <Card className={styles.card}>
           <Text weight="semibold">JMComic Desktop</Text>
-          <div><Text size={200} style={{ color: 'var(--ac-text-3)' }}>版本 {appVersion} · Electron + React + Fluent UI</Text></div>
+          <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>版本 {appVersion} · Electron + React + Fluent UI</Text></div>
         </Card>
       </div>
     </div>

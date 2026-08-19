@@ -24,20 +24,21 @@ const useStyles = makeStyles({
     alignItems: 'center',
     justifyContent: 'center',
     padding: '60px 0',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     gap: '12px'
   },
   historyItem: {
     display: 'flex',
     gap: '12px',
     padding: '12px',
-    borderRadius: 'var(--ac-radius-row)',
+    borderRadius: 'var(--ui-radius-lg)',
     cursor: 'pointer',
-    transition: 'background-color 0.15s, box-shadow 0.15s',
+    transition: 'background-color var(--ui-motion-fast) ease-out, border-color var(--ui-motion-fast) ease-out',
+    border: '1px solid transparent',
     alignItems: 'center',
     ':hover': {
-      backgroundColor: 'var(--ac-glass-bg-hover)',
-      boxShadow: 'inset 0 0 0 1px var(--ac-glass-border)'
+      backgroundColor: 'var(--ui-bg-hover)',
+      borderColor: 'var(--ui-stroke-card)'
     }
   },
   historyCover: {
@@ -45,22 +46,22 @@ const useStyles = makeStyles({
     minWidth: '48px',
     height: '64px',
     objectFit: 'cover',
-    borderRadius: 'var(--ac-radius-badge)',
-    backgroundColor: 'var(--ac-base-bg)',
-    border: '1px solid var(--ac-glass-border)'
+    borderRadius: 'var(--ui-radius-md)',
+    backgroundColor: 'var(--ui-bg-canvas)',
+    border: '1px solid var(--ui-stroke-card)'
   },
   historyInfo: { flex: 1, minWidth: 0 },
   historyTitle: {
     fontSize: '14px',
     fontWeight: 500,
-    color: 'var(--ac-text-1)',
+    color: 'var(--ui-text-primary)',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap'
   },
   historyMeta: {
     fontSize: '12px',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     marginTop: '4px'
   },
   historyActions: {
@@ -180,7 +181,7 @@ export default function FavoritesPage(): JSX.Element {
         ) : (
           <>
             <div className={styles.sectionHeader}>
-              <Text size={300} style={{ color: 'var(--ac-text-3)' }}>
+              <Text size={300} style={{ color: 'var(--ui-text-tertiary)' }}>
                 {localHistory.length} 条记录
               </Text>
               <Button size="small" appearance="subtle" icon={<Delete20Regular />}

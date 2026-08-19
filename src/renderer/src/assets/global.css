@@ -34,7 +34,7 @@ body {
   background-color: var(--ui-bg-app-solid);
 }
 
-/* ===== Aurora Clay Design Tokens ===== */
+/* ===== WinUI semantic design tokens ===== */
 :root {
   --ui-radius-sm: 4px;
   --ui-radius-md: 6px;
@@ -42,33 +42,15 @@ body {
   --ui-motion-fast: 120ms;
   --ui-motion-standard: 160ms;
 
-  /* 圆角档位 */
-  --ac-radius-window: 28px;
-  --ac-radius-panel: 24px;
-  --ac-radius-card: 16px;
-  --ac-radius-button: 14px;
-  --ac-radius-row: 12px;
-  --ac-radius-cover: 14px;
-  --ac-radius-badge: 10px;
-  --ac-radius-pill: 99px;
-
-  /* 毛玻璃强度 */
-  --ac-blur-panel: 14px;
-  --ac-blur-card: 10px;
-  --ac-blur-dialog: 20px;
-  --ac-blur-toolbar: 14px;
-
   /* 阅读器沉浸深色（不随浅深主题切换） */
   --ac-reader-bg: #0b0b14;
-  --ac-reader-glass-bg: rgba(255, 255, 255, 0.08);
-  --ac-reader-glass-bg-hover: rgba(255, 255, 255, 0.14);
   --ac-reader-glass-border: rgba(255, 255, 255, 0.12);
   --ac-reader-text-1: #e8e8f8;
   --ac-reader-text-2: #b4b4d0;
   --ac-reader-text-3: #8a8aa8;
 }
 
-/* 浅色 Aurora Clay Light */
+/* WinUI light */
 .ui-light {
   --ui-bg-app: rgba(243, 243, 243, 0.72);
   --ui-bg-app-solid: #f3f3f3;
@@ -92,36 +74,9 @@ body {
   --ui-scrollbar-thumb: rgba(0, 0, 0, 0.28);
   --ui-scrollbar-thumb-hover: rgba(0, 0, 0, 0.42);
 
-  --ac-aurora-1: rgba(167, 139, 250, 0.28);
-  --ac-aurora-2: rgba(244, 114, 182, 0.22);
-  --ac-aurora-3: rgba(96, 165, 250, 0.25);
-  --ac-base-bg: #f4f6ff;
-  --ac-glass-bg: rgba(255, 255, 255, 0.5);
-  --ac-glass-bg-hover: rgba(255, 255, 255, 0.65);
-  --ac-glass-border: rgba(255, 255, 255, 0.6);
-  --ac-glass-inset-hi: rgba(255, 255, 255, 0.9);
-  --ac-glass-shadow: 0 3px 9px rgba(150, 140, 200, 0.16);
-  --ac-clay-shadow-dark: 3px 3px 7px rgba(150, 140, 200, 0.28);
-  --ac-clay-shadow-light: -3px -3px 7px rgba(255, 255, 255, 0.95);
-  --ac-clay-inset-border: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-  --ac-text-1: #2a2a45;
-  --ac-text-2: #5a5a7a;
-  --ac-text-3: #7a7a9a;
-  --ac-brand: #7c5cf0;
-  --ac-brand-2: #a78bfa;
-  --ac-brand-glow: rgba(124, 92, 240, 0.35);
-  --ac-brand-glow-hover: rgba(124, 92, 240, 0.5);
-  --ac-pink: #f472b6;
-  --ac-blue: #60a5fa;
-  --ac-green: #34d399;
-  --ac-amber: #fbbf24;
-  --ac-danger: #ff6b9d;
-  --ac-input-inset: inset 1px 1px 3px rgba(150, 140, 200, 0.12);
-  --ac-scrollbar-thumb: rgba(120, 110, 180, 0.35);
-  --ac-scrollbar-thumb-hover: rgba(120, 110, 180, 0.55);
 }
 
-/* 深色 Aurora Clay Dark */
+/* WinUI dark */
 .ui-dark {
   --ui-bg-app: rgba(32, 32, 32, 0.76);
   --ui-bg-app-solid: #202020;
@@ -145,33 +100,6 @@ body {
   --ui-scrollbar-thumb: rgba(255, 255, 255, 0.2);
   --ui-scrollbar-thumb-hover: rgba(255, 255, 255, 0.34);
 
-  --ac-aurora-1: rgba(167, 139, 250, 0.5);
-  --ac-aurora-2: rgba(244, 114, 182, 0.4);
-  --ac-aurora-3: rgba(96, 165, 250, 0.45);
-  --ac-base-bg: #0f0f1e;
-  --ac-glass-bg: rgba(255, 255, 255, 0.06);
-  --ac-glass-bg-hover: rgba(255, 255, 255, 0.1);
-  --ac-glass-border: rgba(255, 255, 255, 0.1);
-  --ac-glass-inset-hi: rgba(255, 255, 255, 0.06);
-  --ac-glass-shadow: 0 5px 14px rgba(0, 0, 0, 0.4);
-  --ac-clay-shadow-dark: 3px 3px 8px rgba(0, 0, 0, 0.45);
-  --ac-clay-shadow-light: -3px -3px 8px rgba(255, 255, 255, 0.06);
-  --ac-clay-inset-border: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-  --ac-text-1: #e8e8f8;
-  --ac-text-2: #b4b4d0;
-  --ac-text-3: #8a8aa8;
-  --ac-brand: #a78bfa;
-  --ac-brand-2: #c4b5fd;
-  --ac-brand-glow: rgba(167, 139, 250, 0.4);
-  --ac-brand-glow-hover: rgba(167, 139, 250, 0.55);
-  --ac-pink: #f472b6;
-  --ac-blue: #60a5fa;
-  --ac-green: #34d399;
-  --ac-amber: #fbbf24;
-  --ac-danger: #ff6b9d;
-  --ac-input-inset: inset 1px 1px 3px rgba(0, 0, 0, 0.3);
-  --ac-scrollbar-thumb: rgba(255, 255, 255, 0.18);
-  --ac-scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
 }
 
 /* Compact WinUI-style scrollbars */
@@ -199,17 +127,6 @@ img.manga-page {
   max-width: 100%;
   height: auto;
   image-rendering: auto;
-}
-
-/* ===== Motion ===== */
-@keyframes ac-page-enter {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes ac-card-enter {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {

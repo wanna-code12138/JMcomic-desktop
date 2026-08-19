@@ -144,26 +144,26 @@ Run the visual test, correctness contract, and build; then commit as `style: 平
 - Page component exports and all data operations remain unchanged.
 - Reader toolbar/page controls may change style; reader content markup and math may not.
 
-- [ ] **Step 1: Add failing forbidden-style scan**
+- [x] **Step 1: Add failing forbidden-style scan**
 
 Scan migrated files for `--ac-glass`, `--ac-clay`, `radial-gradient`, `brand-glow`, and hover `translateY`; list any remaining references in the failure output.
 
-- [ ] **Step 2: Run red**
+- [x] **Step 2: Run red**
 
 Expected: the scan reports current Aurora references.
 
-- [ ] **Step 3: Migrate pages in two reviewable batches**
+- [x] **Step 3: Migrate pages in two reviewable batches**
 
 Batch A: Home, Categories, Search, Favorites. Batch B: Downloads, Settings, Detail, reader chrome. Use consistent 24px page padding, 4px spacing rhythm, compact list rows, neutral status surfaces, and Fluent semantic colors.
 
-- [ ] **Step 4: Visual verification**
+- [x] **Step 4: Visual verification**
 
 Capture light/dark screenshots for Home, Detail, Downloads, Settings, and Reader at 1500×900. Confirm no clipping at 1100×700, visible focus rings, stable 3:4 covers, and no changes to reader image layout.
 
-- [ ] **Step 5: Remove retired Aurora modules**
+- [x] **Step 5: Remove retired Aurora modules**
 
 Delete `auroraTheme.ts` and `clayStyles.ts` only after `rg -n 'auroraTheme|clayStyles|--ac-glass|--ac-clay' src/renderer/src` returns no references outside immutable reader-specific tokens.
 
-- [ ] **Step 6: Full verification and commit**
+- [x] **Step 6: Full verification and commit**
 
 Run all main tests, the correctness contract, `npm run build`, `git diff --check`, and commit as `style: 完成 WinUI Fluent 页面重构`.

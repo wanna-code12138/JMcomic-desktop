@@ -32,9 +32,7 @@ const useStyles = makeStyles({
     height: `${TOOLBAR_HEIGHT}px`,
     padding: '0 12px',
     gap: '8px',
-    backgroundColor: 'var(--ac-reader-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-toolbar))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-toolbar))',
+    backgroundColor: '#151515',
     zIndex: 10,
     flexShrink: 0,
     borderBottom: '1px solid var(--ac-reader-glass-border)'
@@ -90,18 +88,16 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'var(--ac-reader-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-card))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-card))',
+    backgroundColor: 'rgba(32, 32, 32, 0.96)',
     border: '1px solid var(--ac-reader-glass-border)',
-    borderRadius: 'var(--ac-radius-button)',
+    borderRadius: 'var(--ui-radius-lg)',
     cursor: 'pointer',
     color: 'var(--ac-reader-text-2)',
     opacity: 0.4,
     transition: 'opacity 0.2s',
     ':hover': {
       opacity: 1,
-      backgroundColor: 'var(--ac-reader-glass-bg-hover)'
+      backgroundColor: 'rgba(56, 56, 56, 0.98)'
     }
   },
   navLeft: { left: '16px' },
@@ -111,13 +107,11 @@ const useStyles = makeStyles({
     bottom: '16px',
     left: '50%',
     transform: 'translateX(-50%)',
-    backgroundColor: 'var(--ac-reader-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-card))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-card))',
+    backgroundColor: 'rgba(32, 32, 32, 0.96)',
     border: '1px solid var(--ac-reader-glass-border)',
     color: 'var(--ac-reader-text-2)',
     padding: '5px 14px',
-    borderRadius: 'var(--ac-radius-pill)',
+    borderRadius: 'var(--ui-radius-lg)',
     fontSize: '12px',
     zIndex: 5
   },
@@ -669,7 +663,7 @@ export default function ReaderPage(): JSX.Element {
         {pages.length > 0 && (
           <Tooltip content={viewMode === 'scroll' ? '单页模式' : '滚动模式'} relationship="label">
             <Button appearance="subtle" size="small" icon={<SlideText20Regular />}
-              style={{ color: viewMode === 'scroll' ? 'var(--ac-brand)' : 'var(--ac-reader-text-2)' }}
+              style={{ color: viewMode === 'scroll' ? 'var(--ui-brand)' : 'var(--ac-reader-text-2)' }}
               onClick={() => setViewMode(viewMode === 'scroll' ? 'single' : 'scroll')}
             />
           </Tooltip>

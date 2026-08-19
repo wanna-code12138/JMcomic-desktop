@@ -16,7 +16,7 @@ import {
 
 const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
-  title: { marginBottom: '16px', display: 'block', color: 'var(--ac-text-1)' },
+  title: { marginBottom: '16px', display: 'block', color: 'var(--ui-text-primary)' },
   filterBar: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -32,7 +32,7 @@ const useStyles = makeStyles({
   },
   filterLabel: {
     fontSize: '12px',
-    color: 'var(--ac-text-2)',
+    color: 'var(--ui-text-secondary)',
     fontWeight: 600,
     paddingLeft: '4px'
   },
@@ -43,7 +43,7 @@ const useStyles = makeStyles({
     gap: '6px',
     fontSize: '13px',
     fontWeight: 600,
-    color: 'var(--ac-text-2)',
+    color: 'var(--ui-text-secondary)',
     marginBottom: '10px'
   },
   tagList: {
@@ -57,32 +57,31 @@ const useStyles = makeStyles({
     gap: '4px',
     height: '30px',
     padding: '0 12px',
-    borderRadius: 'var(--ac-radius-pill)',
-    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 10%, transparent)',
-    border: '1px solid color-mix(in srgb, var(--ac-brand) 15%, transparent)',
-    color: 'var(--ac-text-2)',
+    borderRadius: 'var(--ui-radius-lg)',
+    backgroundColor: 'var(--ui-bg-card)',
+    border: '1px solid var(--ui-stroke-card)',
+    color: 'var(--ui-text-secondary)',
     fontSize: '13px',
     cursor: 'pointer',
-    transition: 'background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s',
+    transition: 'background-color var(--ui-motion-fast), border-color var(--ui-motion-fast), color var(--ui-motion-fast)',
     ':hover': {
-      backgroundColor: 'color-mix(in srgb, var(--ac-brand) 18%, transparent)',
-      border: '1px solid color-mix(in srgb, var(--ac-brand) 25%, transparent)',
-      color: 'var(--ac-brand)',
-      transform: 'translateY(-1px)'
+      backgroundColor: 'var(--ui-bg-hover)',
+      border: '1px solid var(--ui-stroke-strong)',
+      color: 'var(--ui-brand)'
     },
     ':active': {
       transform: 'scale(0.97)'
     }
   },
   tagChipActive: {
-    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 25%, transparent)',
-    border: '1px solid color-mix(in srgb, var(--ac-brand) 40%, transparent)',
-    color: 'var(--ac-brand)',
+    backgroundColor: 'var(--ui-bg-selected)',
+    border: '1px solid var(--ui-brand)',
+    color: 'var(--ui-brand)',
     fontWeight: 600,
     ':hover': {
-      backgroundColor: 'color-mix(in srgb, var(--ac-brand) 32%, transparent)',
-      border: '1px solid color-mix(in srgb, var(--ac-brand) 50%, transparent)',
-      color: 'var(--ac-brand)'
+      backgroundColor: 'var(--ui-bg-selected)',
+      border: '1px solid var(--ui-brand)',
+      color: 'var(--ui-brand)'
     }
   },
   selectedTagWrap: {
@@ -97,10 +96,10 @@ const useStyles = makeStyles({
     gap: '6px',
     height: '32px',
     padding: '0 4px 0 12px',
-    borderRadius: 'var(--ac-radius-pill)',
-    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 22%, transparent)',
-    border: '1px solid color-mix(in srgb, var(--ac-brand) 35%, transparent)',
-    color: 'var(--ac-brand)',
+    borderRadius: 'var(--ui-radius-lg)',
+    backgroundColor: 'var(--ui-bg-selected)',
+    border: '1px solid var(--ui-brand)',
+    color: 'var(--ui-brand)',
     fontSize: '13px',
     fontWeight: 600
   },
@@ -110,12 +109,12 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     width: '24px',
     height: '24px',
-    borderRadius: 'var(--ac-radius-badge)',
+    borderRadius: 'var(--ui-radius-sm)',
     cursor: 'pointer',
-    color: 'var(--ac-brand)',
+    color: 'var(--ui-brand)',
     ':hover': {
-      backgroundColor: 'color-mix(in srgb, var(--ac-danger) 20%, transparent)',
-      color: 'var(--ac-danger)'
+      backgroundColor: 'var(--ui-bg-hover)',
+      color: 'var(--ui-danger)'
     }
   },
   grid: {
@@ -129,7 +128,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
     justifyContent: 'center',
     padding: '60px 0',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     gap: '12px'
   },
   pagination: {
@@ -142,7 +141,7 @@ const useStyles = makeStyles({
   },
   pageText: {
     fontSize: '13px',
-    color: 'var(--ac-text-2)',
+    color: 'var(--ui-text-secondary)',
     minWidth: '80px',
     textAlign: 'center'
   },
@@ -153,7 +152,7 @@ const useStyles = makeStyles({
   },
   shimmerCard: {
     aspectRatio: '3/4',
-    borderRadius: 'var(--ac-radius-card)'
+    borderRadius: 'var(--ui-radius-md)'
   }
 })
 
