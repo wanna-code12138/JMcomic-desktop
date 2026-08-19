@@ -63,23 +63,23 @@ Commit as `fix: 修复连续阅读首屏图片加载`.
 - Produces `createImageRequestScheduler(maxConcurrent)` with `run<T>(key, task): Promise<T>`, `activeCount()`, and `pendingCount()`.
 - Requests with the same key share one promise; different keys run FIFO with maximum concurrency 6.
 
-- [ ] **Step 1: Write failing deterministic deferred-promise tests**
+- [x] **Step 1: Write failing deterministic deferred-promise tests**
 
 Assert same-key task invocation count is 1, eight unique tasks never exceed six active, FIFO start order is preserved, and rejection removes the in-flight key for retry.
 
-- [ ] **Step 2: Run red**
+- [x] **Step 2: Run red**
 
 Expected: module-not-found.
 
-- [ ] **Step 3: Implement the scheduler and wrap cache-miss fetches**
+- [x] **Step 3: Implement the scheduler and wrap cache-miss fetches**
 
 Keep cache checks outside the scheduler. Use the decoded real URL as the key and return independent `Response` objects from shared immutable bytes/status/headers so a response body is never consumed twice.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run scheduler tests, correctness contract, image cache tests, and build. Confirm duplicate URLs emit one network miss event.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Commit as `perf: 合并重复图片请求并限制并发`.
 
