@@ -14,6 +14,12 @@ export interface RecommendationSourceRequest {
   request: AlbumListRequest
 }
 
+const RANDOM_RECOMMENDATION_LABEL = /^(?:隨便看看|随便看看|隨便看|随便看|換一換|换一换|換一個|换一个)$/i
+
+export function isRandomRecommendationTitle(title: string): boolean {
+  return RANDOM_RECOMMENDATION_LABEL.test(title.trim())
+}
+
 export function buildAlbumListPath(request: AlbumListRequest): string {
   const page = String(Math.max(1, Math.trunc(request.page)))
   if (request.tag) {

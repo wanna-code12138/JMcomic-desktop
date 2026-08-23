@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import {
   buildAlbumListPath,
   buildRecommendationSourceRequests,
+  isRandomRecommendationTitle,
   selectRotatingTags
 } from '../recommendationData'
 
@@ -27,6 +28,14 @@ test('builds exact direct paths for simple album lists and tag searches', () => 
     buildAlbumListPath({ tag: '純愛', order: 'mv', time: 'm', page: 1 }),
     '/search/photos?search_query=%E7%B4%94%E6%84%9B&page=1&main_tag=0&o=mv&t=m'
   )
+})
+
+test('recognizes site random-section labels without rejecting real manga titles', () => {
+  assert.equal(isRandomRecommendationTitle('隨便看'), true)
+  assert.equal(isRandomRecommendationTitle('随便看看'), true)
+  assert.equal(isRandomRecommendationTitle('換一換'), true)
+  assert.equal(isRandomRecommendationTitle('换一个'), true)
+  assert.equal(isRandomRecommendationTitle('真实漫画标题'), false)
 })
 
 test('rotates at most three equal-weight tags and wraps cyclically', () => {
