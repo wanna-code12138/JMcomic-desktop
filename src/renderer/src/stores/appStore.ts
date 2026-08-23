@@ -33,6 +33,7 @@ interface AppState {
   micaEnabled: boolean
   solidWindow: boolean
   pendingSearch: PendingSearch | null
+  recommendationRevision: number
   setThemeMode: (mode: ThemeMode) => void
   setDarkMode: (dark: boolean) => void
   toggleDarkMode: () => void
@@ -47,6 +48,7 @@ interface AppState {
   setSolidWindow: (solid: boolean) => void
   triggerTagSearch: (tag: string) => void
   clearPendingSearch: () => void
+  bumpRecommendationRevision: () => void
 }
 
 const systemDark =
@@ -67,6 +69,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   micaEnabled: true,
   solidWindow: false,
   pendingSearch: null,
+  recommendationRevision: 0,
   setThemeMode: (mode) => {
     const dark =
       mode === 'system'
@@ -121,7 +124,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       pendingSearch: { query: tag, mainTag: 0 },
       currentPage: 'search'
     }),
-  clearPendingSearch: () => set({ pendingSearch: null })
+  clearPendingSearch: () => set({ pendingSearch: null }),
+  bumpRecommendationRevision: () => set((state) => ({ recommendationRevision: state.recommendationRevision + 1 }))
 }))
 
 export function initSystemThemeListener(): () => void {
