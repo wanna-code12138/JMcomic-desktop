@@ -114,6 +114,8 @@ const api = {
   contentHomepage: (category?: string) => ipcRenderer.invoke('content:homepage', category),
   contentHomepageStream: (category?: string) => ipcRenderer.send('content:homepage:stream', category),
   contentHomepageCancel: (category?: string) => ipcRenderer.send('content:homepage:cancel', category),
+  contentRecommendations: (tagOffset?: number) =>
+    ipcRenderer.invoke('content:recommendations', tagOffset),
   onHomepageBatch: (callback: (payload: { category: string; cards: Record<string, unknown>[]; done: boolean; error?: string }) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, payload: { category: string; cards: Record<string, unknown>[]; done: boolean; error?: string }): void =>
       callback(payload)

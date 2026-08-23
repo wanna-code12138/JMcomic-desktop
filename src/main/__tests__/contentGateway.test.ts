@@ -215,6 +215,40 @@ async function main(): Promise<void> {
     assert.equal(browserCalls, 0)
   })
 
+  await test('recommendation category rejects poisoned random-card cache and falls back', async () => {
+    const poisoned: GatewayResult<GatewayListResult> = {
+      data: {
+        results: [{ id: '226080', title: '隨便看', coverUrl: 'https://cdn.example.com/random.jpg' }],
+        totalPages: 1
+      },
+      provider: 'direct',
+      fallback: false
+    }
+    const persistentCache: ContentCache = {
+      async resolve<T>(_key: string, load: () => Promise<T>, validate: (value: unknown) => value is T) {
+        assert.equal(validate(poisoned), false)
+        return { value: await load(), state: 'miss' }
+      },
+      async clear() {},
+      async waitForIdle() {}
+    }
+    const gateway = createContentGateway({
+      direct: provider({ category: async () => poisoned.data }),
+      browser: provider({
+        category: async () => ({
+          results: [{ id: '1215916', title: '算法漫画', coverUrl: 'https://cdn.example.com/algorithm.jpg' }],
+          totalPages: 1
+        })
+      }),
+      ttlMs: 60_000,
+      persistentCache
+    })
+
+    const result = await gateway.category({ recommendation: true, page: 1 })
+    assert.equal(result.provider, 'browser')
+    assert.equal(result.data.results[0].title, '算法漫画')
+  })
+
   await test('clear invalidates the gateway memory cache', async () => {
     let directCalls = 0
     const gateway = createContentGateway({

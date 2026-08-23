@@ -8,6 +8,11 @@ import type {
   PageItem,
   ChapterPagesResult
 } from './types'
+import {
+  buildAlbumListPath,
+  isRandomRecommendationTitle,
+  type AlbumListRequest
+} from './recommendationData'
 
 /**
  * JMComic Web adapter — regex patterns taken directly from
@@ -102,6 +107,15 @@ export class JmWebAdapter implements SiteAdapter {
     })
     const html = await this.fetchHtml(`/albums/${categoryId}?${params.toString()}`)
     return this.parseSearchPage(html, page)
+  }
+
+  async listAlbums(request: AlbumListRequest): Promise<{
+    results: MangaListItem[]
+    totalPages: number
+    currentPage: number
+  }> {
+    const html = await this.fetchHtml(buildAlbumListPath(request))
+    return this.parseSearchPage(html, request.page)
   }
 
   // ── Manga Detail ──────────────────────────────────────
@@ -315,6 +329,7 @@ export class JmWebAdapter implements SiteAdapter {
     currentPage: number
   } {
     const results: MangaListItem[] = []
+    const seen = new Set<string>()
 
     // Try the regex from Python project
     const albumRe = new RegExp(this.RE_SEARCH_ALBUM.source, 'g')
@@ -324,6 +339,9 @@ export class JmWebAdapter implements SiteAdapter {
       const title = m[2].trim()
       const tagHtml = m[4]
       const tags = [...tagHtml.matchAll(/<a[^>]*?>(.*?)<\/a>/g)].map((tm) => tm[1].trim())
+
+      if (seen.has(albumId) || isRandomRecommendationTitle(title)) continue
+      seen.add(albumId)
 
       results.push({
         id: albumId,
@@ -342,7 +360,13 @@ export class JmWebAdapter implements SiteAdapter {
         if (!idMatch) return
         const id = idMatch[1]
         const title = $(el).attr('title') ?? $(el).text().trim()
-        if (title && title.length > 2) {
+        if (
+          title
+          && title.length > 2
+          && !seen.has(id)
+          && !isRandomRecommendationTitle(title)
+        ) {
+          seen.add(id)
           results.push({ id, title, coverUrl: this.buildCoverUrl(id) })
         }
       })

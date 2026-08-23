@@ -1,6 +1,7 @@
 import { validateCards, validateDetail, validatePages, type ValidationResult } from './contentValidation'
 import type { ContentCache } from './contentCache'
 import type { ChapterPagesResult, MangaDetail, MangaListItem } from './types'
+import { isRandomRecommendationTitle } from './recommendationData'
 
 export type ContentProviderName = 'direct' | 'browser'
 export type HomepageCategory = 'recommended' | 'latest' | 'popular'
@@ -26,6 +27,8 @@ export interface CategoryRequest {
   order?: string
   time?: string
   page?: number
+  /** Internal marker: allows the verified simple-list direct path for recommendation pools. */
+  recommendation?: boolean
 }
 
 export interface ContentProvider {
@@ -79,6 +82,15 @@ function validateList(value: GatewayListResult): ValidationResult<GatewayListRes
     return { ok: false, reason: 'list-pages' }
   }
   return { ok: true, data: value }
+}
+
+function validateRecommendationList(value: GatewayListResult): ValidationResult<GatewayListResult> {
+  const result = validateList(value)
+  if (!result.ok) return result
+  if (value.results.some((card) => isRandomRecommendationTitle(card.title))) {
+    return { ok: false, reason: 'list-random-recommendation' }
+  }
+  return result
 }
 
 export function createContentGateway(options: GatewayOptions): ContentGateway {
@@ -178,11 +190,14 @@ export function createContentGateway(options: GatewayOptions): ContentGateway {
     },
     category(request) {
       const key = `category:${stableSerialize(request)}`
+      const validator = request.recommendation === true
+        ? validateRecommendationList
+        : validateList
       return run(
         key,
         () => options.direct.category(request),
         () => options.browser.category(request),
-        validateList
+        validator
       )
     },
     detail(mangaId) {

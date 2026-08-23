@@ -5,6 +5,7 @@ import { getDefaultDownloadDir } from './dataPaths'
 let cached: AppSettings | null = null
 
 function serialize(value: unknown): string {
+  if (Array.isArray(value)) return JSON.stringify(value)
   if (typeof value === 'boolean') return value ? 'true' : 'false'
   if (typeof value === 'number') return String(value)
   return String(value ?? '')

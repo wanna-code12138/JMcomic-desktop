@@ -1,10 +1,12 @@
 import React from 'react'
 import {
   makeStyles, Text, Switch, Slider, Button,
-  Card, Input
+  Card, Input, Dialog, DialogSurface, DialogBody,
+  DialogTitle, DialogContent, DialogActions
 } from '@fluentui/react-components'
 import { ArrowSync20Regular } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
+import { RECOMMENDATION_TAGS } from '../../../shared/recommendationCore'
 
 const useStyles = makeStyles({
   root: {
@@ -48,6 +50,21 @@ const useStyles = makeStyles({
     marginTop: '14px',
     paddingTop: '12px',
     borderTop: '1px solid var(--ui-stroke-card)'
+  },
+  tagGrid: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '8px',
+    marginTop: '14px',
+    maxHeight: '280px',
+    overflowY: 'auto'
+  },
+  dialogHint: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '16px',
+    marginTop: '10px',
+    color: 'var(--ui-text-tertiary)'
   }
 })
 
@@ -69,7 +86,8 @@ export default function SettingsPage(): JSX.Element {
   const styles = useStyles()
   const {
     themeMode, setThemeMode, networkStatus, setNetworkStatus,
-    micaEnabled, solidWindow, setMicaEnabled, setSolidWindow
+    micaEnabled, solidWindow, setMicaEnabled, setSolidWindow,
+    bumpRecommendationRevision
   } = useAppStore()
 
   const [dataStatus, setDataStatus] = React.useState('')
@@ -98,6 +116,12 @@ export default function SettingsPage(): JSX.Element {
   const [downloadResumeOnStartup, setDownloadResumeOnStartup] = React.useState(true)
   const downloadTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // 推荐偏好（显式选择，不读取收藏、历史或搜索数据）
+  const [recommendationTags, setRecommendationTags] = React.useState<string[]>([])
+  const [draftRecommendationTags, setDraftRecommendationTags] = React.useState<string[]>([])
+  const [recommendationTagQuery, setRecommendationTagQuery] = React.useState('')
+  const [recommendationDialogOpen, setRecommendationDialogOpen] = React.useState(false)
+
   React.useEffect(() => {
     window.electronAPI?.appVersion().then((v) => {
       if (v) setAppVersion(String(v))
@@ -112,6 +136,7 @@ export default function SettingsPage(): JSX.Element {
       setDownloadConcurrency(s.downloadConcurrency)
       setDownloadRetries(s.downloadRetries)
       setDownloadResumeOnStartup(s.downloadResumeOnStartup)
+      setRecommendationTags(s.recommendationTags ?? [])
     })
 
     window.electronAPI?.imageCacheSize().then((bytes) => {
@@ -248,6 +273,31 @@ export default function SettingsPage(): JSX.Element {
     window.electronAPI?.settingsSet({ downloadResumeOnStartup: checked })
   }
 
+  const openRecommendationDialog = (): void => {
+    setDraftRecommendationTags(recommendationTags)
+    setRecommendationTagQuery('')
+    setRecommendationDialogOpen(true)
+  }
+
+  const toggleRecommendationTag = (tag: string): void => {
+    setDraftRecommendationTags((current) => {
+      if (current.includes(tag)) return current.filter((selected) => selected !== tag)
+      if (current.length >= 8) return current
+      return [...current, tag]
+    })
+  }
+
+  const saveRecommendationTags = async (): Promise<void> => {
+    await window.electronAPI?.settingsSet({ recommendationTags: draftRecommendationTags })
+    setRecommendationTags([...draftRecommendationTags])
+    setRecommendationDialogOpen(false)
+    bumpRecommendationRevision()
+  }
+
+  const filteredRecommendationTags = RECOMMENDATION_TAGS.filter((tag) =>
+    tag.toLowerCase().includes(recommendationTagQuery.trim().toLowerCase())
+  )
+
   const handleExportPersonalData = async (): Promise<void> => {
     const result = await window.electronAPI?.personalDataExport()
     if (!result) return
@@ -344,6 +394,71 @@ export default function SettingsPage(): JSX.Element {
           )}
         </Card>
       </div>
+
+      {/* Recommendations */}
+      <div className={styles.section}>
+        <Text size={500} weight="semibold" className={styles.sectionTitle}>推荐</Text>
+        <Card className={styles.card}>
+          <div className={styles.row}>
+            <div>
+              <Text weight="semibold">推荐偏好</Text>
+              <div>
+                <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>
+                  {recommendationTags.length > 0
+                    ? `已选择：${recommendationTags.join('、')}`
+                    : '未选择标签，将按最新、热门与高质量内容推荐'}
+                </Text>
+              </div>
+            </div>
+            <Button size="small" appearance="secondary" onClick={openRecommendationDialog}>配置…</Button>
+          </div>
+        </Card>
+      </div>
+
+      <Dialog
+        open={recommendationDialogOpen}
+        onOpenChange={(_event, data) => setRecommendationDialogOpen(data.open)}
+      >
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>推荐偏好</DialogTitle>
+            <DialogContent>
+              <Text size={300}>选择更偏好的内容标签。标签只做软加权，不会过滤其他题材。</Text>
+              <Input
+                value={recommendationTagQuery}
+                onChange={(_event, data) => setRecommendationTagQuery(data.value)}
+                placeholder="搜索标签"
+                style={{ width: '100%', marginTop: '14px' }}
+              />
+              <div className={styles.dialogHint}>
+                <Text size={200}>最多选择 8 个标签</Text>
+                <Text size={200}>{draftRecommendationTags.length} / 8</Text>
+              </div>
+              <div className={styles.tagGrid}>
+                {filteredRecommendationTags.map((tag) => {
+                  const selected = draftRecommendationTags.includes(tag)
+                  return (
+                    <Button
+                      key={tag}
+                      size="small"
+                      appearance={selected ? 'primary' : 'secondary'}
+                      disabled={!selected && draftRecommendationTags.length >= 8}
+                      onClick={() => toggleRecommendationTag(tag)}
+                    >
+                      {tag}
+                    </Button>
+                  )
+                })}
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="subtle" onClick={() => setDraftRecommendationTags([])}>清空</Button>
+              <Button appearance="secondary" onClick={() => setRecommendationDialogOpen(false)}>取消</Button>
+              <Button appearance="primary" onClick={saveRecommendationTags}>保存</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
 
       {/* Network */}
       <div className={styles.section}>
