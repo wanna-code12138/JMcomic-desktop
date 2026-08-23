@@ -1,11 +1,12 @@
 import { parseHtml, buildUrl, httpRequest } from './httpClient'
-import type { CheerioAPI, Cheerio, AnyNode } from 'cheerio'
+import type { CheerioAPI } from 'cheerio'
 import type {
   SiteAdapter,
   MangaListItem,
   MangaDetail,
   ChapterItem,
-  PageItem
+  PageItem,
+  ChapterPagesResult
 } from './types'
 
 /**
@@ -23,7 +24,7 @@ export class JmWebAdapter implements SiteAdapter {
 
   // ── Regex patterns (from jm_toolkit.py) ──────────────
   private readonly RE_ALBUM_ID = /<span class="number">.*?：JM(\d+)<\/span>/
-  private readonly RE_SCRAMBLE_ID = /var scramble_id = (\d+);/
+  private readonly RE_SCRAMBLE_ID = /var\s+scramble_id\s*=\s*(\d+)/
   private readonly RE_BOOK_NAME = /id="book-name"[^>]*?>([\s\S]*?)<\//
   private readonly RE_EPISODE = /data-album="(\d+)"[^>]*>[\s\S]*?第(\d+)[话話]([\s\S]*?)<[\s\S]*?>/
   private readonly RE_B64_HTML = /const html = base64DecodeUtf8\("(.*?)"\)/
@@ -124,8 +125,17 @@ export class JmWebAdapter implements SiteAdapter {
     if (!title) title = $('title').text().replace(/\|.*/, '').trim()
 
     // Author & tags
-    const author = $('span[itemprop="author"][data-type="author"] a').map((_i, el) => $(el).text().trim()).get().join(', ')
-    const tags = $('span[itemprop="genre"] a').map((_i, el) => $(el).text().trim()).get()
+    const author = $('[data-type="author"] a[name="vote_"].visible')
+      .slice(0, 2)
+      .map((_i, el) => $(el).text().trim())
+      .get()
+      .filter(Boolean)
+      .join(', ')
+    const tags = $('[data-type="tags"] a[name="vote_"].visible')
+      .slice(0, 5)
+      .map((_i, el) => $(el).text().trim())
+      .get()
+      .filter(Boolean)
 
     // Cover
     const coverImg = $('img.img-responsive, .album-cover img, img.cover').first()
@@ -161,10 +171,6 @@ export class JmWebAdapter implements SiteAdapter {
       })
     }
 
-    // Scramble ID
-    const scrambleMatch = html.match(this.RE_SCRAMBLE_ID)
-    const scrambleId = scrambleMatch ? scrambleMatch[1] : '0'
-
     return {
       id: mangaId,
       title: title || '未知标题',
@@ -180,9 +186,11 @@ export class JmWebAdapter implements SiteAdapter {
 
   // ── Chapter Pages ─────────────────────────────────────
 
-  async getChapterPages(chapterUrl: string): Promise<PageItem[]> {
+  async getChapterPages(chapterUrl: string): Promise<ChapterPagesResult> {
     const html = await this.fetchHtml(chapterUrl)
     const $ = parseHtml(html)
+    const scrambleMatch = html.match(this.RE_SCRAMBLE_ID)
+    const scrambleId = scrambleMatch ? Number(scrambleMatch[1]) : 0
 
     // 从 chapterUrl 提取 photo_id — 图片 URL 需要包含它作为子目录
     const photoIdMatch = chapterUrl.match(/\/photo\/(\d+)/)
@@ -197,10 +205,11 @@ export class JmWebAdapter implements SiteAdapter {
         const domainMatch = html.match(this.RE_IMG_DOMAIN)
         const imgDomain = domainMatch ? domainMatch[1] : 'cdn-msp3.18comic.vip'
 
-        return arr.map((filename, i) => ({
+        const pages = arr.map((filename, i) => ({
           index: i,
           imageUrl: `https://${imgDomain}/media/photos/${photoId}/${filename}`
         }))
+        return { pages, scrambleId }
       } catch { /* fall through */ }
     }
 
@@ -216,7 +225,7 @@ export class JmWebAdapter implements SiteAdapter {
       }
     })
 
-    if (pages.length > 0) return pages
+    if (pages.length > 0) return { pages, scrambleId }
 
     // Method 3: any image
     $('img').each((i, el) => {
@@ -227,7 +236,7 @@ export class JmWebAdapter implements SiteAdapter {
       }
     })
 
-    return pages
+    return { pages, scrambleId }
   }
 
   // ── Login ─────────────────────────────────────────────
@@ -425,12 +434,5 @@ export class JmWebAdapter implements SiteAdapter {
     if (url.startsWith('//')) return `https:${url}`
     if (url.startsWith('/')) return buildUrl(url)
     return buildUrl('/' + url)
-  }
-}
-
-// Helper to make cheerio $ calls type-safe
-declare module 'cheerio' {
-  interface CheerioAPI {
-    (selector: string): Cheerio<AnyNode>
   }
 }

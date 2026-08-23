@@ -30,10 +30,10 @@ const useStyles = makeStyles({
   label: {
     fontSize: '14px',
     fontWeight: 500,
-    color: 'var(--ac-text-2)'
+    color: 'var(--ui-text-secondary)'
   },
   error: {
-    color: 'var(--ac-danger)',
+    color: 'var(--ui-danger)',
     fontSize: '13px',
     marginTop: '4px'
   }
@@ -77,12 +77,9 @@ export default function LoginDialog({ open, onClose, onLogin }: LoginDialogProps
     <Dialog open={open} onOpenChange={(_e, d) => { if (!d.open) onClose() }}>
       <DialogSurface
         style={{
-          backgroundColor: 'var(--ac-glass-bg)',
-          backdropFilter: 'blur(var(--ac-blur-dialog))',
-          WebkitBackdropFilter: 'blur(var(--ac-blur-dialog))',
-          border: '1px solid var(--ac-glass-border)',
-          boxShadow: 'inset 0 1px 0 var(--ac-glass-inset-hi), var(--ac-glass-shadow)',
-          borderRadius: 'var(--ac-radius-panel)'
+          backgroundColor: 'var(--ui-bg-dialog)',
+          border: '1px solid var(--ui-stroke-card)',
+          borderRadius: 'var(--ui-radius-lg)'
         }}
       >
         <DialogBody>

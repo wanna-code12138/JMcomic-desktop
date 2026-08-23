@@ -1,6 +1,6 @@
 {
   "name": "jmcomic-desktop",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "禁漫天堂桌面客户端 — WinUI 3 风格漫画阅读器",
   "main": "./out/main/index.js",
   "author": "JMComic Desktop",

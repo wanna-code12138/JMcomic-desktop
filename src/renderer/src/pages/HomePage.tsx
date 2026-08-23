@@ -42,21 +42,19 @@ const useStyles = makeStyles({
       gap: '6px'
     },
     '& .fui-Tab': {
-      borderRadius: 'var(--ac-radius-row)',
-      color: 'var(--ac-text-3)',
+      borderRadius: 'var(--ui-radius-lg)',
+      color: 'var(--ui-text-tertiary)',
       fontSize: '14px',
       padding: '6px 14px'
     },
     '& .fui-Tab:hover': {
-      backgroundColor: 'var(--ac-glass-bg-hover)',
-      color: 'var(--ac-text-2)'
+      backgroundColor: 'var(--ui-bg-hover)',
+      color: 'var(--ui-text-secondary)'
     },
     '& .fui-Tab--selected': {
-      backgroundColor: 'var(--ac-glass-bg-hover)',
-      color: 'var(--ac-brand)',
-      fontWeight: 600,
-      boxShadow:
-        'var(--ac-clay-shadow-dark), var(--ac-clay-shadow-light), var(--ac-clay-inset-border)'
+      backgroundColor: 'var(--ui-bg-selected)',
+      color: 'var(--ui-brand)',
+      fontWeight: 600
     }
   },
   grid: {
@@ -70,7 +68,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
     justifyContent: 'center',
     padding: '60px 0',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     gap: '16px'
   },
   shimmerGrid: {
@@ -80,7 +78,7 @@ const useStyles = makeStyles({
   },
   shimmerCard: {
     aspectRatio: '3/4',
-    borderRadius: 'var(--ac-radius-card)'
+    borderRadius: 'var(--ui-radius-md)'
   }
 })
 
@@ -272,9 +270,10 @@ export default function HomePage(): JSX.Element {
           <Text size={500} weight="semibold">⚠️ 内容加载失败</Text>
           <pre style={{
             maxWidth: '600px', textAlign: 'left', fontSize: '12px',
-            color: 'var(--ac-text-3)', whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word', background: 'var(--ac-glass-bg)',
-            padding: '12px', borderRadius: 'var(--ac-radius-row)',
+            color: 'var(--ui-text-tertiary)', whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word', background: 'var(--ui-bg-card)',
+            padding: '12px', borderRadius: 'var(--ui-radius-lg)',
+            border: '1px solid var(--ui-stroke-card)',
             maxHeight: '300px', overflow: 'auto'
           }}>{error}</pre>
           <Text size={200} style={{ opacity: 0.5 }}>
@@ -290,9 +289,10 @@ export default function HomePage(): JSX.Element {
         <>
           {error && sections[tab].length > 0 && (
             <div style={{
-              background: 'var(--ac-glass-bg)', borderRadius: 'var(--ac-radius-row)',
+              background: 'var(--ui-bg-card)', borderRadius: 'var(--ui-radius-lg)',
+              border: '1px solid var(--ui-stroke-card)',
               padding: '8px 16px', marginBottom: '12px',
-              color: 'var(--ac-text-3)', fontSize: '13px'
+              color: 'var(--ui-text-tertiary)', fontSize: '13px'
             }}>
               ⚠️ {error}
             </div>
@@ -305,7 +305,7 @@ export default function HomePage(): JSX.Element {
           {loadingMore && (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0' }}>
               <Spinner size="small" />
-              <Text size={200} style={{ marginLeft: '8px', color: 'var(--ac-text-3)' }}>加载更多...</Text>
+              <Text size={200} style={{ marginLeft: '8px', color: 'var(--ui-text-tertiary)' }}>加载更多...</Text>
             </div>
           )}
         </>

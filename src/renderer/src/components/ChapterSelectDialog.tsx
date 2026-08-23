@@ -25,7 +25,7 @@ const useStyles = makeStyles({
     padding: '6px 8px',
     borderRadius: '6px',
     ':hover': {
-      backgroundColor: 'var(--ac-glass-bg-hover)'
+      backgroundColor: 'var(--ui-bg-hover)'
     }
   },
   quickRow: {
@@ -38,7 +38,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
     gap: '10px',
     padding: '12px 0',
-    color: 'var(--ac-text-2)'
+    color: 'var(--ui-text-secondary)'
   }
 })
 
@@ -76,7 +76,13 @@ export default function ChapterSelectDialog(props: {
 
   return (
     <Dialog open={open} onOpenChange={(_e, d) => { if (!d.open && !busy) onCancel() }}>
-      <DialogSurface>
+      <DialogSurface
+        style={{
+          backgroundColor: 'var(--ui-bg-dialog)',
+          border: '1px solid var(--ui-stroke-card)',
+          borderRadius: 'var(--ui-radius-lg)'
+        }}
+      >
         <DialogBody>
           <DialogTitle>选择要下载的章节</DialogTitle>
           <DialogContent>
@@ -103,7 +109,7 @@ export default function ChapterSelectDialog(props: {
                   >
                     反选
                   </Button>
-                  <Text size={200} style={{ marginLeft: 'auto', alignSelf: 'center', color: 'var(--ac-text-3)' }}>
+                  <Text size={200} style={{ marginLeft: 'auto', alignSelf: 'center', color: 'var(--ui-text-tertiary)' }}>
                     已选 {count} / {all}
                   </Text>
                 </div>

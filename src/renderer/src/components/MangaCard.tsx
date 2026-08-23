@@ -32,39 +32,36 @@ function invalidateFavCache(): void {
 const useStyles = makeStyles({
   card: {
     cursor: 'pointer',
-    transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+    borderRadius: 'var(--ui-radius-lg)',
+    transition: 'background-color var(--ui-motion-fast) ease-out, opacity var(--ui-motion-fast) ease-out',
     ':hover': {
-      transform: 'translateY(-3px)',
-      boxShadow: '0 8px 20px var(--ac-glass-shadow)'
+      backgroundColor: 'var(--ui-bg-hover)'
     },
     ':active': {
-      transform: 'translateY(-3px) scale(0.97)'
+      opacity: 0.82
+    },
+    ':focus-visible': {
+      outline: '2px solid var(--ui-brand)',
+      outlineOffset: '2px'
     }
-  },
-  cardEnter: {
-    animation: 'ac-card-enter 0.3s ease-out both'
   },
   imageWrap: {
     position: 'relative',
-    borderRadius: 'var(--ac-radius-card)',
+    borderRadius: 'var(--ui-radius-md)',
     overflow: 'hidden',
-    border: '1px solid var(--ac-glass-border)',
-    boxShadow: 'inset 0 1px 0 var(--ac-glass-inset-hi), var(--ac-glass-shadow)'
+    border: '1px solid var(--ui-stroke-card)'
   },
   cardImage: {
     display: 'block',
     width: '100%',
     aspectRatio: '3/4',
     objectFit: 'cover',
-    backgroundColor: 'var(--ac-base-bg)',
+    backgroundColor: 'var(--ui-bg-canvas)',
     opacity: 0,
-    transition: 'opacity 0.25s ease, transform 0.2s ease'
+    transition: 'opacity var(--ui-motion-standard) ease-out'
   },
   cardImageLoaded: {
     opacity: 1
-  },
-  cardImageHover: {
-    transform: 'scale(1.03)'
   },
   favBtn: {
     position: 'absolute',
@@ -72,20 +69,19 @@ const useStyles = makeStyles({
     right: '8px',
     width: '30px',
     height: '30px',
-    borderRadius: 'var(--ac-radius-button)',
+    borderRadius: 'var(--ui-radius-md)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'var(--ac-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-card))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-card))',
-    color: 'var(--ac-danger)',
+    backgroundColor: 'var(--ui-bg-dialog)',
+    border: '1px solid var(--ui-stroke-card)',
+    color: 'var(--ui-danger)',
     cursor: 'pointer',
     opacity: 0,
-    transition: 'opacity 0.18s ease, background-color 0.18s ease',
+    transition: 'opacity var(--ui-motion-fast) ease-out, background-color var(--ui-motion-fast) ease-out',
     zIndex: 2,
     ':hover': {
-      backgroundColor: 'var(--ac-glass-bg-hover)'
+      backgroundColor: 'var(--ui-bg-hover)'
     },
     ':focus': {
       opacity: 1
@@ -104,11 +100,11 @@ const useStyles = makeStyles({
     WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical',
     overflow: 'hidden',
-    color: 'var(--ac-text-1)'
+    color: 'var(--ui-text-primary)'
   },
   cardMeta: {
     fontSize: '12px',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     marginTop: '4px'
   }
 })
@@ -123,7 +119,7 @@ export interface MangaCardData {
   latestChapter?: string
 }
 
-export default function MangaCard({ manga, onClick, index }: { manga: MangaCardData; onClick?: (id: string) => void; index?: number }): JSX.Element {
+export default function MangaCard({ manga, onClick }: { manga: MangaCardData; onClick?: (id: string) => void; index?: number }): JSX.Element {
   const styles = useStyles()
   const setCurrentMangaId = useAppStore((s) => s.setCurrentMangaId)
 
@@ -165,8 +161,7 @@ export default function MangaCard({ manga, onClick, index }: { manga: MangaCardD
 
   return (
     <div
-      className={mergeClasses(styles.card, index !== undefined && styles.cardEnter)}
-      style={index !== undefined ? { animationDelay: `${Math.min(index, 12) * 30}ms` } : undefined}
+      className={styles.card}
       role="button"
       tabIndex={0}
       onClick={() => onClick ? onClick(manga.id) : setCurrentMangaId(manga.id)}
@@ -176,7 +171,7 @@ export default function MangaCard({ manga, onClick, index }: { manga: MangaCardD
     >
       <div className={styles.imageWrap}>
         <img
-          className={mergeClasses(styles.cardImage, imgLoaded && styles.cardImageLoaded, hovered && styles.cardImageHover)}
+          className={mergeClasses(styles.cardImage, imgLoaded && styles.cardImageLoaded)}
           src={toJmImg(manga.coverUrl)}
           alt={manga.title}
           loading="lazy"

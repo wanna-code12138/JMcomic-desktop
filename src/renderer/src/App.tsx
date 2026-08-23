@@ -21,7 +21,7 @@ import {
   Wifi3Regular,
   WifiOff20Regular
 } from '@fluentui/react-icons'
-import { auroraBody, clayRaised } from './theme/clayStyles'
+import { appSurface } from './theme/surfaceStyles'
 import { useAppStore } from './stores/appStore'
 import {
   HomePage, CategoriesPage, SearchPage,
@@ -30,19 +30,19 @@ import {
 } from './pages'
 import TitleBar from './components/TitleBar'
 
-const NAV_WIDTH = 220
+const NAV_WIDTH = 208
 const STATUS_BAR_HEIGHT = 28
 
 const useStyles = makeStyles({
   root: {
+    ...appSurface,
     display: 'flex',
     flexDirection: 'column',
     height: '100vh',
     overflow: 'hidden',
-    backgroundColor: 'transparent'
+    backgroundColor: 'var(--ui-bg-app)'
   },
   body: {
-    ...auroraBody,
     display: 'flex',
     flex: 1,
     overflow: 'hidden',
@@ -53,42 +53,53 @@ const useStyles = makeStyles({
     minWidth: `${NAV_WIDTH}px`,
     display: 'flex',
     flexDirection: 'column',
-    padding: '10px',
-    gap: '5px',
-    backgroundColor: 'var(--ac-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-panel))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-panel))',
-    borderRight: '1px solid var(--ac-glass-border)',
+    padding: '8px',
+    gap: '2px',
+    backgroundColor: 'var(--ui-bg-pane)',
+    borderRight: '1px solid var(--ui-stroke-card)',
     userSelect: 'none',
     flexShrink: 0
   },
   navItem: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
-    padding: '9px 12px',
-    borderRadius: 'var(--ac-radius-row)',
+    gap: '10px',
+    minHeight: '36px',
+    padding: '0 10px',
+    position: 'relative',
+    borderRadius: 'var(--ui-radius-lg)',
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: 400,
-    color: 'var(--ac-text-3)',
-    transition: 'background-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease, transform 0.15s ease',
+    color: 'var(--ui-text-secondary)',
+    transition: 'background-color var(--ui-motion-fast) ease-out, color var(--ui-motion-fast) ease-out',
     textDecoration: 'none',
     ':hover': {
-      backgroundColor: 'var(--ac-glass-bg-hover)',
-      color: 'var(--ac-text-2)'
+      backgroundColor: 'var(--ui-bg-hover)',
+      color: 'var(--ui-text-primary)'
     },
-    ':active': {
-      transform: 'scale(0.97)'
+    ':focus-visible': {
+      outline: '2px solid var(--ui-brand)',
+      outlineOffset: '-2px'
     }
   },
   navItemActive: {
-    ...clayRaised,
-    color: 'var(--ac-brand)',
+    backgroundColor: 'var(--ui-bg-selected)',
+    color: 'var(--ui-text-primary)',
     fontWeight: 600,
+    '::before': {
+      content: '""',
+      position: 'absolute',
+      left: '0',
+      top: '8px',
+      bottom: '8px',
+      width: '2px',
+      borderRadius: '1px',
+      backgroundColor: 'var(--ui-brand)'
+    },
     ':hover': {
-      color: 'var(--ac-brand)',
-      backgroundColor: 'var(--ac-glass-bg-hover)'
+      color: 'var(--ui-text-primary)',
+      backgroundColor: 'var(--ui-bg-selected)'
     }
   },
   navIcon: {
@@ -107,12 +118,13 @@ const useStyles = makeStyles({
   },
   pageArea: {
     flex: 1,
-    overflow: 'auto',
+    overflow: 'hidden',
     minHeight: 0
   },
-  pageEnter: {
+  pageViewport: {
     height: '100%',
-    animation: 'ac-page-enter 0.22s ease-out'
+    minHeight: 0,
+    overflow: 'hidden'
   },
   statusBar: {
     display: 'flex',
@@ -120,19 +132,17 @@ const useStyles = makeStyles({
     height: `${STATUS_BAR_HEIGHT}px`,
     paddingLeft: '14px',
     paddingRight: '14px',
-    backgroundColor: 'var(--ac-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-toolbar))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-toolbar))',
-    borderTop: '1px solid var(--ac-glass-border)',
+    backgroundColor: 'var(--ui-bg-toolbar)',
+    borderTop: '1px solid var(--ui-stroke-card)',
     fontSize: '12px',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     gap: '10px',
     flexShrink: 0
   },
   statusSeparator: {
     width: '1px',
     height: '12px',
-    backgroundColor: 'var(--ac-glass-border)',
+    backgroundColor: 'var(--ui-stroke-card)',
     flexShrink: 0
   },
   statusItem: {
@@ -146,6 +156,19 @@ const useStyles = makeStyles({
 })
 
 type PageId = 'home' | 'categories' | 'search' | 'favorites' | 'downloads' | 'settings'
+
+const primaryPageIds: readonly PageId[] = [
+  'home', 'categories', 'search', 'favorites', 'downloads', 'settings'
+]
+
+function isPrimaryPage(page: string): page is PageId {
+  return primaryPageIds.includes(page as PageId)
+}
+
+function rememberPrimaryPage(visited: PageId[], page: string): PageId[] {
+  if (!isPrimaryPage(page) || visited.includes(page)) return visited
+  return [...visited, page]
+}
 
 interface NavItem {
   id: PageId
@@ -181,8 +204,9 @@ interface AppProps {
 
 export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Element {
   const styles = useStyles()
-  const { currentPage, setCurrentPage, networkStatus } = useAppStore()
+  const { currentPage, setCurrentPage, networkStatus, readerSourcePage } = useAppStore()
   const [appVersion, setAppVersion] = React.useState('1.0.3')
+  const [visitedPrimaryPages, setVisitedPrimaryPages] = React.useState<PageId[]>(['home'])
 
   React.useEffect(() => {
     window.electronAPI?.appVersion().then((v) => {
@@ -190,13 +214,24 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
     })
   }, [])
 
-  const ActivePage = pageComponents[currentPage as PageId] ?? HomePage
+  const rememberedPrimaryPages = rememberPrimaryPage(visitedPrimaryPages, currentPage)
+  const keepDetailMounted =
+    currentPage === 'detail' || (currentPage === 'reader' && readerSourcePage === 'detail')
+  const mountedPages = [
+    ...rememberedPrimaryPages,
+    ...(keepDetailMounted ? ['detail'] : []),
+    ...(currentPage === 'reader' ? ['reader'] : [])
+  ]
+
+  React.useEffect(() => {
+    setVisitedPrimaryPages((visited) => rememberPrimaryPage(visited, currentPage))
+  }, [currentPage])
 
   const networkIcon = () => {
     switch (networkStatus) {
-      case 'online': return <Wifi3Regular style={{ color: 'var(--ac-green)' }} />
-      case 'degraded': return <Wifi1Regular style={{ color: 'var(--ac-amber)' }} />
-      default: return <WifiOff20Regular style={{ color: 'var(--ac-danger)' }} />
+      case 'online': return <Wifi3Regular style={{ color: 'var(--ui-success)' }} />
+      case 'degraded': return <Wifi1Regular style={{ color: 'var(--ui-warning)' }} />
+      default: return <WifiOff20Regular style={{ color: 'var(--ui-danger)' }} />
     }
   }
 
@@ -237,9 +272,19 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
         {/* Content */}
         <div className={styles.content}>
           <div className={styles.pageArea}>
-            <div key={currentPage} className={styles.pageEnter}>
-              <ActivePage />
-            </div>
+            {mountedPages.map((page) => {
+              const Page = pageComponents[page] ?? HomePage
+              return (
+                <div
+                  key={page}
+                  className={styles.pageViewport}
+                  style={{ display: page === currentPage ? 'block' : 'none' }}
+                  aria-hidden={page !== currentPage}
+                >
+                  <Page />
+                </div>
+              )
+            })}
           </div>
 
           {/* Status Bar */}

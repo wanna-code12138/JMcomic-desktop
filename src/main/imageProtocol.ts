@@ -1,12 +1,112 @@
 import { protocol, net, session } from 'electron'
 import { getActiveDomain } from './networkProbe'
-import { getCachedImagePath, storeImage } from './imageLoader'
-import { readFileSync } from 'fs'
+import { readCachedImage, storeImage } from './imageLoader'
+import { beginMainPerfSpan } from './performanceTrace'
+import { createImageRequestScheduler } from './imageRequestScheduler'
 
 // 必须与 httpClient.ts 保持完全一致，否则 Cloudflare 会因 UA 不完整
 // 把请求识别为爬虫并返回 403 / challenge 页面，<img> 就显示破损图标。
 const FULL_USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+
+interface OnlineImageResult {
+  body: Buffer | string
+  status: number
+  headers?: Record<string, string>
+  bytes?: number
+  errorReason?: string
+}
+
+const imageRequestScheduler = createImageRequestScheduler(6)
+
+async function fetchOnlineImage(
+  realUrl: string,
+  onFirstByte: () => void
+): Promise<OnlineImageResult> {
+  const cookies = await session.defaultSession.cookies.get({ url: realUrl })
+  const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ')
+
+  console.log(
+    '[jmimg] requesting:',
+    realUrl.slice(0, 80),
+    'cookies:',
+    cookieHeader.length > 0 ? 'yes' : 'no'
+  )
+
+  return new Promise((resolve) => {
+    const req = net.request({ method: 'GET', url: realUrl })
+    let receivedFirstByte = false
+
+    req.setHeader('Referer', `https://${getActiveDomain()}/`)
+    req.setHeader('User-Agent', FULL_USER_AGENT)
+    req.setHeader('Accept', 'image/avif,image/webp,image/*,*/*;q=0.8')
+    req.setHeader('Accept-Language', 'zh-CN,zh;q=0.9,en;q=0.8')
+    if (cookieHeader) req.setHeader('Cookie', cookieHeader)
+
+    const chunks: Buffer[] = []
+
+    req.on('response', (response) => {
+      if (response.statusCode >= 400) {
+        console.warn(`[jmimg] HTTP ${response.statusCode} for ${realUrl.slice(0, 80)}`)
+        response.on('data', () => {})
+        response.on('end', () => {
+          resolve({
+            body: 'Image fetch failed',
+            status: response.statusCode,
+            errorReason: 'http-status'
+          })
+        })
+        return
+      }
+
+      response.on('data', (chunk: Buffer) => {
+        if (!receivedFirstByte) {
+          receivedFirstByte = true
+          onFirstByte()
+        }
+        chunks.push(chunk)
+      })
+      response.on('end', async () => {
+        const buf = Buffer.concat(chunks)
+        const rawCt = response.headers['content-type']
+        const ct = Array.isArray(rawCt) ? rawCt[0] ?? '' : (rawCt ?? '')
+        if (ct.includes('text/html')) {
+          console.warn('[jmimg] got HTML instead of image (Cloudflare?)')
+          resolve({ body: 'Blocked by Cloudflare', status: 502, errorReason: 'html-response' })
+          return
+        }
+        console.log('[jmimg] OK:', realUrl.slice(0, 60), 'size:', buf.length, 'type:', ct)
+        if (ct.includes('image/')) {
+          try {
+            await storeImage(realUrl, buf, ct)
+          } catch (err) {
+            console.warn('[jmimg] cache write failed:', err)
+          }
+        }
+        resolve({
+          body: buf,
+          status: 200,
+          headers: {
+            'Content-Type': ct || 'image/jpeg',
+            'Cache-Control': 'public, max-age=86400',
+            'Access-Control-Allow-Origin': '*'
+          },
+          bytes: buf.length
+        })
+      })
+      response.on('error', () => {
+        resolve({ body: 'Image stream error', status: 500, errorReason: 'response-stream' })
+      })
+    })
+
+    req.on('error', (err) => {
+      console.warn('[jmimg] request error:', err.message)
+      resolve({ body: 'Image request failed', status: 502, errorReason: 'request' })
+    })
+
+    req.end()
+  })
+}
 
 /**
  * 自定义 jmimg:// 协议：主进程代理 CDN 图片请求
@@ -92,12 +192,14 @@ export function registerImageScheme(): void {
 
 export function registerImageProtocol(): void {
   protocol.handle('jmimg', async (request) => {
+    const perf = beginMainPerfSpan('image.online')
     try {
       // URL 格式: jmimg://img/<base64url>
       // 用正则从 path 提取 base64url，避免 host 规范化问题
       const match = request.url.match(/^jmimg:\/\/img\/(.+)$/)
       if (!match) {
         console.warn('[jmimg] URL format mismatch:', request.url.slice(0, 100))
+        perf.finish('error', { reason: 'bad-url' })
         return new Response('Bad URL format', { status: 400 })
       }
 
@@ -106,6 +208,7 @@ export function registerImageProtocol(): void {
 
       if (!realUrl.startsWith('http')) {
         console.warn('[jmimg] decoded URL invalid:', realUrl.slice(0, 100))
+        perf.finish('error', { reason: 'bad-target' })
         return new Response('Invalid decoded URL', { status: 400 })
       }
 
@@ -114,96 +217,39 @@ export function registerImageProtocol(): void {
       const allowed = /^https:\/\/(cdn-.*18comic|.*\.18comic\.)/i.test(realUrl)
       if (!allowed) {
         console.warn('[jmimg] blocked non-CDN url:', realUrl.slice(0, 100))
+        perf.finish('error', { reason: 'blocked-target' })
         return new Response('Blocked: not a CDN URL', { status: 403 })
       }
 
       // 磁盘缓存命中：直接返回本地文件，避免重复网络加载
-      const cachedPath = getCachedImagePath(realUrl)
-      if (cachedPath) {
-        try {
-          const buf = readFileSync(cachedPath)
-          return new Response(buf, {
-            status: 200,
-            headers: {
-            'Content-Type': contentTypeForFile(cachedPath),
-              'Cache-Control': 'public, max-age=86400',
-              'Access-Control-Allow-Origin': '*'
-            }
-          })
-        } catch (err) {
-          console.warn('[jmimg] cache read failed, refetching:', err)
-        }
+      const cached = await readCachedImage(realUrl)
+      if (cached) {
+        perf.finish('ok', { cache: true, bytes: cached.buffer.length })
+        return new Response(cached.buffer, {
+          status: 200,
+          headers: {
+            'Content-Type': contentTypeForFile(cached.filepath),
+            'Cache-Control': 'public, max-age=86400',
+            'Access-Control-Allow-Origin': '*'
+          }
+        })
       }
 
-      // 从会话取 Cookie（Cloudflare cf_clearance 等）
-      const cookies = await session.defaultSession.cookies.get({ url: realUrl })
-      const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ')
-
-      console.log('[jmimg] requesting:', realUrl.slice(0, 80), 'cookies:', cookieHeader.length > 0 ? 'yes' : 'no')
-
-      return await new Promise<Response>((resolve) => {
-        const req = net.request({ method: 'GET', url: realUrl })
-
-        req.setHeader('Referer', `https://${getActiveDomain()}/`)
-        req.setHeader('User-Agent', FULL_USER_AGENT)
-        req.setHeader('Accept', 'image/avif,image/webp,image/*,*/*;q=0.8')
-        req.setHeader('Accept-Language', 'zh-CN,zh;q=0.9,en;q=0.8')
-        if (cookieHeader) req.setHeader('Cookie', cookieHeader)
-
-        const chunks: Buffer[] = []
-
-        req.on('response', (response) => {
-          if (response.statusCode >= 400) {
-            console.warn(`[jmimg] HTTP ${response.statusCode} for ${realUrl.slice(0, 80)}`)
-            response.on('data', () => {})
-            response.on('end', () => {
-              resolve(new Response('Image fetch failed', { status: response.statusCode }))
-            })
-            return
-          }
-
-          response.on('data', (chunk: Buffer) => chunks.push(chunk))
-          response.on('end', () => {
-            const buf = Buffer.concat(chunks)
-            // Electron 的 response.headers 可能返回 string 或 string[]，
-            // 用 [0] 取 string[] 第一个元素，但如果值是 string 就会取到第一个字符！
-            // 所以需要先判断类型。
-            const rawCt = response.headers['content-type']
-            const ct = Array.isArray(rawCt) ? rawCt[0] ?? '' : (rawCt ?? '')
-            if (ct.includes('text/html')) {
-              console.warn('[jmimg] got HTML instead of image (Cloudflare?)')
-              resolve(new Response('Blocked by Cloudflare', { status: 502 }))
-              return
-            }
-            console.log('[jmimg] OK:', realUrl.slice(0, 60), 'size:', buf.length, 'type:', ct)
-            if (ct.includes('image/')) {
-              try {
-                storeImage(realUrl, buf, ct)
-              } catch (err) {
-                console.warn('[jmimg] cache write failed:', err)
-              }
-            }
-            const headers: Record<string, string> = {
-              'Content-Type': ct || 'image/jpeg',
-              'Cache-Control': 'public, max-age=86400',
-              'Access-Control-Allow-Origin': '*'
-            }
-            resolve(new Response(buf, { status: 200, headers }))
-          })
-          response.on('error', () => {
-            resolve(new Response('Image stream error', { status: 500 }))
-          })
-        })
-
-        req.on('error', (err) => {
-          console.warn('[jmimg] request error:', err.message)
-          resolve(new Response('Image request failed', { status: 502 }))
-        })
-
-        req.end()
+      const result = await imageRequestScheduler.run(realUrl, () =>
+        fetchOnlineImage(realUrl, () => perf.mark('first-byte'))
+      )
+      if (result.status >= 400) {
+        perf.finish('error', { reason: result.errorReason, status: result.status })
+      } else {
+        perf.finish('ok', { cache: false, bytes: result.bytes ?? 0 })
+      }
+      return new Response(result.body, {
+        status: result.status,
+        headers: result.headers
       })
     } catch (err) {
       console.error('[jmimg] internal error:', err)
+      perf.finish('error', { reason: 'internal' })
       return new Response('Internal error', { status: 500 })
     }
   })

@@ -33,6 +33,11 @@ export interface PageItem {
   imageUrl: string
 }
 
+export interface ChapterPagesResult {
+  pages: PageItem[]
+  scrambleId: number
+}
+
 // Site adapter interface — pluggable parsers
 export interface SiteAdapter {
   name: string
@@ -66,13 +71,13 @@ export interface SiteAdapter {
   getMangaDetail(mangaId: string): Promise<MangaDetail>
 
   // Chapter pages (image URLs)
-  getChapterPages(chapterUrl: string): Promise<PageItem[]>
+  getChapterPages(chapterUrl: string): Promise<ChapterPagesResult>
 
   // Login
   login(username: string, password: string): Promise<{ success: boolean; error?: string }>
 
   // Favorites (requires login)
-  getFavorites?(): Promise<MangaListItem[]>
+  getFavorites?(page?: number): Promise<{ results: MangaListItem[]; totalPages: number }>
 }
 
 // Network status

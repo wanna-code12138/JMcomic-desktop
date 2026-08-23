@@ -4,6 +4,8 @@ import { join } from 'path'
 import { getActiveDomain } from './networkProbe'
 import { buildHomepageUrl, buildHomepageCacheKey, type HomepageCategory } from './homepageLogic'
 import { diffCards, shouldStopPolling } from './homepageStream'
+import { beginMainPerfSpan } from './performanceTrace'
+import { buildDetailMetadataExtractionScript } from './mangaDetailMetadataCore'
 
 let scraperWin: BrowserWindow | null = null
 
@@ -100,12 +102,14 @@ export function getScraperWindow(): BrowserWindow {
  */
 export async function navigateAndWait(url: string, waitMs = 1500): Promise<void> {
   const win = getScraperWindow()
+  const perf = beginMainPerfSpan('scraper.navigate', { waitMs })
   return new Promise<void>((resolve, reject) => {
     let settled = false
     const timeout = setTimeout(() => {
       if (settled) return
       settled = true
       console.log('[scraper] navigate timeout, proceeding anyway:', url.slice(0, 80))
+      perf.finish('timeout')
       resolve()
     }, 15000)
 
@@ -116,6 +120,7 @@ export async function navigateAndWait(url: string, waitMs = 1500): Promise<void>
         if (settled) return
         settled = true
         clearTimeout(timeout)
+        perf.finish('ok')
         resolve()
       }, waitMs)
     })
@@ -128,8 +133,12 @@ export async function navigateAndWait(url: string, waitMs = 1500): Promise<void>
       // 等待一下让重定向完成，然后 resolve 让提取逻辑尝试
       if (code === -3) {
         console.log('[scraper] ERR_ABORTED (redirect?), waiting and proceeding:', url.slice(0, 80))
-        setTimeout(resolve, waitMs)
+        setTimeout(() => {
+          perf.finish('ok', { redirected: true })
+          resolve()
+        }, waitMs)
       } else {
+        perf.finish('error', { code })
         reject(new Error(`Load failed: ${code} ${desc}`))
       }
     })
@@ -144,6 +153,7 @@ export async function navigateAndWait(url: string, waitMs = 1500): Promise<void>
       }
       settled = true
       clearTimeout(timeout)
+      perf.finish('error')
       reject(err)
     })
   })
@@ -500,10 +510,7 @@ export async function extractMangaDetail(mangaId: string): Promise<MangaDetailRe
         if (el) title = el.textContent.trim();
         if (!title) title = document.title.replace(/\\|.*/, '').trim();
 
-        var author = '';
-        document.querySelectorAll('span[itemprop="author"] a, .author a, [data-type="author"] a').forEach(function(a) {
-          author += (author ? ', ' : '') + a.textContent.trim();
-        });
+        ${buildDetailMetadataExtractionScript()}
 
         var coverImg = document.querySelector('img.img-responsive, .album-cover img, img.cover, .book-cover img, .video-cover img');
         var coverUrl = '';
@@ -512,12 +519,6 @@ export async function extractMangaDetail(mangaId: string): Promise<MangaDetailRe
         }
         if (!coverUrl) coverUrl = 'https://cdn-msp3.18comic.vip/media/albums/' + id + '.jpg';
         if (coverUrl.startsWith('//')) coverUrl = 'https:' + coverUrl;
-
-        var tags = [];
-        document.querySelectorAll('span[itemprop="genre"] a, .tags a, .tag-list a, .label-tag').forEach(function(el) {
-          var t = el.textContent.trim();
-          if (t) tags.push(t);
-        });
 
         var desc = '';
         var descEl = document.querySelector('.description, [itemprop="description"], .summary, .intro, .album-description, #album-description');

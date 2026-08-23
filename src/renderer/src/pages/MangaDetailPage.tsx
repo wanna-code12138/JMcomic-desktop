@@ -20,21 +20,17 @@ const useStyles = makeStyles({
     display: 'flex',
     gap: '32px',
     padding: '32px',
-    backgroundColor: 'var(--ac-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-panel))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-panel))',
-    borderBottom: '1px solid var(--ac-glass-border)',
-    boxShadow: 'inset 0 1px 0 var(--ac-glass-inset-hi)'
+    backgroundColor: 'var(--ui-bg-card)',
+    borderBottom: '1px solid var(--ui-stroke-card)'
   },
   coverWrap: {
     width: '240px',
     minWidth: '240px',
-    borderRadius: 'var(--ac-radius-cover)',
+    borderRadius: 'var(--ui-radius-lg)',
     overflow: 'hidden',
-    boxShadow: '0 10px 28px var(--ac-glass-shadow), inset 0 1px 0 var(--ac-glass-inset-hi)',
     aspectRatio: '3/4',
-    border: '1px solid var(--ac-glass-border)',
-    backgroundColor: 'var(--ac-base-bg)'
+    border: '1px solid var(--ui-stroke-card)',
+    backgroundColor: 'var(--ui-bg-canvas)'
   },
   cover: {
     width: '100%',
@@ -51,31 +47,30 @@ const useStyles = makeStyles({
   title: {
     fontSize: '28px',
     fontWeight: 700,
-    color: 'var(--ac-text-1)',
+    color: 'var(--ui-text-primary)',
     lineHeight: 1.3
   },
   carPlate: {
     fontSize: '13px',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     letterSpacing: '0.5px',
     userSelect: 'all',
     cursor: 'text'
   },
-  author: { fontSize: '15px', color: 'var(--ac-text-2)' },
+  author: { fontSize: '15px', color: 'var(--ui-text-secondary)' },
   tags: { display: 'flex', flexWrap: 'wrap', gap: '6px' },
   tagBadge: {
-    backgroundColor: 'var(--ac-brand)',
+    backgroundColor: 'var(--ui-brand)',
     color: '#ffffff',
     cursor: 'pointer',
-    transition: 'transform 0.15s, background-color 0.15s',
+    transition: 'opacity var(--ui-motion-fast) ease-out, background-color var(--ui-motion-fast) ease-out',
     ':hover': {
-      transform: 'translateY(-1px)',
       opacity: 0.9
     }
   },
   description: {
     fontSize: '14px',
-    color: 'var(--ac-text-2)',
+    color: 'var(--ui-text-secondary)',
     lineHeight: 1.6
   },
   actions: { display: 'flex', gap: '12px', marginTop: '8px' },
@@ -91,13 +86,14 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     padding: '10px 16px',
-    borderRadius: 'var(--ac-radius-row)',
+    borderRadius: 'var(--ui-radius-lg)',
     cursor: 'pointer',
-    transition: 'background-color 0.15s, box-shadow 0.15s, transform 0.15s',
+    transition: 'background-color var(--ui-motion-fast) ease-out, border-color var(--ui-motion-fast) ease-out',
     gap: '12px',
+    border: '1px solid transparent',
     ':hover': {
-      backgroundColor: 'var(--ac-glass-bg-hover)',
-      boxShadow: 'inset 0 0 0 1px var(--ac-glass-border)'
+      backgroundColor: 'var(--ui-bg-hover)',
+      borderColor: 'var(--ui-stroke-card)'
     },
     ':active': {
       transform: 'scale(0.97)'
@@ -106,21 +102,21 @@ const useStyles = makeStyles({
   chapterIndex: {
     width: '32px',
     height: '32px',
-    borderRadius: 'var(--ac-radius-badge)',
-    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 12%, transparent)',
-    border: '1px solid color-mix(in srgb, var(--ac-brand) 18%, transparent)',
+    borderRadius: 'var(--ui-radius-md)',
+    backgroundColor: 'var(--ui-bg-selected)',
+    border: '1px solid var(--ui-stroke-card)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: '12px',
     fontWeight: 600,
-    color: 'var(--ac-brand)',
+    color: 'var(--ui-brand)',
     flexShrink: 0
   },
   chapterTitle: {
     fontSize: '14px',
     fontWeight: 400,
-    color: 'var(--ac-text-1)',
+    color: 'var(--ui-text-primary)',
     flex: 1
   },
   center: {
@@ -130,21 +126,30 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     padding: '60px',
     gap: '16px',
-    color: 'var(--ac-text-3)'
+    color: 'var(--ui-text-tertiary)'
   }
 })
 
 interface DetailData {
   id: string; title: string; author: string; coverUrl: string
   tags: string[]; description: string
-  chapters: { index: number; title: string; url: string; status?: string; taskId?: number; error?: string }[]
+  chapters: DetailChapter[]
+}
+
+interface DetailChapter extends DownloadedFileAvailability {
+  index: number
+  title: string
+  url: string
+  status?: string
+  taskId?: number
+  error?: string
 }
 
 interface MangaDownloadGroup {
   mangaId: string
   mangaTitle: string
   coverUrl: string
-  tasks: Array<{
+  tasks: Array<DownloadedFileAvailability & {
     id: number
     chapterIndex: number
     chapterTitle: string
@@ -200,7 +205,9 @@ export default function MangaDetailPage(): JSX.Element {
                 url: t.chapterUrl ?? '',
                 status: t.status,
                 taskId: t.id,
-                error: t.error
+                error: t.error,
+                available: t.available,
+                availabilityReason: t.availabilityReason
               }))
             })
           } else {
@@ -300,7 +307,11 @@ export default function MangaDetailPage(): JSX.Element {
     }
   }
 
-  const openLocalReader = (ch: { index: number; title: string; url: string }): void => {
+  const openLocalReader = (ch: DetailChapter): void => {
+    if (ch.available === false) {
+      setAddStatus('文件缺失：下载记录已保留，请打开文件夹检查路径或重新下载')
+      return
+    }
     openReader({
       mangaId: manga.id,
       mangaTitle: manga.title,
@@ -328,7 +339,7 @@ export default function MangaDetailPage(): JSX.Element {
               onLoad={() => setCoverLoaded(true)}
             />
           ) : (
-            <div className={styles.cover} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ac-text-3)' }}>
+            <div className={styles.cover} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ui-text-tertiary)' }}>
               <BookOpen20Regular style={{ width: '48px', height: '48px' }} />
             </div>
           )}
@@ -389,7 +400,7 @@ export default function MangaDetailPage(): JSX.Element {
                 </Button>
                 <Tooltip content={liked ? '取消收藏' : '收藏'} relationship="label">
                   <Button size="large"
-                    icon={liked ? <Heart20Filled style={{ color: 'var(--ac-danger)' }} /> : <Heart20Regular />}
+                    icon={liked ? <Heart20Filled style={{ color: 'var(--ui-danger)' }} /> : <Heart20Regular />}
                     onClick={async () => {
                       if (!window.electronAPI) return
                       const wasLiked = liked
@@ -414,7 +425,7 @@ export default function MangaDetailPage(): JSX.Element {
             )}
           </div>
           {addStatus && (
-            <Text size={200} style={{ color: 'var(--ac-text-3)' }}>{addStatus}</Text>
+            <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>{addStatus}</Text>
           )}
         </div>
       </div>
@@ -435,6 +446,7 @@ export default function MangaDetailPage(): JSX.Element {
             <div className={styles.chapterList}>
               {chapters.map((ch) => (
                 <div key={ch.index} className={styles.chapterItem} role="button" tabIndex={0}
+                  aria-disabled={detailSource === 'local' && ch.available === false}
                   onClick={() => detailSource === 'local'
                     ? openLocalReader(ch)
                     : openReader({
@@ -451,8 +463,13 @@ export default function MangaDetailPage(): JSX.Element {
                   <div className={styles.chapterTitle}>{ch.title}</div>
                   {detailSource === 'local' ? (
                     <>
-                      {ch.status === 'completed' && <CheckmarkCircle20Regular style={{ color: 'var(--ac-green, #4caf50)' }} />}
-                      {ch.status === 'downloading' && <Text size={200} style={{ color: 'var(--ac-text-3)' }}>下载中</Text>}
+                      {ch.status === 'completed' && ch.available !== false && <CheckmarkCircle20Regular style={{ color: 'var(--ui-success)' }} />}
+                      {ch.status === 'completed' && ch.available === false && (
+                        <Tooltip content="下载目录或章节图片不可用；记录不会自动删除" relationship="description">
+                          <Badge appearance="tint" color="warning" size="small">文件缺失</Badge>
+                        </Tooltip>
+                      )}
+                      {ch.status === 'downloading' && <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>下载中</Text>}
                       {(ch.status === 'failed' || ch.status === 'cancelled') && (
                         <Tooltip content={ch.error ?? '下载失败'} relationship="label">
                           <Button size="small" appearance="subtle" icon={<ArrowClockwise20Regular />}
