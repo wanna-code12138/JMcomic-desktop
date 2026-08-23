@@ -1,3 +1,5 @@
+import { normalizeRecommendationTags } from '../shared/recommendationCore'
+
 export type ThemeMode = 'system' | 'light' | 'dark'
 
 export interface AppSettings {
@@ -15,6 +17,8 @@ export interface AppSettings {
   downloadRetries: number
   /** 启动时自动继续未完成的任务 */
   downloadResumeOnStartup: boolean
+  /** 用户主动选择的推荐标签，最多 8 个且全部等权 */
+  recommendationTags: string[]
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -27,7 +31,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   downloadDir: '',
   downloadConcurrency: 4,
   downloadRetries: 3,
-  downloadResumeOnStartup: true
+  downloadResumeOnStartup: true,
+  recommendationTags: []
 }
 
 export const CACHE_LIMIT_MIN_MB = 100
@@ -83,7 +88,8 @@ export function normalizeSettings(raw: Record<string, unknown>): AppSettings {
     downloadDir: typeof raw.downloadDir === 'string' ? raw.downloadDir.trim() : DEFAULT_SETTINGS.downloadDir,
     downloadConcurrency,
     downloadRetries,
-    downloadResumeOnStartup: toBoolean(raw.downloadResumeOnStartup, DEFAULT_SETTINGS.downloadResumeOnStartup)
+    downloadResumeOnStartup: toBoolean(raw.downloadResumeOnStartup, DEFAULT_SETTINGS.downloadResumeOnStartup),
+    recommendationTags: normalizeRecommendationTags(raw.recommendationTags)
   }
 }
 

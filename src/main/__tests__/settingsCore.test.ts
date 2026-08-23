@@ -30,7 +30,8 @@ test('parses stored string values', () => {
     downloadDir: 'D:\\manga\\downloads',
     downloadConcurrency: '6',
     downloadRetries: '2',
-    downloadResumeOnStartup: 'false'
+    downloadResumeOnStartup: 'false',
+    recommendationTags: '["全彩","純愛"]'
   })
   assert.strictEqual(s.themeMode, 'dark')
   assert.strictEqual(s.micaEnabled, false)
@@ -42,6 +43,7 @@ test('parses stored string values', () => {
   assert.strictEqual(s.downloadConcurrency, 6)
   assert.strictEqual(s.downloadRetries, 2)
   assert.strictEqual(s.downloadResumeOnStartup, false)
+  assert.deepStrictEqual(s.recommendationTags, ['全彩', '純愛'])
 })
 
 test('accepts boolean/number inputs from IPC patch', () => {
@@ -77,6 +79,16 @@ test('partial patch keeps other settings', () => {
   assert.strictEqual(merged.themeMode, 'dark')
   assert.strictEqual(merged.micaEnabled, false)
   assert.strictEqual(merged.solidWindow, true)
+})
+
+test('recommendation tags keep only eight unique curated values', () => {
+  const s = normalizeSettings({
+    recommendationTags: ['全彩', '純愛', '全彩', '劇情', '校園', '百合', '韓漫', '美漫', '科幻', '未知']
+  })
+  assert.deepStrictEqual(
+    s.recommendationTags,
+    ['全彩', '純愛', '劇情', '校園', '百合', '韓漫', '美漫', '科幻']
+  )
 })
 
 // ─── validateProxyUrl ──────────────────────────────────────────────
