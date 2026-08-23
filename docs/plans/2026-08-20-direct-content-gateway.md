@@ -56,19 +56,19 @@ Run validators, metadata tests, correctness, and build; commit as `feat: 校验�
 - Produces `createContentGateway({ direct, browser, now, ttlMs })` with `homepage`, `search`, `category`, `detail`, and `pages` methods.
 - Same-key concurrent calls share one promise; direct failure/invalid result calls browser exactly once.
 
-- [ ] **Step 1: Write failing fake-provider tests**
+- [x] **Step 1: Write failing fake-provider tests**
 
 Assert direct success avoids browser, rejected/invalid direct results fall back, concurrent identical detail calls invoke direct once, and different keys stay independent.
 
-- [ ] **Step 2: Run red**
+- [x] **Step 2: Run red**
 
 Expected: module-not-found.
 
-- [ ] **Step 3: Implement gateway**
+- [x] **Step 3: Implement gateway**
 
 Use in-memory maps for fresh cache and in-flight promises. Cache only validated successful data; remove rejected in-flight entries in `finally`.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 Run gateway tests and build; commit as `feat: 添加内容直连回退网关`.
 
