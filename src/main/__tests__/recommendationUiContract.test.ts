@@ -70,6 +70,12 @@ test('recommended feed persists exposure timestamps and offers manual refresh', 
   assert.match(home, />换一批<\/Button>/)
 })
 
+test('recommended grid contains only ranked cards and no random sentinel', () => {
+  assert.doesNotMatch(home, /__random__|RANDOM_CARD|RANDOM_COVER/)
+  assert.doesNotMatch(home, /\[RANDOM_CARD,\s*\.\.\.visibleCards\]/)
+  assert.match(home, /\{visibleCards\.map\(/)
+})
+
 test('leaving the recommended tab invalidates its in-flight request', () => {
   assert.match(home, /if \(tab === 'recommended'\) recommendationRequestId\.current\+\+/)
 })

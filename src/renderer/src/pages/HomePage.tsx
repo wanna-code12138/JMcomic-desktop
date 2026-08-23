@@ -41,24 +41,6 @@ function writeRecommendationExposures(exposures: RecommendationExposure[]): void
   localStorage.setItem(RECOMMENDATION_EXPOSURE_KEY, JSON.stringify(exposures))
 }
 
-const RANDOM_COVER = 'data:image/svg+xml,' + encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400">'
-  + '<defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">'
-  + '<stop offset="0%" stop-color="#667eea"/><stop offset="100%" stop-color="#764ba2"/>'
-  + '</linearGradient></defs>'
-  + '<rect width="300" height="400" fill="url(#g)"/>'
-  + '<text x="150" y="180" text-anchor="middle" font-size="64" fill="white" font-family="sans-serif">?</text>'
-  + '<text x="150" y="230" text-anchor="middle" font-size="22" fill="rgba(255,255,255,0.85)" font-family="sans-serif">随便看</text>'
-  + '</svg>'
-)
-
-const RANDOM_CARD: MangaCardData = {
-  id: '__random__',
-  title: '随便看',
-  coverUrl: RANDOM_COVER,
-  author: '随机打开一个本子'
-}
-
 const useStyles = makeStyles({
   root: {
     padding: '24px',
@@ -138,7 +120,6 @@ export default function HomePage(): JSX.Element {
   const [recommendationRefreshing, setRecommendationRefreshing] = React.useState(false)
   const [recommendationFeed, setRecommendationFeed] = React.useState<MangaCardData[]>([])
   const [recommendationVisibleCount, setRecommendationVisibleCount] = React.useState(0)
-  const [allCards, setAllCards] = React.useState<MangaCardData[]>([])
   const loadedTabs = React.useRef(new Set<string>())
   const streamOff = React.useRef<(() => void) | null>(null)
   const rootRef = React.useRef<HTMLDivElement | null>(null)
@@ -155,14 +136,8 @@ export default function HomePage(): JSX.Element {
   const [error, setError] = React.useState('')
 
   const handleCardClick = React.useCallback((mangaId: string) => {
-    if (mangaId === '__random__') {
-      if (allCards.length === 0) return
-      const idx = Math.floor(Math.random() * allCards.length)
-      setCurrentMangaId(allCards[idx].id)
-    } else {
-      setCurrentMangaId(mangaId)
-    }
-  }, [allCards, setCurrentMangaId])
+    setCurrentMangaId(mangaId)
+  }, [setCurrentMangaId])
 
   const fetchCategory = React.useCallback((category: 'latest' | 'popular', cancelled: { current: boolean }) => {
     if (loadedTabs.current.has(category)) return
@@ -193,11 +168,6 @@ export default function HomePage(): JSX.Element {
           const seen = new Set(prev[category].map((c) => c.id))
           const newCards = cards.filter((c) => !seen.has(c.id))
           return { ...prev, [category]: [...prev[category], ...newCards] }
-        })
-        setAllCards((prev) => {
-          const seen = new Set(prev.map((c) => c.id))
-          const newCards = cards.filter((c) => !seen.has(c.id))
-          return [...prev, ...newCards]
         })
         setLoading(false)
       }
@@ -242,10 +212,6 @@ export default function HomePage(): JSX.Element {
       recommendationTagOffset.current = Number(response.nextTagOffset ?? 0)
       setRecommendationFeed(feed)
       setRecommendationVisibleCount(nextRecommendationVisibleCount(0, feed.length))
-      setAllCards((previous) => {
-        const seen = new Set(previous.map((card) => card.id))
-        return [...previous, ...feed.filter((card) => !seen.has(card.id))]
-      })
       loadedTabs.current.add('recommended')
     } catch (err) {
       if (requestId === recommendationRequestId.current) setError(String(err))
@@ -435,7 +401,7 @@ export default function HomePage(): JSX.Element {
             </div>
           )}
           <div className={styles.grid}>
-            {[RANDOM_CARD, ...visibleCards].map((m, i) => (
+            {visibleCards.map((m, i) => (
               <MangaCard key={m.id} manga={m} onClick={handleCardClick} index={i} />
             ))}
           </div>
