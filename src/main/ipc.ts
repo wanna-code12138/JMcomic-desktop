@@ -6,6 +6,7 @@ import { clearImageCache, setImageCacheLimit } from './imageLoader'
 import { getSettings, updateSettings } from './settingsStore'
 import { applyWindowBackground } from './windowChrome'
 import { invalidateLocalImageAllowedRoots } from './localImageProtocol'
+import { clearContentCache } from './contentApi'
 import {
   exportPersonalData,
   importPersonalData,
@@ -213,6 +214,7 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('cache:clearAll', async () => {
     const imgCount = clearImageCache()
     clearScraperCache()
+    await clearContentCache()
     return { imageFilesRemoved: imgCount }
   })
 

@@ -1,4 +1,5 @@
 import { ipcMain, app, BrowserWindow } from 'electron'
+import { join } from 'node:path'
 import { getNetworkStatus } from './networkProbe'
 import { isSessionWarmedUp, warmupSession } from './sessionWarmup'
 import {
@@ -12,6 +13,8 @@ import {
 import { mapCardToMangaCardData } from './homepageLogic'
 import { beginMainPerfSpan } from './performanceTrace'
 import { JmWebAdapter } from './siteAdapter'
+import { createContentCache } from './contentCache'
+import { getAppDataDir } from './dataPaths'
 import {
   createContentGateway,
   type CategoryRequest,
@@ -97,11 +100,20 @@ const browserProvider: ContentProvider = {
   }
 }
 
+const contentPersistentCache = createContentCache({
+  filePath: join(getAppDataDir(), 'content-cache.json')
+})
+
 const contentGateway = createContentGateway({
   direct: directProvider,
   browser: browserProvider,
-  ttlMs: 60_000
+  ttlMs: 60_000,
+  persistentCache: contentPersistentCache
 })
+
+export async function clearContentCache(): Promise<void> {
+  await contentGateway.clear()
+}
 
 ipcMain.handle('content:homepage', async (_event, category?: string) => {
   try {

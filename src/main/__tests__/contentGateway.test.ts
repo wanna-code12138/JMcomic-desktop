@@ -2,8 +2,10 @@ import assert from 'node:assert/strict'
 import {
   createContentGateway,
   type ContentProvider,
+  type GatewayResult,
   type GatewayListResult
 } from '../contentGateway'
+import type { ContentCache } from '../contentCache'
 import type { ChapterPagesResult, MangaDetail, MangaListItem } from '../types'
 
 function cards(title = '有效漫画'): MangaListItem[] {
@@ -180,6 +182,53 @@ async function main(): Promise<void> {
     assert.strictEqual(result.data, directValue)
     assert.strictEqual(result.data.pages, directValue.pages)
     assert.deepEqual(result.data.pages.map((page) => page.index), [0, 1])
+  })
+
+  await test('validated persistent hit avoids both network providers', async () => {
+    let directCalls = 0
+    let browserCalls = 0
+    const cached: GatewayResult<MangaDetail> = {
+      data: detail('磁盘结果'),
+      provider: 'browser',
+      fallback: true,
+      fallbackReason: 'direct-error'
+    }
+    const persistentCache: ContentCache = {
+      async resolve<T>(key: string, _load: () => Promise<T>, validate: (value: unknown) => value is T) {
+        assert.equal(key, 'detail:1215915')
+        assert.equal(validate(cached), true)
+        return { value: cached as unknown as T, state: 'fresh' }
+      },
+      async clear() {},
+      async waitForIdle() {}
+    }
+    const gateway = createContentGateway({
+      direct: provider({ detail: async () => { directCalls++; return detail('直连') } }),
+      browser: provider({ detail: async () => { browserCalls++; return detail('浏览器') } }),
+      ttlMs: 60_000,
+      persistentCache
+    })
+
+    const result = await gateway.detail('1215915')
+    assert.strictEqual(result, cached)
+    assert.equal(directCalls, 0)
+    assert.equal(browserCalls, 0)
+  })
+
+  await test('clear invalidates the gateway memory cache', async () => {
+    let directCalls = 0
+    const gateway = createContentGateway({
+      direct: provider({ detail: async () => { directCalls++; return detail(`结果${directCalls}`) } }),
+      browser: provider(),
+      ttlMs: 60_000
+    })
+    await gateway.detail('1215915')
+    await gateway.detail('1215915')
+    assert.equal(directCalls, 1)
+    await gateway.clear()
+    const refreshed = await gateway.detail('1215915')
+    assert.equal(directCalls, 2)
+    assert.equal(refreshed.data.title, '结果2')
   })
 
   if (process.exitCode) console.log('Some tests failed.')

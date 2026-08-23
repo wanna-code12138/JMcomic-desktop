@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const source = readFileSync(resolve(process.cwd(), 'src/main/contentApi.ts'), 'utf-8')
+const ipcSource = readFileSync(resolve(process.cwd(), 'src/main/ipc.ts'), 'utf-8')
 
 function test(name: string, fn: () => void): void {
   try {
@@ -20,6 +21,18 @@ test('all public content endpoints route through the validated gateway', () => {
   for (const method of ['homepage', 'search', 'category', 'detail', 'pages']) {
     assert.match(source, new RegExp(`contentGateway\\.${method}\\(`))
   }
+})
+
+test('gateway persists only validated public content in the app data directory', () => {
+  assert.match(source, /createContentCache/)
+  assert.match(source, /join\(getAppDataDir\(\), 'content-cache\.json'\)/)
+  assert.match(source, /persistentCache/)
+})
+
+test('clear all caches also clears the persistent content cache', () => {
+  assert.match(source, /export async function clearContentCache/)
+  assert.match(source, /await contentGateway\.clear\(\)/)
+  assert.match(ipcSource, /await clearContentCache\(\)/)
 })
 
 test('BrowserWindow warmup belongs to the browser provider, not the direct fast path', () => {

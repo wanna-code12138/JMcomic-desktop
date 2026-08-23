@@ -117,23 +117,25 @@ Commit as `perf: 接入内容直连回退网关`.
 - Fresh TTL: 10 minutes; stale readable window: 24 hours.
 - Cache keys include endpoint and all normalized parameters; auth-sensitive results are memory-only.
 
-- [ ] **Step 1: Write failing deterministic-clock tests**
+- [x] **Step 1: Write failing deterministic-clock tests**
 
 Assert fresh returns immediately, stale returns immediately and triggers one refresh, expired data blocks for provider, malformed disk entries are ignored, and refresh preserves the previous stale value on failure.
 
-- [ ] **Step 2: Run red**
+- [x] **Step 2: Run red**
 
 Expected: module-not-found.
 
-- [ ] **Step 3: Implement atomic JSON cache**
+- [x] **Step 3: Implement atomic JSON cache**
 
 Store only public list/detail/page data under the app data directory using temporary-file plus rename. Do not store cookies, credentials, or favorites.
 
-- [ ] **Step 4: Benchmark and verify**
+- [x] **Step 4: Benchmark and verify**
 
 Measure ten cold process starts and ten warm navigations; run all tests, correctness, build, and diff checks.
 
-- [ ] **Step 5: Commit**
+Benchmark result: ten Electron cold starts reached the renderer at p50 814.04 ms and p95/max 1326.03 ms. A real 71-page chapter took 754.1 ms on its first direct request; ten in-process warm navigations measured p50 0.4 ms and p95/max 3.6 ms. After a process restart, the same validated chapter restored from disk in 0.8 ms with page count and `scrambleId` unchanged.
+
+- [x] **Step 5: Commit**
 
 Commit as `perf: 添加内容持久缓存与后台刷新`.
 

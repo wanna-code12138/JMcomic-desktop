@@ -1,4 +1,5 @@
 import { validateCards, validateDetail, validatePages, type ValidationResult } from './contentValidation'
+import type { ContentCache } from './contentCache'
 import type { ChapterPagesResult, MangaDetail, MangaListItem } from './types'
 
 export type ContentProviderName = 'direct' | 'browser'
@@ -48,6 +49,7 @@ export interface ContentGateway {
   category: (request: CategoryRequest) => Promise<GatewayResult<GatewayListResult>>
   detail: (mangaId: string) => Promise<GatewayResult<MangaDetail>>
   pages: (chapterUrl: string) => Promise<GatewayResult<ChapterPagesResult>>
+  clear: () => Promise<void>
 }
 
 interface GatewayOptions {
@@ -55,6 +57,7 @@ interface GatewayOptions {
   browser: ContentProvider
   ttlMs: number
   now?: () => number
+  persistentCache?: ContentCache
 }
 
 function stableSerialize(value: unknown): string {
@@ -82,6 +85,7 @@ export function createContentGateway(options: GatewayOptions): ContentGateway {
   const now = options.now ?? Date.now
   const cache = new Map<string, { expiresAt: number; value: GatewayResult<unknown> }>()
   const inFlight = new Map<string, Promise<GatewayResult<unknown>>>()
+  let generation = 0
 
   function run<T>(
     key: string,
@@ -96,7 +100,7 @@ export function createContentGateway(options: GatewayOptions): ContentGateway {
     const active = inFlight.get(key)
     if (active) return active as Promise<GatewayResult<T>>
 
-    const request = (async (): Promise<GatewayResult<T>> => {
+    const load = async (): Promise<GatewayResult<T>> => {
       let fallbackReason = 'direct-error'
       try {
         const directValue = await directCall()
@@ -107,7 +111,6 @@ export function createContentGateway(options: GatewayOptions): ContentGateway {
             provider: 'direct',
             fallback: false
           }
-          cache.set(key, { expiresAt: now() + options.ttlMs, value })
           return value
         }
         fallbackReason = directResult.reason
@@ -126,7 +129,26 @@ export function createContentGateway(options: GatewayOptions): ContentGateway {
         fallback: true,
         fallbackReason
       }
-      cache.set(key, { expiresAt: now() + options.ttlMs, value })
+      return value
+    }
+
+    const isValidGatewayResult = (candidate: unknown): candidate is GatewayResult<T> => {
+      if (!candidate || typeof candidate !== 'object') return false
+      const result = candidate as Partial<GatewayResult<T>>
+      if (result.provider !== 'direct' && result.provider !== 'browser') return false
+      if (typeof result.fallback !== 'boolean') return false
+      if ((result.provider === 'direct') !== (result.fallback === false)) return false
+      return validate(result.data as T).ok
+    }
+
+    const requestGeneration = generation
+    const request = (async (): Promise<GatewayResult<T>> => {
+      const value = options.persistentCache
+        ? (await options.persistentCache.resolve(key, load, isValidGatewayResult)).value
+        : await load()
+      if (requestGeneration === generation) {
+        cache.set(key, { expiresAt: now() + options.ttlMs, value })
+      }
       return value
     })().finally(() => {
       if (inFlight.get(key) === request) inFlight.delete(key)
@@ -178,6 +200,12 @@ export function createContentGateway(options: GatewayOptions): ContentGateway {
         () => options.browser.pages(chapterUrl),
         validatePages
       )
+    },
+    async clear() {
+      generation++
+      cache.clear()
+      inFlight.clear()
+      await options.persistentCache?.clear()
     }
   }
 }
