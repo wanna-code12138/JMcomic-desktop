@@ -28,23 +28,23 @@
 - Produces `inspectDownloadedChapter(task): { available: boolean; pageCount: number; reason?: 'missing-root' | 'missing-chapter' | 'missing-pages' }`.
 - Download list/group payloads add `available` and optional `availabilityReason`; existing fields remain.
 
-- [ ] **Step 1: Write failing temp-directory tests**
+- [x] **Step 1: Write failing temp-directory tests**
 
 Cover missing root, missing chapter, empty chapter, correct numbered files, and DB count greater than disk count. Assert no filesystem mutation.
 
-- [ ] **Step 2: Run red**
+- [x] **Step 2: Run red**
 
 Expected: new function missing.
 
-- [ ] **Step 3: Implement inspection and expose it in list/detail handlers**
+- [x] **Step 3: Implement inspection and expose it in list/detail handlers**
 
 Use the existing sanitized directory builder and image extension rules. Do not update task status in the database.
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run download tests, correctness, and build.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Commit as `fix: 标记本地下载文件缺失状态`.
 
@@ -120,4 +120,3 @@ Record image.local count/p50/p95/max, chapter enumeration time, and roots-loader
 - [ ] **Step 2: Verify and commit**
 
 Run all tests/build and commit the numeric report as `docs: 记录本地读取性能结果`.
-

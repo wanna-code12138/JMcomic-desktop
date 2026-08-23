@@ -5,6 +5,7 @@ import { join } from 'path'
 import {
   buildChapterSaveDir,
   groupTasksByManga,
+  inspectDownloadedChapter,
   isLocalImagePathSafe,
   normalizeTaskRow,
   pickRetryableTasks,
@@ -160,6 +161,90 @@ test('resolveLocalChapterPages returns sorted numbered images', () => {
 
 test('resolveLocalChapterPages returns empty when dir missing', () => {
   assert.deepStrictEqual(resolveLocalChapterPages('D:\\no\\such\\dir'), [])
+})
+
+// ─── inspectDownloadedChapter ────────────────────────────────────
+
+test('inspectDownloadedChapter reports a missing download root without creating it', () => {
+  const parent = makeTempDir('jm-download-missing-root-')
+  const missingRoot = join(parent, 'missing')
+  try {
+    const result = inspectDownloadedChapter(row({ savePath: missingRoot }))
+    assert.deepStrictEqual(result, {
+      available: false,
+      pageCount: 0,
+      reason: 'missing-root'
+    })
+    assert.strictEqual(existsSync(missingRoot), false)
+  } finally {
+    rmSync(parent, { recursive: true, force: true })
+  }
+})
+
+test('inspectDownloadedChapter reports a missing chapter directory', () => {
+  const root = makeTempDir('jm-download-missing-chapter-')
+  try {
+    const result = inspectDownloadedChapter(row({ savePath: root }))
+    assert.deepStrictEqual(result, {
+      available: false,
+      pageCount: 0,
+      reason: 'missing-chapter'
+    })
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('inspectDownloadedChapter reports an empty chapter directory', () => {
+  const root = makeTempDir('jm-download-empty-chapter-')
+  try {
+    const task = row({ savePath: root })
+    mkdirSync(buildChapterSaveDir(root, task.mangaTitle, task.chapterTitle, task.chapterIndex), {
+      recursive: true
+    })
+    assert.deepStrictEqual(inspectDownloadedChapter(task), {
+      available: false,
+      pageCount: 0,
+      reason: 'missing-pages'
+    })
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('inspectDownloadedChapter counts numbered image files and ignores unrelated entries', () => {
+  const root = makeTempDir('jm-download-complete-')
+  try {
+    const task = row({ savePath: root, totalPages: 2 })
+    const chapterDir = buildChapterSaveDir(root, task.mangaTitle, task.chapterTitle, task.chapterIndex)
+    mkdirSync(join(chapterDir, 'nested'), { recursive: true })
+    writeFileSync(join(chapterDir, '0001.jpg'), 'one')
+    writeFileSync(join(chapterDir, '0002.webp'), 'two')
+    writeFileSync(join(chapterDir, 'notes.txt'), 'ignored')
+    assert.deepStrictEqual(inspectDownloadedChapter(task), {
+      available: true,
+      pageCount: 2
+    })
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('inspectDownloadedChapter reports missing pages when disk count is below database count', () => {
+  const root = makeTempDir('jm-download-partial-')
+  try {
+    const task = row({ savePath: root, totalPages: 3 })
+    const chapterDir = buildChapterSaveDir(root, task.mangaTitle, task.chapterTitle, task.chapterIndex)
+    mkdirSync(chapterDir, { recursive: true })
+    writeFileSync(join(chapterDir, '0001.jpg'), 'one')
+    assert.deepStrictEqual(inspectDownloadedChapter(task), {
+      available: false,
+      pageCount: 1,
+      reason: 'missing-pages'
+    })
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
 })
 
 // ─── isLocalImagePathSafe ─────────────────────────────────────────

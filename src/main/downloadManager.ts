@@ -10,6 +10,7 @@ import { extractChapterPages, extractMangaDetail } from './scraperWindow'
 import {
   buildChapterSaveDir,
   groupTasksByManga,
+  inspectDownloadedChapter,
   normalizeTaskRow,
   pickRetryableTasks,
   resolveLocalChapterPages,
@@ -350,6 +351,17 @@ function execRows(db: SqlJsDatabase, sql: string, params?: unknown[]): DownloadT
   })
 }
 
+function addAvailability(rows: DownloadTaskRow[]): DownloadTaskRow[] {
+  return rows.map((row) => {
+    const availability = inspectDownloadedChapter(row)
+    return {
+      ...row,
+      available: availability.available,
+      availabilityReason: availability.reason
+    }
+  })
+}
+
 async function findTaskRow(taskId: number): Promise<DownloadTaskRow | null> {
   const db = await getDatabase()
   const stmt = db.prepare('SELECT * FROM downloads WHERE id = ?')
@@ -492,13 +504,13 @@ ipcMain.handle('download:addChapters', async (_event, data: {
 
 ipcMain.handle('download:list', async () => {
   const db = await getDatabase()
-  return execRows(db, 'SELECT * FROM downloads ORDER BY created_at DESC')
+  return addAvailability(execRows(db, 'SELECT * FROM downloads ORDER BY created_at DESC'))
 })
 
 ipcMain.handle('download:summary', async () => {
   const db = await getDatabase()
   const rows = execRows(db, 'SELECT * FROM downloads ORDER BY created_at DESC')
-  return groupTasksByManga(rows)
+  return groupTasksByManga(addAvailability(rows))
 })
 
 ipcMain.handle('download:mangaDetail', async (_event, mangaId: string) => {
@@ -508,7 +520,7 @@ ipcMain.handle('download:mangaDetail', async (_event, mangaId: string) => {
     'SELECT * FROM downloads WHERE manga_id = ? ORDER BY created_at DESC',
     [mangaId]
   )
-  return groupTasksByManga(rows)[0] ?? null
+  return groupTasksByManga(addAvailability(rows))[0] ?? null
 })
 
 ipcMain.handle('download:cancel', async (_event, taskId: number) => {

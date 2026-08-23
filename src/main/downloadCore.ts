@@ -20,6 +20,16 @@ export interface DownloadTaskRow {
   coverUrl?: string
   chapterUrl?: string
   error?: string
+  available?: boolean
+  availabilityReason?: DownloadAvailabilityReason
+}
+
+export type DownloadAvailabilityReason = 'missing-root' | 'missing-chapter' | 'missing-pages'
+
+export interface DownloadAvailability {
+  available: boolean
+  pageCount: number
+  reason?: DownloadAvailabilityReason
 }
 
 export interface MangaDownloadGroup {
@@ -99,6 +109,43 @@ export function toLocalImageUrl(absolutePath: string): string {
 }
 
 const IMAGE_EXT_RE = /\.(jpg|jpeg|png|webp|gif|bmp)$/i
+const NUMBERED_IMAGE_RE = /^\d+\.(jpg|jpeg|png|webp|gif|bmp)$/i
+
+/** 只读检查下载记录对应的章节文件是否仍真实可用。 */
+export function inspectDownloadedChapter(task: DownloadTaskRow): DownloadAvailability {
+  const root = task.savePath
+  try {
+    if (!root || !existsSync(root) || !statSync(root).isDirectory()) {
+      return { available: false, pageCount: 0, reason: 'missing-root' }
+    }
+
+    const chapterDir = buildChapterSaveDir(
+      root,
+      task.mangaTitle,
+      task.chapterTitle,
+      task.chapterIndex
+    )
+    if (!existsSync(chapterDir) || !statSync(chapterDir).isDirectory()) {
+      return { available: false, pageCount: 0, reason: 'missing-chapter' }
+    }
+
+    const pageCount = readdirSync(chapterDir).filter((name) => {
+      if (!NUMBERED_IMAGE_RE.test(name)) return false
+      try {
+        const stat = statSync(join(chapterDir, name))
+        return stat.isFile() && stat.size > 0
+      } catch {
+        return false
+      }
+    }).length
+    if (pageCount === 0 || (task.totalPages > 0 && pageCount < task.totalPages)) {
+      return { available: false, pageCount, reason: 'missing-pages' }
+    }
+    return { available: true, pageCount }
+  } catch {
+    return { available: false, pageCount: 0, reason: 'missing-root' }
+  }
+}
 
 /**
  * 扫描章节保存目录，返回按序号排序的本地图片（不存在的目录返回空数组）。
