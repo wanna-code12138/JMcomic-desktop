@@ -115,10 +115,10 @@ Commit as `perf: 加速本地图片安全读取`.
 **Files:**
 - Create: `docs/performance/2026-08-20-local-fast-path.md`
 
-- [ ] **Step 1: Capture ten real local opens and twenty-page navigation runs**
+- [x] **Step 1: Capture ten real local opens and twenty-page navigation runs**
 
 Record image.local count/p50/p95/max, chapter enumeration time, and roots-loader count.
 
-- [ ] **Step 2: Verify and commit**
+- [x] **Step 2: Verify and commit**
 
 Run all tests/build and commit the numeric report as `docs: 记录本地读取性能结果`.
