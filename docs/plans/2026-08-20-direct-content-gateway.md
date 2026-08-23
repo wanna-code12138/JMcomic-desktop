@@ -84,23 +84,25 @@ Run gateway tests and build; commit as `feat: 添加内容直连回退网关`.
 - Existing `content:*` request/response and stream event shapes stay byte-compatible.
 - Performance events add `provider: 'direct' | 'browser'` and `fallback: boolean`; no URLs or credentials are logged.
 
-- [ ] **Step 1: Write failing IPC contract/source assertions**
+- [x] **Step 1: Write failing IPC contract/source assertions**
 
 Assert handlers call gateway methods, page stream retains `index` and `scrambleId`, and provider metadata is privacy-safe.
 
-- [ ] **Step 2: Run red**
+- [x] **Step 2: Run red**
 
 Expected: gateway routing assertions fail.
 
-- [ ] **Step 3: Integrate one endpoint at a time**
+- [x] **Step 3: Integrate one endpoint at a time**
 
 Order: detail, pages, search, category, homepage. After each endpoint, run its validator/gateway tests and the correctness contract. Keep existing BrowserWindow stream implementation for endpoints whose direct adapter cannot yet produce incremental batches; gateway-cached complete results may be emitted as one final batch.
 
-- [ ] **Step 4: Real-site verification**
+- [x] **Step 4: Real-site verification**
 
 Verify JM1215915 detail metadata, one 30+ page chapter, homepage categories, a keyword search, and a forced direct failure. Compare every page index and URL against BrowserWindow output before enabling direct pages by default.
 
-- [ ] **Step 5: Commit**
+Verification result: JM1215915 direct detail omitted canonical author/tags, so detail remains on the browser fallback. Its 71-page chapter matched BrowserWindow for count, `scrambleId` (220980), and the complete ordered `[index, imageUrl]` sequence. All three homepage categories, the keyword search, and category listing returned non-empty real-site results. CDN hosts may change between sessions, while the ordered `00001.webp` through `00071.webp` path sequence remains stable.
+
+- [x] **Step 5: Commit**
 
 Commit as `perf: 接入内容直连回退网关`.
 

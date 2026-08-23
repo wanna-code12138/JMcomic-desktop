@@ -34,3 +34,10 @@ test('ReaderPage records reader.image', () => {
   const text = read('src/renderer/src/pages/ReaderPage.tsx')
   assert.ok(text.includes("startPerfSpan('reader.image'"))
 })
+
+test('content provider metrics contain only provider and fallback routing state', () => {
+  const text = read('src/main/contentApi.ts')
+  assert.ok(text.includes('provider: result.provider'))
+  assert.ok(text.includes('fallback: result.fallback'))
+  assert.ok(!text.includes("console.log('[content:pages] first URL:"))
+})
