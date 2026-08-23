@@ -1,6 +1,6 @@
 import React from 'react'
 import {
-  Button, Dialog, DialogActions, DialogBody, DialogContent,
+  Badge, Button, Dialog, DialogActions, DialogBody, DialogContent,
   DialogSurface, DialogTitle, makeStyles, Tab, TabList, Text, Tooltip
 } from '@fluentui/react-components'
 import {
@@ -10,7 +10,7 @@ import {
 import { useAppStore } from '../stores/appStore'
 import { toJmImg } from '../utils/image'
 
-interface DownloadRow {
+interface DownloadRow extends DownloadedFileAvailability {
   id: number
   mangaId: string
   mangaTitle: string
@@ -46,6 +46,12 @@ const STATUS_LABEL: Record<string, string> = {
   completed: '已完成',
   failed: '失败',
   cancelled: '已取消'
+}
+
+function missingFileMessage(reason?: DownloadedFileAvailability['availabilityReason']): string {
+  if (reason === 'missing-root') return '下载根目录不存在，记录已保留，可打开文件夹检查路径'
+  if (reason === 'missing-chapter') return '章节目录不存在，记录已保留'
+  return '章节图片不完整，记录已保留'
 }
 
 const useStyles = makeStyles({
@@ -320,6 +326,7 @@ export default function DownloadsPage(): JSX.Element {
                 <div className={styles.mangaTitle}>{g.mangaTitle}</div>
                 <div className={styles.mangaMeta}>
                   已下载 {g.completedChapters}/{g.totalChapters} 章
+                  {g.tasks.some((t) => t.status === 'completed' && t.available === false) && ' · 有文件缺失'}
                   {g.activeTasks > 0 && ` · 下载中 ${g.activeTasks}`}
                   {g.failedTasks > 0 && ` · 失败 ${g.failedTasks}`}
                 </div>
@@ -364,6 +371,11 @@ export default function DownloadsPage(): JSX.Element {
                     {STATUS_LABEL[task.status] ?? task.status}
                     {active && ` · ${task.downloadedPages}/${task.totalPages} 页`}
                   </div>
+                  {task.status === 'completed' && task.available === false && (
+                    <Tooltip content={missingFileMessage(task.availabilityReason)} relationship="description">
+                      <Badge appearance="tint" color="warning" size="small" style={{ marginTop: '4px' }}>文件缺失</Badge>
+                    </Tooltip>
+                  )}
                   {(task.status === 'failed' || task.status === 'cancelled') && task.error && (
                     <Text size={200} style={{ color: 'var(--ui-danger)', display: 'block', marginTop: '2px' }}>
                       {task.error}

@@ -60,21 +60,23 @@ Commit as `fix: 标记本地下载文件缺失状态`.
 - Missing chapters show `文件缺失` and cannot open the reader.
 - `打开文件夹` and task history remain available; no delete occurs without the existing explicit user action.
 
-- [ ] **Step 1: Write failing source/shape contract tests**
+- [x] **Step 1: Write failing source/shape contract tests**
 
 Assert renderer types include `available`, unavailable rows render `文件缺失`, and reader-open handlers guard availability.
 
-- [ ] **Step 2: Run red**
+- [x] **Step 2: Run red**
 
 Expected: all new assertions fail.
 
-- [ ] **Step 3: Implement the UI state**
+- [x] **Step 3: Implement the UI state**
 
 Use a warning InfoBar/Badge, explain that the recorded root cannot be found, and keep the existing open-folder action.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 Run tests/build and manually validate the current missing `C:\Users\David\Downloads\JMComic` records. Commit as `fix: 显示本地下载文件缺失`.
+
+Verification note (2026-08-23): the current database contains no download rows, so the empty state was checked in the live app and missing-file branches were verified with isolated temporary-directory tests without inserting synthetic user data.
 
 ### Task 3: Cache allowed roots and stream local images asynchronously
 

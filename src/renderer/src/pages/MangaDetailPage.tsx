@@ -133,14 +133,23 @@ const useStyles = makeStyles({
 interface DetailData {
   id: string; title: string; author: string; coverUrl: string
   tags: string[]; description: string
-  chapters: { index: number; title: string; url: string; status?: string; taskId?: number; error?: string }[]
+  chapters: DetailChapter[]
+}
+
+interface DetailChapter extends DownloadedFileAvailability {
+  index: number
+  title: string
+  url: string
+  status?: string
+  taskId?: number
+  error?: string
 }
 
 interface MangaDownloadGroup {
   mangaId: string
   mangaTitle: string
   coverUrl: string
-  tasks: Array<{
+  tasks: Array<DownloadedFileAvailability & {
     id: number
     chapterIndex: number
     chapterTitle: string
@@ -196,7 +205,9 @@ export default function MangaDetailPage(): JSX.Element {
                 url: t.chapterUrl ?? '',
                 status: t.status,
                 taskId: t.id,
-                error: t.error
+                error: t.error,
+                available: t.available,
+                availabilityReason: t.availabilityReason
               }))
             })
           } else {
@@ -296,7 +307,11 @@ export default function MangaDetailPage(): JSX.Element {
     }
   }
 
-  const openLocalReader = (ch: { index: number; title: string; url: string }): void => {
+  const openLocalReader = (ch: DetailChapter): void => {
+    if (ch.available === false) {
+      setAddStatus('文件缺失：下载记录已保留，请打开文件夹检查路径或重新下载')
+      return
+    }
     openReader({
       mangaId: manga.id,
       mangaTitle: manga.title,
@@ -431,6 +446,7 @@ export default function MangaDetailPage(): JSX.Element {
             <div className={styles.chapterList}>
               {chapters.map((ch) => (
                 <div key={ch.index} className={styles.chapterItem} role="button" tabIndex={0}
+                  aria-disabled={detailSource === 'local' && ch.available === false}
                   onClick={() => detailSource === 'local'
                     ? openLocalReader(ch)
                     : openReader({
@@ -447,7 +463,12 @@ export default function MangaDetailPage(): JSX.Element {
                   <div className={styles.chapterTitle}>{ch.title}</div>
                   {detailSource === 'local' ? (
                     <>
-                      {ch.status === 'completed' && <CheckmarkCircle20Regular style={{ color: 'var(--ui-success)' }} />}
+                      {ch.status === 'completed' && ch.available !== false && <CheckmarkCircle20Regular style={{ color: 'var(--ui-success)' }} />}
+                      {ch.status === 'completed' && ch.available === false && (
+                        <Tooltip content="下载目录或章节图片不可用；记录不会自动删除" relationship="description">
+                          <Badge appearance="tint" color="warning" size="small">文件缺失</Badge>
+                        </Tooltip>
+                      )}
                       {ch.status === 'downloading' && <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>下载中</Text>}
                       {(ch.status === 'failed' || ch.status === 'cancelled') && (
                         <Tooltip content={ch.error ?? '下载失败'} relationship="label">
