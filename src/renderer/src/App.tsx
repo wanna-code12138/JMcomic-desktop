@@ -118,11 +118,13 @@ const useStyles = makeStyles({
   },
   pageArea: {
     flex: 1,
-    overflow: 'auto',
+    overflow: 'hidden',
     minHeight: 0
   },
-  pageEnter: {
-    height: '100%'
+  pageViewport: {
+    height: '100%',
+    minHeight: 0,
+    overflow: 'hidden'
   },
   statusBar: {
     display: 'flex',
@@ -154,6 +156,19 @@ const useStyles = makeStyles({
 })
 
 type PageId = 'home' | 'categories' | 'search' | 'favorites' | 'downloads' | 'settings'
+
+const primaryPageIds: readonly PageId[] = [
+  'home', 'categories', 'search', 'favorites', 'downloads', 'settings'
+]
+
+function isPrimaryPage(page: string): page is PageId {
+  return primaryPageIds.includes(page as PageId)
+}
+
+function rememberPrimaryPage(visited: PageId[], page: string): PageId[] {
+  if (!isPrimaryPage(page) || visited.includes(page)) return visited
+  return [...visited, page]
+}
 
 interface NavItem {
   id: PageId
@@ -189,8 +204,9 @@ interface AppProps {
 
 export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Element {
   const styles = useStyles()
-  const { currentPage, setCurrentPage, networkStatus } = useAppStore()
+  const { currentPage, setCurrentPage, networkStatus, readerSourcePage } = useAppStore()
   const [appVersion, setAppVersion] = React.useState('1.0.3')
+  const [visitedPrimaryPages, setVisitedPrimaryPages] = React.useState<PageId[]>(['home'])
 
   React.useEffect(() => {
     window.electronAPI?.appVersion().then((v) => {
@@ -198,7 +214,18 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
     })
   }, [])
 
-  const ActivePage = pageComponents[currentPage as PageId] ?? HomePage
+  const rememberedPrimaryPages = rememberPrimaryPage(visitedPrimaryPages, currentPage)
+  const keepDetailMounted =
+    currentPage === 'detail' || (currentPage === 'reader' && readerSourcePage === 'detail')
+  const mountedPages = [
+    ...rememberedPrimaryPages,
+    ...(keepDetailMounted ? ['detail'] : []),
+    ...(currentPage === 'reader' ? ['reader'] : [])
+  ]
+
+  React.useEffect(() => {
+    setVisitedPrimaryPages((visited) => rememberPrimaryPage(visited, currentPage))
+  }, [currentPage])
 
   const networkIcon = () => {
     switch (networkStatus) {
@@ -245,9 +272,19 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
         {/* Content */}
         <div className={styles.content}>
           <div className={styles.pageArea}>
-            <div key={currentPage} className={styles.pageEnter}>
-              <ActivePage />
-            </div>
+            {mountedPages.map((page) => {
+              const Page = pageComponents[page] ?? HomePage
+              return (
+                <div
+                  key={page}
+                  className={styles.pageViewport}
+                  style={{ display: page === currentPage ? 'block' : 'none' }}
+                  aria-hidden={page !== currentPage}
+                >
+                  <Page />
+                </div>
+              )
+            })}
           </div>
 
           {/* Status Bar */}
