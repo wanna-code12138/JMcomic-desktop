@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 
 const settings = readFileSync(resolve(process.cwd(), 'src/renderer/src/pages/SettingsPage.tsx'), 'utf-8')
 const store = readFileSync(resolve(process.cwd(), 'src/renderer/src/stores/appStore.ts'), 'utf-8')
+const home = readFileSync(resolve(process.cwd(), 'src/renderer/src/pages/HomePage.tsx'), 'utf-8')
 
 function test(name: string, fn: () => void): void {
   try {
@@ -43,6 +44,41 @@ test('saving preferences invalidates only the ranked recommendation snapshot', (
   assert.match(store, /bumpRecommendationRevision: \(\) => void/)
   assert.match(store, /bumpRecommendationRevision: \(\) => set\(\(state\) => \(\{ recommendationRevision: state\.recommendationRevision \+ 1 \}\)\)/)
   assert.match(settings, /bumpRecommendationRevision\(\)/)
+})
+
+test('recommended tab uses ranked candidate pools while latest and popular keep the existing stream', () => {
+  assert.match(home, /if \(tab === 'recommended'\)/)
+  assert.match(home, /contentRecommendations\(recommendationTagOffset\.current\)/)
+  assert.match(home, /buildRecommendationFeed\(/)
+  assert.match(home, /contentHomepageStream\(category\)/)
+  assert.match(home, /fetchCategory\(tab, cancelled\)/)
+})
+
+test('recommended feed starts at 24 and reveals 12 more through a bottom sentinel', () => {
+  assert.match(home, /nextRecommendationVisibleCount\(0, feed\.length\)/)
+  assert.match(home, /nextRecommendationVisibleCount\(current, recommendationFeed\.length\)/)
+  assert.match(home, /new IntersectionObserver/)
+  assert.match(home, /bottomSentinelRef/)
+  assert.match(home, /recommendationFeed\.slice\(0, recommendationVisibleCount\)/)
+})
+
+test('recommended feed persists exposure timestamps and offers manual refresh', () => {
+  assert.match(home, /localStorage\.getItem\(RECOMMENDATION_EXPOSURE_KEY\)/)
+  assert.match(home, /localStorage\.setItem\(RECOMMENDATION_EXPOSURE_KEY/)
+  assert.match(home, /recordRecommendationExposures\(/)
+  assert.match(home, /recommendationRevision/)
+  assert.match(home, />换一批<\/Button>/)
+})
+
+test('leaving the recommended tab invalidates its in-flight request', () => {
+  assert.match(home, /if \(tab === 'recommended'\) recommendationRequestId\.current\+\+/)
+})
+
+test('home recommendation ranking never reads implicit local-interest APIs', () => {
+  assert.doesNotMatch(
+    home,
+    /favoritesList|historyListLocal|searchHistoryList|downloadList|reading_history|search_history/
+  )
 })
 
 console.log('\nAll recommendation UI contract tests completed.')
