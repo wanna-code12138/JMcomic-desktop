@@ -30,19 +30,19 @@
 - `validatePages` requires integer indices exactly `0..n-1`, non-empty HTTPS image URLs, and preserves input order.
 - Produces `ChapterPagesResult = { pages: PageItem[]; scrambleId: number }`; `SiteAdapter.getChapterPages` returns this type so the direct path cannot discard the scramble threshold.
 
-- [ ] **Step 1: Write failing validators tests**
+- [x] **Step 1: Write failing validators tests**
 
 Cover valid JM1215915 detail, missing title, empty chapters, duplicate/gapped page indices, non-HTTPS image URLs, and a valid ordered page array.
 
-- [ ] **Step 2: Run red**
+- [x] **Step 2: Run red**
 
 Expected: module-not-found.
 
-- [ ] **Step 3: Implement minimal validators**
+- [x] **Step 3: Implement minimal validators**
 
 Return reasons without mutating or sorting inputs. Align `JmWebAdapter` author/tag selectors with the exact metadata parser already used by the BrowserWindow path. Parse `scramble_id` in the chapter response and return it beside the untouched pages array.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 Run validators, metadata tests, correctness, and build; commit as `feat: 校验直连内容结果`.
 
