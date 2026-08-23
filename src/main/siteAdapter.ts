@@ -8,6 +8,7 @@ import type {
   PageItem,
   ChapterPagesResult
 } from './types'
+import { buildAlbumListPath, type AlbumListRequest } from './recommendationData'
 
 /**
  * JMComic Web adapter — regex patterns taken directly from
@@ -102,6 +103,15 @@ export class JmWebAdapter implements SiteAdapter {
     })
     const html = await this.fetchHtml(`/albums/${categoryId}?${params.toString()}`)
     return this.parseSearchPage(html, page)
+  }
+
+  async listAlbums(request: AlbumListRequest): Promise<{
+    results: MangaListItem[]
+    totalPages: number
+    currentPage: number
+  }> {
+    const html = await this.fetchHtml(buildAlbumListPath(request))
+    return this.parseSearchPage(html, request.page)
   }
 
   // ── Manga Detail ──────────────────────────────────────

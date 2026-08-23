@@ -15,6 +15,8 @@ import { beginMainPerfSpan } from './performanceTrace'
 import { JmWebAdapter } from './siteAdapter'
 import { createContentCache } from './contentCache'
 import { getAppDataDir } from './dataPaths'
+import { getSettings } from './settingsStore'
+import { buildRecommendationSourceRequests } from './recommendationData'
 import {
   createContentGateway,
   type CategoryRequest,
@@ -49,10 +51,18 @@ const directProvider: ContentProvider = {
     const result = await directAdapter.search(request.query, request.page)
     return { results: result.results, totalPages: result.totalPages }
   },
-  async category() {
-    // Category URL semantics include several combined filters that the direct
-    // adapter does not yet implement. Do not silently return a different list.
-    throw new Error('direct-category-unverified')
+  async category(request) {
+    const supportsDirect = request.recommendation === true
+      && (!request.category || request.category === '0')
+      && !request.subCategory
+    if (!supportsDirect) throw new Error('direct-category-combination-unverified')
+    const result = await directAdapter.listAlbums({
+      tag: request.tag,
+      order: request.order ?? 'mr',
+      time: request.time ?? 'a',
+      page: request.page ?? 1
+    })
+    return { results: result.results, totalPages: result.totalPages }
   },
   async detail() {
     // Real-site parity check: the direct DOM returned missing canonical author
@@ -162,6 +172,31 @@ ipcMain.on('content:homepage:cancel', (_event, category?: string) => {
     category === 'latest' || category === 'popular' ? category : 'recommended'
   const entry = homepageStreams.get(cat)
   if (entry) entry.signal.aborted = true
+})
+
+ipcMain.handle('content:recommendations', async (_event, tagOffset?: number) => {
+  try {
+    const settings = await getSettings()
+    const requestPlan = buildRecommendationSourceRequests(
+      settings.recommendationTags,
+      Number.isFinite(tagOffset) ? Number(tagOffset) : 0
+    )
+    const settled = await Promise.allSettled(requestPlan.sources.map(async (source) => {
+      const result = await contentGateway.category(source.request)
+      return {
+        source: source.source,
+        ...(source.tag ? { tag: source.tag } : {}),
+        cards: result.data.results
+      }
+    }))
+    const pools = settled
+      .flatMap((result) => result.status === 'fulfilled' ? [result.value] : [])
+      .filter((pool) => pool.cards.length > 0)
+    if (pools.length === 0) throw new Error('所有推荐候选源均加载失败')
+    return { ok: true, pools, nextTagOffset: requestPlan.nextTagOffset }
+  } catch (err) {
+    return { ok: false, pools: [], nextTagOffset: 0, error: String(err) }
+  }
 })
 
 ipcMain.handle('content:search', async (_event, query: string, page?: number, mainTag?: 0 | 1, category?: string, order?: string, time?: string) => {

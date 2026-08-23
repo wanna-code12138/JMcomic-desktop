@@ -26,6 +26,8 @@ export interface CategoryRequest {
   order?: string
   time?: string
   page?: number
+  /** Internal marker: allows the verified simple-list direct path for recommendation pools. */
+  recommendation?: boolean
 }
 
 export interface ContentProvider {
