@@ -5,6 +5,7 @@ import { clearScraperCache } from './scraperWindow'
 import { clearImageCache, setImageCacheLimit } from './imageLoader'
 import { getSettings, updateSettings } from './settingsStore'
 import { applyWindowBackground } from './windowChrome'
+import { invalidateLocalImageAllowedRoots } from './localImageProtocol'
 import {
   exportPersonalData,
   importPersonalData,
@@ -225,6 +226,9 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('settings:set', async (_event, patch: Record<string, unknown>) => {
     const settings = await updateSettings(patch)
+    if (Object.prototype.hasOwnProperty.call(patch, 'downloadDir')) {
+      invalidateLocalImageAllowedRoots()
+    }
     setImageCacheLimit(settings.cacheLimitMb * 1024 * 1024)
     applyWindowBackground(settings)
     return settings

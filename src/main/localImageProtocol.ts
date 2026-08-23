@@ -1,10 +1,10 @@
 import { protocol } from 'electron'
-import { readFileSync } from 'fs'
 import { getDatabase } from './database'
 import { isLocalImagePathSafe } from './downloadCore'
 import { getDefaultDownloadDir } from './dataPaths'
 import { contentTypeForFile } from './imageProtocol'
 import { beginMainPerfSpan } from './performanceTrace'
+import { createAllowedRootsCache, openLocalImage } from './localImageAccess'
 
 /**
  * 自定义 jmlocal:// 协议：从下载目录直读已下载图片，不经过网络。
@@ -52,6 +52,12 @@ async function getAllowedRoots(): Promise<string[]> {
   return [...roots]
 }
 
+const allowedRootsCache = createAllowedRootsCache(getAllowedRoots, 60_000)
+
+export function invalidateLocalImageAllowedRoots(): void {
+  allowedRootsCache.invalidate()
+}
+
 export function registerLocalImageProtocol(): void {
   protocol.handle('jmlocal', async (request) => {
     const perf = beginMainPerfSpan('image.local')
@@ -63,13 +69,13 @@ export function registerLocalImageProtocol(): void {
       }
 
       const filepath = base64UrlDecode(match[1])
-      if (!isLocalImagePathSafe(filepath, await getAllowedRoots())) {
+      if (!isLocalImagePathSafe(filepath, await allowedRootsCache.get())) {
         console.warn('[jmlocal] blocked path:', filepath.slice(0, 120))
         perf.finish('error', { reason: 'blocked-path' })
         return new Response('Blocked: not a downloaded image', { status: 403 })
       }
 
-      const buf = readFileSync(filepath)
+      const buf = await openLocalImage(filepath)
       perf.finish('ok', { bytes: buf.length })
       return new Response(buf, {
         status: 200,

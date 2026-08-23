@@ -90,23 +90,23 @@ Verification note (2026-08-23): the current database contains no download rows, 
 - Produces `createAllowedRootsCache(load, ttlMs)` and async `openLocalImage(path)`.
 - Download-directory changes invalidate the roots cache explicitly.
 
-- [ ] **Step 1: Write failing cache tests**
+- [x] **Step 1: Write failing cache tests**
 
 With a deterministic clock, assert repeated calls within 60 seconds invoke the database loader once, invalidation forces reload, and failed loads are not cached.
 
-- [ ] **Step 2: Run red**
+- [x] **Step 2: Run red**
 
 Expected: module-not-found.
 
-- [ ] **Step 3: Implement cached roots and asynchronous read response**
+- [x] **Step 3: Implement cached roots and asynchronous read response**
 
 Remove `readFileSync` from `localImageProtocol.ts`, retain `isLocalImagePathSafe`, and use `fs/promises.readFile` or a Web `ReadableStream` adapter supported by Electron protocol handling.
 
-- [ ] **Step 4: Verify and benchmark**
+- [x] **Step 4: Verify and benchmark**
 
 Run local access tests, download tests, correctness, and build. Recreate one real local chapter and capture ten open samples.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Commit as `perf: 加速本地图片安全读取`.
 
