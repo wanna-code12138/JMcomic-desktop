@@ -144,14 +144,14 @@ Commit as `perf: 添加内容持久缓存与后台刷新`.
 **Files:**
 - Create: `docs/performance/2026-08-20-content-gateway.md`
 
-- [ ] **Step 1: Capture real samples**
+- [x] **Step 1: Capture real samples**
 
 For homepage, detail, search, and pages, record direct count, browser fallback count, p50/p95/max, and validation failure reasons without URLs.
 
-- [ ] **Step 2: Acceptance gate**
+- [x] **Step 2: Acceptance gate**
 
 Direct detail/pages must match BrowserWindow fields and page order exactly. If parity fails, leave that endpoint on browser-first and document the reason.
 
-- [ ] **Step 3: Full verification and commit**
+- [x] **Step 3: Full verification and commit**
 
 Run all tests/build and commit as `docs: 记录内容网关性能结果`.
