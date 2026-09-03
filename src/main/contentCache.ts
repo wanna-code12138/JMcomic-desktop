@@ -3,20 +3,26 @@ import { dirname } from 'node:path'
 
 const DEFAULT_FRESH_TTL_MS = 10 * 60_000
 const DEFAULT_STALE_TTL_MS = 24 * 60 * 60_000
+const DEFAULT_MAX_ENTRIES = 10_000
+const DEFAULT_MAX_BYTES = 64 * 1024 * 1024 // 64MiB
+const DEFAULT_FLUSH_DELAY_MS = 100
 
 interface DiskEntry {
   savedAt: number
+  lastAccessedAt: number
   value: unknown
 }
 
 interface DiskCache {
   version: 1
+  namespace?: string
   entries: Record<string, DiskEntry>
 }
 
 export interface ContentCacheResolution<T> {
   value: T
   state: 'fresh' | 'stale' | 'miss'
+  refresh?: Promise<void>
 }
 
 export interface ContentCache {
@@ -29,11 +35,15 @@ export interface ContentCache {
   waitForIdle(): Promise<void>
 }
 
-interface ContentCacheOptions {
+export interface ContentCacheOptions {
   filePath: string
   now?: () => number
   freshTtlMs?: number
   staleTtlMs?: number
+  maxEntries?: number
+  maxBytes?: number
+  flushDelayMs?: number
+  namespace?: string
 }
 
 function isDiskCache(value: unknown): value is DiskCache {
@@ -45,42 +55,116 @@ function isDiskCache(value: unknown): value is DiskCache {
     && !Array.isArray(candidate.entries)
 }
 
+async function safeRename(source: string, destination: string): Promise<void> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      await rename(source, destination)
+      return
+    } catch (err: any) {
+      if ((err.code === 'EPERM' || err.code === 'EBUSY') && attempt < 4) {
+        await new Promise((r) => setTimeout(r, 20 * (attempt + 1)))
+        continue
+      }
+      throw err
+    }
+  }
+}
+
 export function createContentCache(options: ContentCacheOptions): ContentCache {
   const now = options.now ?? Date.now
   const freshTtlMs = options.freshTtlMs ?? DEFAULT_FRESH_TTL_MS
   const staleTtlMs = options.staleTtlMs ?? DEFAULT_STALE_TTL_MS
+  const maxEntries = options.maxEntries ?? DEFAULT_MAX_ENTRIES
+  const maxBytes = options.maxBytes ?? DEFAULT_MAX_BYTES
+  const flushDelayMs = options.flushDelayMs ?? DEFAULT_FLUSH_DELAY_MS
+
   const entries = new Map<string, DiskEntry>()
   const inFlight = new Map<string, Promise<unknown>>()
   let writeChain: Promise<void> = Promise.resolve()
+  let flushTimer: NodeJS.Timeout | null = null
   let generation = 0
 
   const initialized = (async (): Promise<void> => {
     try {
       const parsed = JSON.parse(await readFile(options.filePath, 'utf-8')) as unknown
       if (!isDiskCache(parsed)) return
+
+      // Namespace 隔离：不匹配直接视为 miss
+      if (options.namespace && parsed.namespace !== options.namespace) {
+        return
+      }
+
       for (const [key, entry] of Object.entries(parsed.entries)) {
         if (!entry || typeof entry !== 'object') continue
-        const candidate = entry as { savedAt?: unknown; value?: unknown }
+        const candidate = entry as { savedAt?: unknown; lastAccessedAt?: unknown; value?: unknown }
         if (!Number.isFinite(candidate.savedAt)) continue
-        entries.set(key, { savedAt: candidate.savedAt as number, value: candidate.value })
+        const savedAt = candidate.savedAt as number
+        const lastAccessedAt = Number.isFinite(candidate.lastAccessedAt)
+          ? (candidate.lastAccessedAt as number)
+          : savedAt
+        entries.set(key, { savedAt, lastAccessedAt, value: candidate.value })
       }
+      evictIfNeeded()
     } catch {
       // Missing, truncated, or malformed cache files are equivalent to a miss.
     }
   })()
 
-  function persist(): Promise<void> {
+  function evictIfNeeded(): void {
+    while (entries.size > maxEntries) {
+      let oldestKey: string | null = null
+      let oldestTime = Infinity
+      for (const [k, e] of entries.entries()) {
+        if (e.lastAccessedAt < oldestTime) {
+          oldestTime = e.lastAccessedAt
+          oldestKey = k
+        }
+      }
+      if (oldestKey) {
+        entries.delete(oldestKey)
+      } else {
+        break
+      }
+    }
+  }
+
+  function doPersist(): Promise<void> {
+    if (flushTimer) {
+      clearTimeout(flushTimer)
+      flushTimer = null
+    }
+    const currentGeneration = generation
     const snapshot: DiskCache = {
       version: 1,
+      namespace: options.namespace,
       entries: Object.fromEntries(entries)
     }
+
     writeChain = writeChain.catch(() => {}).then(async () => {
+      if (currentGeneration !== generation) return
       await mkdir(dirname(options.filePath), { recursive: true })
       const temporaryPath = `${options.filePath}.tmp`
-      await writeFile(temporaryPath, JSON.stringify(snapshot), 'utf-8')
-      await rename(temporaryPath, options.filePath)
+      const jsonText = JSON.stringify(snapshot)
+      if (Buffer.byteLength(jsonText, 'utf-8') > maxBytes) {
+        // 若超出字节上限，进一步淘汰并重试
+        evictIfNeeded()
+      }
+      await writeFile(temporaryPath, jsonText, 'utf-8')
+      if (currentGeneration !== generation) {
+        await unlink(temporaryPath).catch(() => {})
+        return
+      }
+      await safeRename(temporaryPath, options.filePath)
     })
     return writeChain
+  }
+
+  function scheduleFlush(): void {
+    if (flushTimer) return
+    flushTimer = setTimeout(() => {
+      flushTimer = null
+      void doPersist()
+    }, flushDelayMs)
   }
 
   function refresh<T>(
@@ -96,8 +180,11 @@ export function createContentCache(options: ContentCacheOptions): ContentCache {
       const value = await load()
       if (!validate(value)) throw new Error('content-cache-validation')
       if (refreshGeneration !== generation) return value
-      entries.set(key, { savedAt: now(), value })
-      await persist()
+
+      const currentTime = now()
+      entries.set(key, { savedAt: currentTime, lastAccessedAt: currentTime, value })
+      evictIfNeeded()
+      scheduleFlush()
       return value
     })().finally(() => {
       if (inFlight.get(key) === request) inFlight.delete(key)
@@ -116,11 +203,12 @@ export function createContentCache(options: ContentCacheOptions): ContentCache {
       const entry = entries.get(key)
       const cachedValue = entry?.value
       if (entry && validate(cachedValue)) {
+        entry.lastAccessedAt = now() // 更新 LRU 访问时间
         const age = Math.max(0, now() - entry.savedAt)
         if (age < freshTtlMs) return { value: cachedValue, state: 'fresh' }
         if (age < staleTtlMs) {
-          void refresh(key, load, validate).catch(() => {})
-          return { value: cachedValue, state: 'stale' }
+          const refreshPromise = refresh(key, load, validate).catch(() => {})
+          return { value: cachedValue, state: 'stale', refresh: refreshPromise as Promise<void> }
         }
       } else if (entry) {
         entries.delete(key)
@@ -129,9 +217,14 @@ export function createContentCache(options: ContentCacheOptions): ContentCache {
       const value = await refresh(key, load, validate)
       return { value, state: 'miss' }
     },
+
     async clear(): Promise<void> {
       await initialized
       generation++
+      if (flushTimer) {
+        clearTimeout(flushTimer)
+        flushTimer = null
+      }
       entries.clear()
       await writeChain.catch(() => {})
       await Promise.all([
@@ -143,9 +236,13 @@ export function createContentCache(options: ContentCacheOptions): ContentCache {
         })
       ])
     },
+
     async waitForIdle(): Promise<void> {
       await initialized
       await Promise.allSettled([...inFlight.values()])
+      if (flushTimer) {
+        await doPersist()
+      }
       await writeChain.catch(() => {})
     }
   }
