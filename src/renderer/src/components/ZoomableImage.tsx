@@ -23,24 +23,20 @@ export default function ZoomableImage({
   const zoomRef = useRef(1)
   const txRef = useRef(0)
   const tyRef = useRef(0)
+  const rafIdRef = useRef<number | null>(null)
+  const lastZoomNotifyTimeRef = useRef(0)
 
-  const [zoomDisplay, setZoomDisplay] = useState(1)
+  const [, setZoomDisplay] = useState(1)
 
   const draggingRef = useRef(false)
   const dragStartRef = useRef({ x: 0, y: 0, tx: 0, ty: 0 })
+  const dimensionsRef = useRef({ vw: 0, vh: 0, iw: 0, ih: 0 })
 
-  const applyTransform = useCallback(() => {
-    if (!wrapperRef.current) return
-    wrapperRef.current.style.transform =
-      `translate(${txRef.current}px, ${tyRef.current}px) scale(${zoomRef.current})`
-  }, [])
-
-  const clampPan = useCallback(() => {
+  const updateDimensions = useCallback(() => {
     const viewport = viewportRef.current
     const wrapper = wrapperRef.current
     if (!viewport || !wrapper) return
 
-    const s = zoomRef.current
     const vw = viewport.clientWidth
     const vh = viewport.clientHeight
     const img = wrapper.querySelector('img') as HTMLImageElement | null
@@ -48,17 +44,23 @@ export default function ZoomableImage({
     const iw = canvas?.offsetWidth || img?.offsetWidth || 0
     const ih = canvas?.offsetHeight || img?.offsetHeight || 0
 
+    dimensionsRef.current = { vw, vh, iw, ih }
+  }, [])
+
+  const clampPan = useCallback(() => {
+    const { vw, vh, iw, ih } = dimensionsRef.current
+    const s = zoomRef.current
     const zw = iw * s
     const zh = ih * s
 
-    if (zw > vw) {
+    if (zw > vw && vw > 0) {
       const maxTx = (zw - vw) / 2
       txRef.current = Math.max(-maxTx, Math.min(maxTx, txRef.current))
     } else {
       txRef.current = 0
     }
 
-    if (zh > vh) {
+    if (zh > vh && vh > 0) {
       const maxTy = (zh - vh) / 2
       tyRef.current = Math.max(-maxTy, Math.min(maxTy, tyRef.current))
     } else {
@@ -66,22 +68,68 @@ export default function ZoomableImage({
     }
   }, [])
 
+  const scheduleTransform = useCallback(() => {
+    if (rafIdRef.current !== null) return
+    rafIdRef.current = requestAnimationFrame(() => {
+      rafIdRef.current = null
+      if (!wrapperRef.current) return
+      clampPan()
+      wrapperRef.current.style.transform =
+        `translate(${txRef.current}px, ${tyRef.current}px) scale(${zoomRef.current})`
+    })
+  }, [clampPan])
+
+  const notifyZoom = useCallback((s: number) => {
+    const now = Date.now()
+    if (now - lastZoomNotifyTimeRef.current >= 100) {
+      lastZoomNotifyTimeRef.current = now
+      setZoomDisplay(s)
+    }
+    onZoomChange?.(s)
+  }, [onZoomChange])
+
   const reset = useCallback(() => {
     zoomRef.current = 1
     txRef.current = 0
     tyRef.current = 0
     setZoomDisplay(1)
     onZoomChange?.(1)
-    applyTransform()
-  }, [applyTransform, onZoomChange])
+    if (wrapperRef.current) {
+      wrapperRef.current.style.transform = 'translate(0px, 0px) scale(1)'
+    }
+  }, [onZoomChange])
 
-  // wheel zoom
+  // ResizeObserver 缓存尺寸
+  useEffect(() => {
+    const viewport = viewportRef.current
+    if (!viewport) return
+
+    const ro = new ResizeObserver(() => {
+      updateDimensions()
+      clampPan()
+      scheduleTransform()
+    })
+
+    ro.observe(viewport)
+    updateDimensions()
+
+    return () => {
+      ro.disconnect()
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current)
+        rafIdRef.current = null
+      }
+    }
+  }, [updateDimensions, clampPan, scheduleTransform])
+
+  // wheel zoom（通过 rAF 防抖合并）
   useEffect(() => {
     const viewport = viewportRef.current
     if (!viewport) return
 
     const handleWheel = (e: WheelEvent): void => {
       e.preventDefault()
+      updateDimensions()
 
       const rect = viewport.getBoundingClientRect()
       const cx = rect.left + rect.width / 2
@@ -99,74 +147,58 @@ export default function ZoomableImage({
       tyRef.current = my - (my - tyRef.current) * (s1 / s0)
       zoomRef.current = s1
 
-      clampPan()
-      applyTransform()
-      setZoomDisplay(s1)
-      onZoomChange?.(s1)
+      scheduleTransform()
+      notifyZoom(s1)
     }
 
     viewport.addEventListener('wheel', handleWheel, { passive: false })
     return () => viewport.removeEventListener('wheel', handleWheel)
-  }, [minZoom, maxZoom, step, applyTransform, clampPan, onZoomChange])
+  }, [minZoom, maxZoom, step, scheduleTransform, notifyZoom, updateDimensions])
 
-  // drag pan
-  useEffect(() => {
-    const viewport = viewportRef.current
-    if (!viewport) return
-
-    const handleMouseDown = (e: MouseEvent): void => {
-      e.preventDefault()
-      draggingRef.current = true
-      dragStartRef.current = {
-        x: e.clientX, y: e.clientY,
-        tx: txRef.current, ty: tyRef.current
-      }
-      viewport.style.cursor = 'grabbing'
+  // Pointer Events 拖动
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>): void => {
+    if (e.button !== 0) return
+    e.preventDefault()
+    updateDimensions()
+    draggingRef.current = true
+    dragStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      tx: txRef.current,
+      ty: tyRef.current
     }
+    e.currentTarget.setPointerCapture(e.pointerId)
+    if (viewportRef.current) viewportRef.current.style.cursor = 'grabbing'
+  }
 
-    const handleMouseMove = (e: MouseEvent): void => {
-      if (!draggingRef.current) return
-      txRef.current = dragStartRef.current.tx + (e.clientX - dragStartRef.current.x)
-      tyRef.current = dragStartRef.current.ty + (e.clientY - dragStartRef.current.y)
-      clampPan()
-      applyTransform()
-    }
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>): void => {
+    if (!draggingRef.current) return
+    txRef.current = dragStartRef.current.tx + (e.clientX - dragStartRef.current.x)
+    tyRef.current = dragStartRef.current.ty + (e.clientY - dragStartRef.current.y)
+    scheduleTransform()
+  }
 
-    const handleMouseUp = (): void => {
-      if (!draggingRef.current) return
-      draggingRef.current = false
-      viewport.style.cursor = 'grab'
-    }
-
-    viewport.addEventListener('mousedown', handleMouseDown)
-    window.addEventListener('mousemove', handleMouseMove)
-    window.addEventListener('mouseup', handleMouseUp)
-
-    return () => {
-      viewport.removeEventListener('mousedown', handleMouseDown)
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [applyTransform, clampPan])
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>): void => {
+    if (!draggingRef.current) return
+    draggingRef.current = false
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    } catch {}
+    if (viewportRef.current) viewportRef.current.style.cursor = 'grab'
+  }
 
   const handleDoubleClick = useCallback((): void => {
     reset()
   }, [reset])
 
-  // reset on page change
   useEffect(() => {
     reset()
   }, [resetKey, reset])
 
-  // update cursor style
   useEffect(() => {
     if (viewportRef.current) {
       viewportRef.current.style.cursor = 'grab'
     }
-  }, [])
-
-  const handleDragStart = useCallback((e: React.DragEvent): void => {
-    e.preventDefault()
   }, [])
 
   return (
@@ -179,9 +211,14 @@ export default function ZoomableImage({
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        userSelect: 'none'
+        userSelect: 'none',
+        touchAction: 'none'
       }}
       onDoubleClick={handleDoubleClick}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
       <div
         ref={wrapperRef}
@@ -193,7 +230,6 @@ export default function ZoomableImage({
           height: '100%',
           transformOrigin: 'center center'
         }}
-        onDragStart={handleDragStart}
       >
         {children}
       </div>
