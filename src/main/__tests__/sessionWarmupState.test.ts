@@ -89,5 +89,94 @@ test('reset returns to idle from any phase', () => {
   assert.deepEqual(reduceWarmupState({ phase: 'verified', verifiedAt: 1, evidence: 'known-page' }, { type: 'reset' }), { phase: 'idle' })
 })
 
+// 3. Coordinator 并发与单实例测试
+import { createWarmupCoordinator } from '../sessionWarmup'
+
+test('ten concurrent ensureWarmup calls share single verification attempt', async () => {
+  let runs = 0
+  let finishVerification!: (state: WarmupState) => void
+  const coordinator = createWarmupCoordinator({
+    runVerification: async () => {
+      runs++
+      return new Promise<WarmupState>((resolve) => {
+        finishVerification = resolve
+      })
+    }
+  })
+
+  assert.equal(coordinator.getWarmupState().phase, 'idle')
+
+  const fakeWindow = {} as any
+  const promises = Array.from({ length: 10 }, () =>
+    coordinator.ensureWarmup('browser-fallback', fakeWindow)
+  )
+
+  assert.equal(runs, 1)
+  assert.equal(coordinator.getWarmupState().phase, 'verifying')
+
+  finishVerification({ phase: 'verified', verifiedAt: 100, evidence: 'known-page' })
+  const results = await Promise.all(promises)
+
+  for (const res of results) {
+    assert.equal(res.phase, 'verified')
+    if (res.phase === 'verified') {
+      assert.equal(res.evidence, 'known-page')
+    }
+  }
+  assert.equal(runs, 1)
+})
+
+test('timeout transitions coordinator to failed and rejects assumption of verification', async () => {
+  const coordinator = createWarmupCoordinator({
+    runVerification: async () => {
+      return { phase: 'failed', reason: 'timeout', retryable: true }
+    }
+  })
+
+  const result = await coordinator.ensureWarmup('startup', {} as any)
+  assert.equal(result.phase, 'failed')
+  if (result.phase === 'failed') {
+    assert.equal(result.reason, 'timeout')
+    assert.equal(result.retryable, true)
+  }
+  assert.equal(coordinator.getWarmupState().phase, 'failed')
+})
+
+test('retry increments attempt number', async () => {
+  let attempts = 0
+  const coordinator = createWarmupCoordinator({
+    runVerification: async (_reason, _host, attempt) => {
+      attempts = attempt
+      return { phase: 'failed', reason: 'timeout', retryable: true, attempt }
+    }
+  })
+
+  await coordinator.ensureWarmup('startup', {} as any)
+  assert.equal(attempts, 1)
+
+  await coordinator.retryWarmup({} as any)
+  assert.equal(attempts, 2)
+})
+
+test('subscribers receive state transitions and unsubscribe cleanly', async () => {
+  const received: string[] = []
+  const coordinator = createWarmupCoordinator({
+    runVerification: async () => {
+      return { phase: 'verified', verifiedAt: Date.now(), evidence: 'validated-cookie' }
+    }
+  })
+
+  const unsubscribe = coordinator.subscribeWarmup((s) => {
+    received.push(s.phase)
+  })
+
+  await coordinator.ensureWarmup('manual', {} as any)
+  assert.deepEqual(received, ['verifying', 'verified'])
+
+  unsubscribe()
+  coordinator.reset()
+  assert.deepEqual(received, ['verifying', 'verified'])
+})
+
 if (process.exitCode) console.log('Some tests failed.')
 else console.log('All warmup state tests passed!')
