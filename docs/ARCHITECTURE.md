@@ -16,7 +16,7 @@
 
 **所有站点内容都来自隐藏 BrowserWindow**（`src/main/scraperWindow.ts`）：加载完整页面后执行 `executeJavaScript` 提取 DOM 数据。
 
-> HTTP + cheerio（`siteAdapter.ts`）无法作为内容主路径——站点页面依赖完整 JS 渲染，纯 HTTP 拿到的是空壳；目前 HTTP 通道仅用于登录 / 收藏接口。
+> HTTP + cheerio（`siteAdapter.ts`）目前只用于已验证的匿名公开内容快路径（搜索、分类和章节页面）；首页与详情仍走隐藏浏览器提取，以保持与站点实际渲染结果一致。
 
 这是当前最大的性能瓶颈（每页 3-15s）。优化方向是逆向站点数据接口，直接请求 JSON。
 
@@ -43,7 +43,7 @@ CDN URL → base64url 编码 → jmimg://img/<encoded> → 主进程代理请求
 - 文件：`{userData}/jmcomic.db`（便携模式下为 exe 同目录）
 - sql.js 运行在内存中，**任何写入后必须调用 `saveDatabase()`**，否则重启丢失
 - 读写统一走 `db:get` / `db:all` / `db:run` IPC
-- 表：`manga_cache`、`reading_history`、`downloads`、`favorites`、`auth`、`search_history`
+- 表：`manga_cache`、`reading_history`、`downloads`、`favorites`、`auth`（仅用于清理旧版本凭据）、`search_history`
 
 ## 会话预热
 
