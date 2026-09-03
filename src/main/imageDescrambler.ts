@@ -1,4 +1,5 @@
 import { BrowserWindow } from 'electron'
+import { buildDescrambleSlices, getDescrambleStripCount } from '../shared/imageDescrambleCore'
 
 // ─── 从阅读器 ReaderPage.tsx 完整照搬的反打乱算法 ─────────────────
 // 该 HTML 页面在隐藏 BrowserWindow 中运行，与阅读器使用完全相同的

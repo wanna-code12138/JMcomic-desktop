@@ -13,6 +13,7 @@ import {
   startPerfSpan,
   type PerfSpan
 } from '../../../shared/performanceTraceCore'
+import { buildDescrambleSlices, getDescrambleStripCount } from '../../../shared/imageDescrambleCore'
 
 const TOOLBAR_HEIGHT = 48
 
