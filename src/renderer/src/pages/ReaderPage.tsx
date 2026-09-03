@@ -7,7 +7,7 @@ import {
   ArrowDownload20Regular, SlideText20Regular
 } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
-import { toJmImg } from '../utils/image'
+import { toProxyUrl, toJmImg } from '../utils/image'
 import {
   formatPerfEvent,
   startPerfSpan,
@@ -638,8 +638,13 @@ export default function ReaderPage(): JSX.Element {
     )
   }
 
-  // 图片 URL 通过 jmimg:// 协议代理（主进程附加 Referer + Cookie + UA）
-  const imgSrc = (page: PageData): string => toJmImg(page.imageUrl)
+  // 图片 URL 通过 jmimg:// 协议代理（主进程附加 Referer + Cookie + UA 并带视口优先级）
+  const imgSrc = (page: PageData, pageIndex?: number): string => {
+    const isCurrent = pageIndex !== undefined && pageIndex === currentPage
+    const isNear = pageIndex !== undefined && Math.abs(pageIndex - currentPage) <= 1
+    const priority = isCurrent ? 'critical' : isNear ? 'near' : 'background'
+    return toProxyUrl(page.imageUrl, priority)
+  }
 
   return (
     <div className={styles.root}>
@@ -731,7 +736,7 @@ export default function ReaderPage(): JSX.Element {
                 >
                   <DescrambledImage
                     className={styles.mangaImage}
-                    src={imgSrc(page)}
+                    src={imgSrc(page, vi.index)}
                     imageUrl={page.imageUrl}
                     alt={`第 ${vi.index + 1} 页`}
                     scrambleId={scrambleId}
@@ -752,7 +757,7 @@ export default function ReaderPage(): JSX.Element {
               {pages[currentPage] && (
                 <DescrambledImage
                   className={styles.mangaImage}
-                  src={imgSrc(pages[currentPage])}
+                  src={imgSrc(pages[currentPage], currentPage)}
                   imageUrl={pages[currentPage].imageUrl}
                   alt={`第 ${currentPage + 1} 页`}
                   style={{ maxHeight: '100%' }}

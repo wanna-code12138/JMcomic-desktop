@@ -2,7 +2,7 @@ import React from 'react'
 import { makeStyles, mergeClasses } from '@fluentui/react-components'
 import { Heart20Regular, Heart20Filled } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
-import { toJmImg } from '../utils/image'
+import { toProxyUrl } from '../utils/image'
 
 // ── 模块级收藏缓存 ──
 // 避免了在漫画网格中，每个 MangaCard 都单独发起一次 IPC 查询收藏列表。
@@ -172,7 +172,7 @@ export default function MangaCard({ manga, onClick }: { manga: MangaCardData; on
       <div className={styles.imageWrap}>
         <img
           className={mergeClasses(styles.cardImage, imgLoaded && styles.cardImageLoaded)}
-          src={toJmImg(manga.coverUrl)}
+          src={toProxyUrl(manga.coverUrl, 'visible-grid')}
           alt={manga.title}
           loading="lazy"
           onLoad={() => setImgLoaded(true)}

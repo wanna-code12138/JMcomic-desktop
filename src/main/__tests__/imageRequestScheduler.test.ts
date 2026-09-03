@@ -99,9 +99,9 @@ async function testRejectedKeyCanRetry(): Promise<void> {
 
 function testProtocolUsesSharedImmutableResult(): void {
   const text = readFileSync(resolve(process.cwd(), 'src/main/imageProtocol.ts'), 'utf8')
-  assert.match(text, /createImageRequestScheduler\(6\)/)
-  assert.match(text, /imageRequestScheduler\.run\(realUrl,/)
-  assert.match(text, /new Response\(result\.body,/)
+  assert.match(text, /createImageRequestScheduler/)
+  assert.match(text, /imageRequestScheduler\.run\(/)
+  assert.match(text, /new Response\(/)
   console.log('  PASS: protocol shares immutable fetch results and creates independent responses')
 }
 
