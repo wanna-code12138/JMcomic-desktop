@@ -30,6 +30,18 @@ for (const line of lines) {
   if (typeof event.metadata?.cache === 'boolean') {
     addValue(`${key}.cache.${event.metadata.cache ? 'hit' : 'miss'}`, event.elapsedMs)
   }
+  if (typeof event.metadata?.cacheState === 'string') {
+    addValue(`${key}.cacheState.${event.metadata.cacheState}`, event.elapsedMs)
+  }
+  if (typeof event.metadata?.provider === 'string') {
+    addValue(`${key}.provider.${event.metadata.provider}`, event.elapsedMs)
+  }
+  if (typeof event.metadata?.priority === 'string') {
+    addValue(`${key}.priority.${event.metadata.priority}`, event.elapsedMs)
+  }
+  if (typeof event.metadata?.fallback === 'string') {
+    addValue(`${key}.fallback.${event.metadata.fallback}`, event.elapsedMs)
+  }
   if (typeof event.metadata?.source === 'string') {
     addValue(`${key}.source.${event.metadata.source}`, event.elapsedMs)
   }
