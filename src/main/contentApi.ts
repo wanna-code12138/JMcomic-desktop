@@ -110,11 +110,47 @@ const browserProvider: ContentProvider = {
   }
 }
 
+import { net } from 'electron'
+import { createJmAppApiTransport } from './content/jmAppApiTransport'
+import { createJmAppApiProvider } from './content/jmAppApiProvider'
+import { BUILTIN_JM_API_PROFILES } from './content/jmAppApiProfiles'
+import type { JmApiRoute } from './content/jmAppApiDomainResolver'
+
+const anonymousProfile = BUILTIN_JM_API_PROFILES[0]
+const anonymousRoute: JmApiRoute = {
+  apiOrigin: 'https://api.18comic.vip',
+  imageOrigin: 'https://cdn-msp.18comic.vip',
+  profile: anonymousProfile
+}
+
+const anonymousTransport = createJmAppApiTransport({
+  route: anonymousRoute,
+  fetchPort: {
+    async send(req) {
+      const response = await net.fetch(req.url, {
+        method: req.method,
+        headers: req.headers,
+        signal: req.signal,
+        redirect: 'manual'
+      })
+      const bodyText = await response.text()
+      const headers: Record<string, string> = {}
+      response.headers.forEach((v, k) => {
+        headers[k] = v
+      })
+      return { status: response.status, headers, bodyText }
+    }
+  }
+})
+
+const apiContentProvider = createJmAppApiProvider(anonymousTransport, anonymousRoute.imageOrigin)
+
 const contentPersistentCache = createContentCache({
   filePath: join(getAppDataDir(), 'content-cache.json')
 })
 
 const contentGateway = createContentGateway({
+  api: apiContentProvider,
   direct: directProvider,
   browser: browserProvider,
   ttlMs: 60_000,
