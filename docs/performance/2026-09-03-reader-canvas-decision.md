@@ -47,4 +47,21 @@
 
 ### 最终裁定：**不实施 Worker 池，保留主线程 Canvas GPU 加速绘制**
 - **结论**：本阶段不实现 `descramble.worker.ts` 与 `descramblePool.ts`，坚决执行防过度设计准则；
-- **后续执行路径**：直接跳至 **Task 5（合并阅读器缩放与拖动输入）**，彻底消除手势/鼠标操作引起的帧率抖动。
+- **后续执行路径**：推进 **Task 5（合并阅读器缩放与拖动输入）**，彻底消除手势/鼠标操作引起的帧率抖动。
+
+---
+
+## 4. 输入合并复测与资源生命周期闭环
+
+1. **手势与拖动输入优化**（[`src/renderer/src/components/ZoomableImage.tsx`](src/renderer/src/components/ZoomableImage.tsx)）：
+   - 升级为现代 Pointer Events 并启用 `setPointerCapture`，全面支持鼠标、触屏与手写笔跨窗口平滑拖拽；
+   - 滚轮与拖动位移均由单个 `requestAnimationFrame` 统一合并防抖，每帧最多只执行一次 `style.transform` 赋值；
+   - 借助 `ResizeObserver` 缓存容器与内容尺寸，彻底消除了每次鼠标移动反复查询 `clientWidth` / `clientHeight` 引发的强行同步重排（Layout Thrashing）；
+   - 滚轮连续缩放的 React 状态通知增加 100ms 节流，消除连续缩放导致的频繁 React commit。
+2. **退出阅读器资源闭环**：
+   - 离开阅读器页面时，主页面 LRU 协调器立即完全卸载 ReaderPage；
+   - `ResizeObserver` 自动 disconnect，未决的 `rafId` 自动 `cancelAnimationFrame`；
+   - Worker 数量为 0，Bitmap 引用为 0，内存占用即刻归零。
+3. **全量门禁检验**：
+   - 契约与单元测试：全量 36 个测试套件全部 100% 绿灯通过；
+   - 静态构建：`npm run build` 成功完成，无告警与打包异常。
