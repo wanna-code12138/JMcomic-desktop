@@ -651,6 +651,22 @@ export default function SettingsPage(): JSX.Element {
         </Card>
       </div>
 
+      {/* Diagnostics */}
+      <div className={styles.section}>
+        <Text size={500} weight="semibold" className={styles.sectionTitle}>性能与诊断</Text>
+        <Card className={styles.card}>
+          <div className={styles.row}>
+            <div>
+              <Text weight="semibold">高级性能诊断</Text>
+              <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>查看 GPU 硬件加速、进程资源、Long Task 与加载指标</Text></div>
+            </div>
+            <Button size="small" appearance="secondary" onClick={() => useAppStore.getState().setCurrentPage('diagnostics' as any)}>
+              打开诊断页
+            </Button>
+          </div>
+        </Card>
+      </div>
+
       {/* About */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>关于</Text>

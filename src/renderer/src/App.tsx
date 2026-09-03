@@ -26,8 +26,9 @@ import { useAppStore } from './stores/appStore'
 import {
   HomePage, CategoriesPage, SearchPage,
   FavoritesPage, DownloadsPage, SettingsPage,
-  MangaDetailPage, ReaderPage
+  MangaDetailPage, ReaderPage, PerformanceDiagnosticsPage
 } from './pages'
+import { startRendererMetrics } from './performance/rendererMetrics'
 import TitleBar from './components/TitleBar'
 
 const NAV_WIDTH = 208
@@ -194,7 +195,8 @@ const pageComponents: Record<string, React.ComponentType> = {
   downloads: DownloadsPage,
   settings: SettingsPage,
   detail: MangaDetailPage,
-  reader: ReaderPage
+  reader: ReaderPage,
+  diagnostics: PerformanceDiagnosticsPage
 }
 
 interface AppProps {
@@ -214,13 +216,21 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
     })
   }, [])
 
+  React.useEffect(() => {
+    const stop = startRendererMetrics((event) => {
+      window.electronAPI?.performanceRecord(event)
+    })
+    return stop
+  }, [])
+
   const rememberedPrimaryPages = rememberPrimaryPage(visitedPrimaryPages, currentPage)
   const keepDetailMounted =
     currentPage === 'detail' || (currentPage === 'reader' && readerSourcePage === 'detail')
   const mountedPages = [
     ...rememberedPrimaryPages,
     ...(keepDetailMounted ? ['detail'] : []),
-    ...(currentPage === 'reader' ? ['reader'] : [])
+    ...(currentPage === 'reader' ? ['reader'] : []),
+    ...(currentPage === 'diagnostics' ? ['diagnostics'] : [])
   ]
 
   React.useEffect(() => {

@@ -13,6 +13,15 @@ assert.match(ipc, /app\.getGPUFeatureStatus\(\)/)
 assert.match(ipc, /app\.getAppMetrics\(\)/)
 assert.doesNotMatch(ipc, /cookies|getPassword|authGet/i)
 
+const metrics = readFileSync('src/renderer/src/performance/rendererMetrics.ts', 'utf8')
+const page = readFileSync('src/renderer/src/pages/PerformanceDiagnosticsPage.tsx', 'utf8')
+assert.match(metrics, /PerformanceObserver/)
+assert.match(metrics, /requestAnimationFrame/)
+assert.match(page, /2000/)
+assert.match(page, /performanceSnapshot/)
+assert.match(page, /performanceClear/)
+
+
 // 2. parseRendererPerfEvent 严格校验测试
 // 合法事件
 const valid = parseRendererPerfEvent({
