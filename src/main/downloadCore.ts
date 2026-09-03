@@ -1,4 +1,5 @@
 import { existsSync, readdirSync, statSync } from 'fs'
+import { readdir, stat } from 'fs/promises'
 import { basename, isAbsolute, join, relative, resolve } from 'path'
 
 /**
@@ -144,6 +145,41 @@ export function inspectDownloadedChapter(task: DownloadTaskRow): DownloadAvailab
     return { available: true, pageCount }
   } catch {
     return { available: false, pageCount: 0, reason: 'missing-root' }
+  }
+}
+
+/**
+ * 异步扫描章节保存目录，返回按序号排序的本地图片（不存在的目录返回空数组）。
+ * 字段与阅读器 PageData 保持一致：index + imageUrl（jmlocal:// 直读 URL）。
+ */
+export async function resolveLocalChapterPagesAsync(
+  saveDir: string
+): Promise<Array<{ index: number; imageUrl: string }>> {
+  if (!existsSync(saveDir)) return []
+  try {
+    const rawNames = await readdir(saveDir)
+    const validNames: string[] = []
+    await Promise.all(
+      rawNames.map(async (name) => {
+        if (!IMAGE_EXT_RE.test(name)) return
+        try {
+          const st = await stat(join(saveDir, name))
+          if (st.isFile()) validNames.push(name)
+        } catch {}
+      })
+    )
+    validNames.sort((a, b) => {
+      const na = Number(a.match(/^(\d+)/)?.[1] ?? Infinity)
+      const nb = Number(b.match(/^(\d+)/)?.[1] ?? Infinity)
+      if (na !== nb) return na - nb
+      return a.localeCompare(b)
+    })
+    return validNames.map((name, index) => ({
+      index,
+      imageUrl: toLocalImageUrl(join(saveDir, name))
+    }))
+  } catch {
+    return []
   }
 }
 

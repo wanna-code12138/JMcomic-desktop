@@ -363,7 +363,34 @@ export async function preloadImage(url: string): Promise<string | null> {
 }
 
 /**
- * Clear all cached images.
+ * Clear all cached images asynchronously.
+ */
+export async function clearImageCacheAsync(): Promise<number> {
+  const dir = getCacheDir()
+  let count = 0
+  if (existsSync(dir)) {
+    try {
+      const files = await readdir(dir)
+      await Promise.all(
+        files.map(async (file) => {
+          try {
+            await unlink(join(dir, file))
+            count++
+          } catch {
+            /* skip */
+          }
+        })
+      )
+    } catch {
+      /* skip */
+    }
+  }
+  urlToPathCache.clear()
+  return count
+}
+
+/**
+ * Clear all cached images (synchronous fallback).
  */
 export function clearImageCache(): number {
   const dir = getCacheDir()
@@ -381,8 +408,44 @@ export function clearImageCache(): number {
   return count
 }
 
+let cachedSizeValue = 0
+let lastSizeCheckTime = 0
+
 /**
- * Get cache size in bytes.
+ * Get cache size in bytes asynchronously with cached TTL.
+ */
+export async function getImageCacheSizeAsync(): Promise<number> {
+  const now = Date.now()
+  if (now - lastSizeCheckTime < 5000 && cachedSizeValue > 0) {
+    return cachedSizeValue
+  }
+  const dir = getCacheDir()
+  let size = 0
+  if (existsSync(dir)) {
+    try {
+      const files = await readdir(dir)
+      const stats = await Promise.all(
+        files.map(async (file) => {
+          try {
+            const st = await stat(join(dir, file))
+            return st.size
+          } catch {
+            return 0
+          }
+        })
+      )
+      size = stats.reduce((a, b) => a + b, 0)
+    } catch {
+      /* skip */
+    }
+  }
+  cachedSizeValue = size
+  lastSizeCheckTime = now
+  return size
+}
+
+/**
+ * Get cache size in bytes (synchronous fallback).
  */
 export function getImageCacheSize(): number {
   const dir = getCacheDir()
@@ -409,9 +472,9 @@ ipcMain.handle('image:preload', async (_event, url: string) => {
 })
 
 ipcMain.handle('image:clearCache', async () => {
-  return clearImageCache()
+  return clearImageCacheAsync()
 })
 
 ipcMain.handle('image:cacheSize', async () => {
-  return getImageCacheSize()
+  return getImageCacheSizeAsync()
 })

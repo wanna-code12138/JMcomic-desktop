@@ -2,6 +2,7 @@ import { ipcMain, app, BrowserWindow, dialog, shell } from 'electron'
 import type { BindParams, Database as SqlJsDatabase } from 'sql.js'
 import { isAbsolute, join } from 'path'
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync, statSync } from 'fs'
+import { readdir, stat } from 'fs/promises'
 import { getDatabase, saveDatabase } from './database'
 import { beginIoPerfSpan } from './ioMetrics'
 import { loadImages } from './imageLoader'
@@ -15,6 +16,7 @@ import {
   normalizeTaskRow,
   pickRetryableTasks,
   resolveLocalChapterPages,
+  resolveLocalChapterPagesAsync,
   sanitizeFileName,
   type DownloadTaskRow
 } from './downloadCore'
@@ -227,6 +229,37 @@ async function resolveTaskUrls(task: DownloadTask): Promise<void> {
   })
 }
 
+async function existingPagesAsync(saveDir: string): Promise<Map<number, string>> {
+  const span = beginIoPerfSpan('download.scan')
+  const found = new Map<number, string>()
+  if (!existsSync(saveDir)) {
+    span.finish('ok', { itemCount: 0 })
+    return found
+  }
+  try {
+    const entries = await readdir(saveDir)
+    await Promise.all(
+      entries.map(async (name) => {
+        const match = name.match(/^(\d+)\.(jpg|jpeg|png|webp|gif|bmp)$/i)
+        if (!match) return
+        try {
+          const st = await stat(join(saveDir, name))
+          if (st.size > 0) {
+            found.set(Number(match[1]), join(saveDir, name))
+          }
+        } catch {
+          /* 忽略读取失败 */
+        }
+      })
+    )
+    span.finish('ok', { itemCount: entries.length })
+    return found
+  } catch {
+    span.finish('error')
+    return found
+  }
+}
+
 function existingPages(saveDir: string): Map<number, string> {
   const span = beginIoPerfSpan('download.scan')
   const found = new Map<number, string>()
@@ -263,7 +296,7 @@ async function downloadTask(task: DownloadTask): Promise<void> {
     console.log('[download] starting task', task.id, 'images:', task.imageUrls.length, 'dir:', saveDir)
 
     const retries = await getRetries()
-    const existing = existingPages(saveDir)
+    const existing = await existingPagesAsync(saveDir)
     const missingIndices: number[] = []
     for (let i = 0; i < task.totalPages; i++) {
       if (!existing.has(i + 1)) missingIndices.push(i)
@@ -691,7 +724,7 @@ ipcMain.handle('download:chapterPages', async (_event, mangaId: string, chapterI
     row.chapterTitle ?? '',
     row.chapterIndex
   )
-  const pages = resolveLocalChapterPages(saveDir)
+  const pages = await resolveLocalChapterPagesAsync(saveDir)
   if (pages.length === 0) {
     return { ok: false, error: '章节目录中没有图片文件' }
   }

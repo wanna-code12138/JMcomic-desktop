@@ -1,9 +1,12 @@
 import { net, session } from 'electron'
 import { ipcMain } from 'electron'
-import { execSync } from 'child_process'
+import { exec } from 'child_process'
+import { promisify } from 'util'
 import { updateSettings } from './settingsStore'
 import { validateProxyUrl } from './settingsCore'
 import { beginIoPerfSpan } from './ioMetrics'
+
+const execAsync = promisify(exec)
 
 export type NetworkStatus = 'online' | 'degraded' | 'offline'
 
@@ -75,13 +78,13 @@ export async function applyManualProxy(
 }
 
 /**
- * Detect Windows system proxy from registry.
+ * Detect Windows system proxy from registry asynchronously.
  */
-function detectWindowsSystemProxy(): string | null {
+async function detectWindowsSystemProxyAsync(): Promise<string | null> {
   const span = beginIoPerfSpan('network.proxy-probe')
   try {
-    // Read from Windows registry
-    const result = execSync(
+    // Read from Windows registry asynchronously
+    const { stdout: result } = await execAsync(
       'reg query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" /v ProxyEnable 2>nul & ' +
       'reg query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" /v ProxyServer 2>nul',
       { encoding: 'utf-8', timeout: 3000 }
@@ -162,8 +165,8 @@ async function probeWithFetch(url: string, proxyUrl?: string): Promise<{ success
 }
 
 export async function runNetworkProbe(): Promise<ProbeResult> {
-  // Refresh system proxy detection on each probe
-  systemProxyUrl = detectWindowsSystemProxy()
+  // Refresh system proxy detection on each probe asynchronously
+  systemProxyUrl = await detectWindowsSystemProxyAsync()
 
   const effectiveProxy = manualProxyUrl ?? systemProxyUrl
 
