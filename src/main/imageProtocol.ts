@@ -145,17 +145,19 @@ function executeSingleFetch(
         } catch {}
       })
 
-      response.on('end', () => {
+      response.on('end', async () => {
         clearTimeout(totalTimer)
         try {
           streamController?.close()
         } catch {}
 
-        const totalBuf = Buffer.concat(chunks)
+        const buf = Buffer.concat(chunks)
         if (ct.includes('image/')) {
-          storeImage(realUrl, totalBuf, ct).catch((err) => {
+          try {
+            await storeImage(realUrl, buf, ct)
+          } catch (err) {
             console.warn('[jmimg] cache write failed:', err)
-          })
+          }
         }
       })
 
