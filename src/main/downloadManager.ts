@@ -3,6 +3,7 @@ import type { BindParams, Database as SqlJsDatabase } from 'sql.js'
 import { isAbsolute, join } from 'path'
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync, statSync } from 'fs'
 import { getDatabase, saveDatabase } from './database'
+import { beginIoPerfSpan } from './ioMetrics'
 import { loadImages } from './imageLoader'
 import { descrambleImage } from './imageDescrambler'
 import { getSettings, updateSettings } from './settingsStore'
@@ -227,9 +228,14 @@ async function resolveTaskUrls(task: DownloadTask): Promise<void> {
 }
 
 function existingPages(saveDir: string): Map<number, string> {
+  const span = beginIoPerfSpan('download.scan')
   const found = new Map<number, string>()
-  if (!existsSync(saveDir)) return found
-  for (const name of readdirSync(saveDir)) {
+  if (!existsSync(saveDir)) {
+    span.finish('ok', { itemCount: 0 })
+    return found
+  }
+  const entries = readdirSync(saveDir)
+  for (const name of entries) {
     const match = name.match(/^(\d+)\.(jpg|jpeg|png|webp|gif|bmp)$/i)
     if (!match) continue
     try {
@@ -240,6 +246,7 @@ function existingPages(saveDir: string): Map<number, string> {
       /* 忽略读取失败 */
     }
   }
+  span.finish('ok', { itemCount: entries.length })
   return found
 }
 

@@ -3,6 +3,7 @@ import { ipcMain } from 'electron'
 import { execSync } from 'child_process'
 import { updateSettings } from './settingsStore'
 import { validateProxyUrl } from './settingsCore'
+import { beginIoPerfSpan } from './ioMetrics'
 
 export type NetworkStatus = 'online' | 'degraded' | 'offline'
 
@@ -77,6 +78,7 @@ export async function applyManualProxy(
  * Detect Windows system proxy from registry.
  */
 function detectWindowsSystemProxy(): string | null {
+  const span = beginIoPerfSpan('network.proxy-probe')
   try {
     // Read from Windows registry
     const result = execSync(
@@ -86,18 +88,26 @@ function detectWindowsSystemProxy(): string | null {
     )
 
     const enableMatch = result.match(/ProxyEnable\s+REG_DWORD\s+0x1/)
-    if (!enableMatch) return null
+    if (!enableMatch) {
+      span.finish('ok')
+      return null
+    }
 
     const serverMatch = result.match(/ProxyServer\s+REG_SZ\s+(.+)/)
-    if (!serverMatch) return null
+    if (!serverMatch) {
+      span.finish('ok')
+      return null
+    }
 
     let server = serverMatch[1].trim()
     // Add http:// prefix if missing
     if (!server.startsWith('http://') && !server.startsWith('socks')) {
       server = 'http://' + server
     }
+    span.finish('ok')
     return server
   } catch {
+    span.finish('error')
     return null
   }
 }

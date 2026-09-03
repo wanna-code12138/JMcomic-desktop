@@ -7,6 +7,7 @@ import * as crypto from 'crypto'
 import { selectEvictionCandidates } from './imageCacheCore'
 import { getAppDataDir } from './dataPaths'
 import { createCacheMaintenanceScheduler } from './imageCacheMaintenance'
+import { beginIoPerfSpan } from './ioMetrics'
 
 // ─── Image Loader Pipeline ────────────────────────────────────
 
@@ -124,6 +125,7 @@ export function getImageCacheLimitBytes(): number {
 
 function enforceCacheLimit(cacheDir: string): void {
   if (imageCacheLimitBytes <= 0) return
+  const span = beginIoPerfSpan('image-cache.scan')
   let files: { name: string; size: number; mtimeMs: number }[] = []
   try {
     files = readdirSync(cacheDir)
@@ -138,8 +140,10 @@ function enforceCacheLimit(cacheDir: string): void {
       })
       .filter((f): f is { name: string; size: number; mtimeMs: number } => f !== null)
   } catch {
+    span.finish('error')
     return
   }
+  span.finish('ok', { itemCount: files.length })
   for (const name of selectEvictionCandidates(files, imageCacheLimitBytes)) {
     try {
       unlinkSync(join(cacheDir, name))
@@ -151,10 +155,12 @@ function enforceCacheLimit(cacheDir: string): void {
 
 async function enforceCacheLimitAsync(cacheDir: string): Promise<void> {
   if (imageCacheLimitBytes <= 0) return
+  const span = beginIoPerfSpan('image-cache.scan')
   let names: string[]
   try {
     names = await readdir(cacheDir)
   } catch {
+    span.finish('error')
     return
   }
 
@@ -173,6 +179,7 @@ async function enforceCacheLimitAsync(cacheDir: string): Promise<void> {
   const files = entries.filter(
     (entry): entry is { name: string; size: number; mtimeMs: number } => entry !== null
   )
+  span.finish('ok', { itemCount: files.length })
   for (const name of selectEvictionCandidates(files, imageCacheLimitBytes)) {
     await unlink(join(cacheDir, name)).catch(() => {})
   }
