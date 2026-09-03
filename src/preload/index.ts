@@ -140,7 +140,15 @@ const api = {
       ipcRenderer.removeListener('content:pages:batch', handler)
     }
   },
-  contentWarmupStatus: () => ipcRenderer.invoke('content:warmupStatus'),
+  contentWarmupStatus: () => ipcRenderer.invoke('session:warmupStatus'),
+  contentWarmupRetry: () => ipcRenderer.invoke('session:warmupRetry'),
+  onWarmupStateChanged: (callback: (state: unknown) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, state: unknown): void => callback(state)
+    ipcRenderer.on('app:warmupStateChanged', handler)
+    return () => {
+      ipcRenderer.removeListener('app:warmupStateChanged', handler)
+    }
+  },
 
   // Local history
   historyUpsert: (data: Record<string, unknown>) => ipcRenderer.invoke('history:upsert', data),

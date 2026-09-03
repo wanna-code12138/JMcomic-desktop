@@ -1,7 +1,6 @@
 import { ipcMain, app, BrowserWindow } from 'electron'
 import { join } from 'node:path'
-import { getNetworkStatus } from './networkProbe'
-import { isSessionWarmedUp, warmupSession } from './sessionWarmup'
+import { ensureWarmup, getWarmupState, retryWarmup } from './sessionWarmup'
 import {
   extractHomepage,
   extractMangaDetail,
@@ -27,10 +26,11 @@ import {
 
 // Ensure session is ready (Cloudflare warmup)
 async function ensureReady(): Promise<void> {
-  if (!isSessionWarmedUp()) {
-    const hostWindow = BrowserWindow.getAllWindows().find((window) => !window.isDestroyed())
-    if (!hostWindow) throw new Error('找不到用于网页验证的主窗口')
-    await warmupSession(hostWindow)
+  const hostWindow = BrowserWindow.getAllWindows().find((window) => !window.isDestroyed())
+  if (!hostWindow) throw new Error('找不到用于网页验证的主窗口')
+  const state = await ensureWarmup('browser-fallback', hostWindow)
+  if (state.phase === 'failed') {
+    throw new Error(`浏览器验证失败: ${state.reason}`)
   }
 }
 
@@ -339,10 +339,17 @@ ipcMain.on('content:pages:cancel', (_event, chapterUrl?: string) => {
 })
 
 ipcMain.handle('content:warmupStatus', () => {
+  const state = getWarmupState()
   return {
-    warmedUp: isSessionWarmedUp(),
-    networkStatus: getNetworkStatus()
+    warmedUp: state.phase === 'verified',
+    state
   }
+})
+
+ipcMain.handle('content:warmupRetry', async () => {
+  const hostWindow = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed())
+  if (!hostWindow) return { phase: 'failed', reason: 'window-closed', retryable: true }
+  return retryWarmup(hostWindow)
 })
 
 app.on('before-quit', () => {

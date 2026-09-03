@@ -116,7 +116,7 @@ export default function HomePage(): JSX.Element {
   const [tab, setTab] = React.useState<'recommended' | 'latest' | 'popular'>('recommended')
   const [loading, setLoading] = React.useState(true)
   const [loadingMore, setLoadingMore] = React.useState(false)
-  const [warmingUp, setWarmingUp] = React.useState(true)
+  const [warmupState, setWarmupState] = React.useState<{ phase: string; reason?: string }>({ phase: 'idle' })
   const [recommendationRefreshing, setRecommendationRefreshing] = React.useState(false)
   const [recommendationFeed, setRecommendationFeed] = React.useState<MangaCardData[]>([])
   const [recommendationVisibleCount, setRecommendationVisibleCount] = React.useState(0)
@@ -223,34 +223,34 @@ export default function HomePage(): JSX.Element {
     }
   }, [])
 
-  // Warm up the shared session once. Recommendation candidates use the same
-  // verified cookies even when their list requests take the direct fast path.
+  // 观察验证状态，但不阻塞首页优先加载缓存与 API 内容
   React.useEffect(() => {
     let cancelled = false
-    async function warmup(): Promise<void> {
+    async function checkWarmup(): Promise<void> {
       try {
-        if (window.electronAPI) {
-          const status = await window.electronAPI.contentWarmupStatus()
-          if (!status.warmedUp) {
-            await new Promise<void>((resolve) => {
-              const unsub = window.electronAPI!.onWarmupDone(() => {
-                unsub()
-                resolve()
-              })
-              setTimeout(resolve, 35000)
-            })
+        if (window.electronAPI?.contentWarmupStatus) {
+          const res = await window.electronAPI.contentWarmupStatus()
+          if (!cancelled && (res as any)?.state) {
+            setWarmupState((res as any).state as { phase: string; reason?: string })
           }
         }
       } catch { /* proceed */ }
-      if (!cancelled) setWarmingUp(false)
     }
-    void warmup()
-    return () => { cancelled = true }
+    void checkWarmup()
+
+    const unsub = window.electronAPI?.onWarmupStateChanged?.((state) => {
+      if (!cancelled) setWarmupState(state as { phase: string; reason?: string })
+    })
+
+    return () => {
+      cancelled = true
+      unsub?.()
+    }
   }, [])
 
   // Load the selected tab only while the kept-alive Home page is visible.
   React.useEffect(() => {
-    if (warmingUp || currentPage !== 'home') return
+    if (currentPage !== 'home') return
     const cancelled = { current: false }
     setError('')
 
@@ -278,7 +278,7 @@ export default function HomePage(): JSX.Element {
       if (tab === 'recommended') recommendationRequestId.current++
       else window.electronAPI?.contentHomepageCancel(tab)
     }
-  }, [currentPage, fetchCategory, loadRecommendations, recommendationRevision, tab, warmingUp])
+  }, [currentPage, fetchCategory, loadRecommendations, recommendationRevision, tab])
 
   React.useEffect(() => {
     if (tab !== 'recommended' || recommendationFeed.length === 0 || recommendationVisibleCount === 0) return
@@ -318,7 +318,7 @@ export default function HomePage(): JSX.Element {
     : sections[tab]
   const activeLoadingMore = tab !== 'recommended' && loadingMore
 
-  if (warmingUp) {
+  if (visibleCards.length === 0 && loading && warmupState.phase === 'verifying') {
     return (
       <div className={styles.root} ref={rootRef}>
         <div className={styles.statusMsg}>
@@ -334,7 +334,10 @@ export default function HomePage(): JSX.Element {
             appearance="secondary"
             size="small"
             style={{ marginTop: '12px' }}
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              window.electronAPI?.contentWarmupRetry?.()
+              window.location.reload()
+            }}
           >
             验证卡住？点此重试
           </Button>
