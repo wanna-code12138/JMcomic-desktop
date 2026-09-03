@@ -1,0 +1,19 @@
+{
+  "total": 20,
+  "content": [
+    {
+      "id": "10001",
+      "name": "分类测试作品 A",
+      "image": "/media/albums/10001.jpg",
+      "author": "作者A",
+      "tags": ["同人"]
+    },
+    {
+      "id": "10002",
+      "name": "分类测试作品 B",
+      "image": "/media/albums/10002.jpg",
+      "author": "作者B",
+      "tags": ["剧情"]
+    }
+  ]
+}
