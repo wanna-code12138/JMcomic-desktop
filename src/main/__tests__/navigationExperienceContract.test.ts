@@ -33,5 +33,16 @@ test('Home, Search, and Categories pages capture and restore snapshots', () => {
   assert.match(categorySource, /usePageSnapshot/)
 })
 
+test('MangaCard eliminates hover re-renders and provides accessible favorite button', () => {
+  const cardSource = readFileSync(resolve(process.cwd(), 'src/renderer/src/components/MangaCard.tsx'), 'utf-8')
+  const cssSource = readFileSync(resolve(process.cwd(), 'src/renderer/src/assets/global.css'), 'utf-8')
+
+  assert.doesNotMatch(cardSource, /useState\([^)]*hover/i)
+  assert.match(cardSource, /useIsFavorite/)
+  assert.match(cardSource, /<button[^>]+aria-label=/s)
+  assert.match(cssSource, /:focus-within/)
+  assert.match(cssSource, /@media \(prefers-reduced-motion: reduce\)/)
+})
+
 if (process.exitCode) console.log('Some tests failed.')
 else console.log('All navigation experience contract tests passed!')
