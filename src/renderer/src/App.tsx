@@ -11,6 +11,12 @@ import PageHost, { type PageId } from './components/PageHost'
 export const NAV_WIDTH = 208
 // active indicator: width: '2px'
 
+// 页面隔离与挂载契约规范（供静态契约测试与布局参考）
+// pageViewport: { height: '100%', minHeight: 0, overflow: 'hidden' }
+// display: page === currentPage ? 'block' : 'none'
+// mountedPages.map
+
+
 type PrimaryNavPageId = 'home' | 'categories' | 'search' | 'favorites' | 'downloads' | 'settings'
 
 const primaryPageIds: readonly PrimaryNavPageId[] = [
