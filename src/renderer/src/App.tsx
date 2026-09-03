@@ -1,45 +1,29 @@
 import React from 'react'
 import { useAppStore } from './stores/appStore'
-import {
-  HomePage, CategoriesPage, SearchPage,
-  FavoritesPage, DownloadsPage, SettingsPage,
-  MangaDetailPage, ReaderPage, PerformanceDiagnosticsPage
-} from './pages'
 import { startRendererMetrics } from './performance/rendererMetrics'
 import TitleBar from './components/TitleBar'
 import AppFrame from './components/AppFrame'
 import AppNavigation from './components/AppNavigation'
 import AppStatusBar from './components/AppStatusBar'
+import PageHost, { type PageId } from './components/PageHost'
 
 // WinUI 导航宽度与指示条规范（供外部契约与布局参考）
 export const NAV_WIDTH = 208
 // active indicator: width: '2px'
 
-type PageId = 'home' | 'categories' | 'search' | 'favorites' | 'downloads' | 'settings'
+type PrimaryNavPageId = 'home' | 'categories' | 'search' | 'favorites' | 'downloads' | 'settings'
 
-const primaryPageIds: readonly PageId[] = [
+const primaryPageIds: readonly PrimaryNavPageId[] = [
   'home', 'categories', 'search', 'favorites', 'downloads', 'settings'
 ]
 
-function isPrimaryPage(page: string): page is PageId {
-  return primaryPageIds.includes(page as PageId)
+function isPrimaryPage(page: string): page is PrimaryNavPageId {
+  return primaryPageIds.includes(page as PrimaryNavPageId)
 }
 
-function rememberPrimaryPage(visited: PageId[], page: string): PageId[] {
+function rememberPrimaryPage(visited: PrimaryNavPageId[], page: string): PrimaryNavPageId[] {
   if (!isPrimaryPage(page) || visited.includes(page)) return visited
   return [...visited, page]
-}
-
-const pageComponents: Record<string, React.ComponentType> = {
-  home: HomePage,
-  categories: CategoriesPage,
-  search: SearchPage,
-  favorites: FavoritesPage,
-  downloads: DownloadsPage,
-  settings: SettingsPage,
-  detail: MangaDetailPage,
-  reader: ReaderPage,
-  diagnostics: PerformanceDiagnosticsPage
 }
 
 interface AppProps {
@@ -50,7 +34,7 @@ interface AppProps {
 export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Element {
   const currentPage = useAppStore((state) => state.currentPage)
   const readerSourcePage = useAppStore((state) => state.readerSourcePage)
-  const [visitedPrimaryPages, setVisitedPrimaryPages] = React.useState<PageId[]>(['home'])
+  const [visitedPrimaryPages, setVisitedPrimaryPages] = React.useState<PrimaryNavPageId[]>(['home'])
 
   React.useEffect(() => {
     const stop = startRendererMetrics((event) => {
@@ -62,44 +46,22 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
   const rememberedPrimaryPages = rememberPrimaryPage(visitedPrimaryPages, currentPage)
   const keepDetailMounted =
     currentPage === 'detail' || (currentPage === 'reader' && readerSourcePage === 'detail')
-  const mountedPages = [
+  const mountedPages: PageId[] = [
     ...rememberedPrimaryPages,
-    ...(keepDetailMounted ? ['detail'] : []),
-    ...(currentPage === 'reader' ? ['reader'] : []),
-    ...(currentPage === 'diagnostics' ? ['diagnostics'] : [])
+    ...(keepDetailMounted ? ['detail' as const] : []),
+    ...(currentPage === 'reader' ? ['reader' as const] : []),
+    ...(currentPage === 'diagnostics' ? ['diagnostics' as const] : [])
   ]
 
   React.useEffect(() => {
     setVisitedPrimaryPages((visited) => rememberPrimaryPage(visited, currentPage))
   }, [currentPage])
 
-  const pagesContent = (
-    <>
-      {mountedPages.map((page) => {
-        const Page = pageComponents[page] ?? HomePage
-        return (
-          <div
-            key={page}
-            style={{
-              height: '100%',
-              minHeight: 0,
-              overflow: 'hidden',
-              display: page === currentPage ? 'block' : 'none'
-            }}
-            aria-hidden={page !== currentPage}
-          >
-            <Page />
-          </div>
-        )
-      })}
-    </>
-  )
-
   return (
     <AppFrame
       titleBar={<TitleBar darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />}
       navigation={<AppNavigation />}
-      page={pagesContent}
+      page={<PageHost currentPage={currentPage as PageId} mountedPages={mountedPages} />}
       statusBar={<AppStatusBar />}
     />
   )

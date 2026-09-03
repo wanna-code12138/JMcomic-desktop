@@ -12,5 +12,15 @@ assert.match(nav, /<nav/)
 assert.match(nav, /onKeyDown/)
 assert.match(status, /export default React\.memo/)
 
+const pageHost = readFileSync('src/renderer/src/components/PageHost.tsx', 'utf8')
+const boundary = readFileSync('src/renderer/src/components/PageLoadBoundary.tsx', 'utf8')
+assert.match(pageHost, /lazy\(\(\) => import\('\.\.\/pages\/MangaDetailPage'\)\)/)
+assert.match(pageHost, /lazy\(\(\) => import\('\.\.\/pages\/ReaderPage'\)\)/)
+assert.match(pageHost, /lazy\(\(\) => import\('\.\.\/pages\/DownloadsPage'\)\)/)
+assert.match(pageHost, /lazy\(\(\) => import\('\.\.\/pages\/SettingsPage'\)\)/)
+assert.match(boundary, /Suspense/)
+assert.match(boundary, /重新加载|重试/)
+
+
 
 console.log('Renderer boundary store subscription test passed!')
