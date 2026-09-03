@@ -9,6 +9,11 @@ import {
 } from './dataPaths'
 import { beginMainPerfSpan } from './performanceTrace'
 import { beginIoPerfSpan } from './ioMetrics'
+import {
+  createDatabaseWriteCoordinator,
+  type DatabaseScheduleReason,
+  type DatabaseWriteCoordinator
+} from './databaseWriteCoordinator'
 
 let db: SqlJsDatabase | null = null
 const DB_PATH = getDatabasePath()
@@ -172,7 +177,14 @@ function initTables(d: SqlJsDatabase): void {
   }
 }
 
-export function saveDatabase(): void {
+export const databaseCoordinator: DatabaseWriteCoordinator = createDatabaseWriteCoordinator({
+  debounceMs: 100,
+  writer: async () => {
+    saveDatabaseNow()
+  }
+})
+
+function saveDatabaseNow(): void {
   if (!db) return
   const perf = beginMainPerfSpan('database.save')
   const perfFlush = beginIoPerfSpan('database.flush')
@@ -189,9 +201,21 @@ export function saveDatabase(): void {
   }
 }
 
-export function closeDatabase(): void {
+export function scheduleDatabaseSave(reason: DatabaseScheduleReason = 'history'): void {
+  databaseCoordinator.schedule(reason)
+}
+
+export function saveDatabase(): void {
+  saveDatabaseNow()
+}
+
+export async function closeDatabase(timeoutMs = 2000): Promise<void> {
   if (db) {
-    saveDatabase()
+    try {
+      await databaseCoordinator.close(timeoutMs)
+    } catch {
+      saveDatabaseNow()
+    }
     db.close()
     db = null
   }

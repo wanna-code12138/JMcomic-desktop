@@ -116,8 +116,8 @@ app.whenReady().then(async () => {
   })
 })
 
-app.on('window-all-closed', () => {
-  closeDatabase()
+app.on('window-all-closed', async () => {
+  await closeDatabase(2000)
   if (process.platform !== 'darwin') {
     app.quit()
   }
