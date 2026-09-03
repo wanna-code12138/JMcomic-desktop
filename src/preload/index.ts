@@ -156,7 +156,12 @@ const api = {
   personalDataClear: () => ipcRenderer.invoke('data:clearPersonal'),
 
   // App info
-  appVersion: () => ipcRenderer.invoke('app:getVersion')
+  appVersion: () => ipcRenderer.invoke('app:getVersion'),
+
+  // Performance diagnostics
+  performanceRecord: (event: unknown) => ipcRenderer.send('performance:record', event),
+  performanceSnapshot: () => ipcRenderer.invoke('performance:snapshot'),
+  performanceClear: () => ipcRenderer.invoke('performance:clear')
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)

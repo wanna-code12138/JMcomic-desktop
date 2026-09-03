@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import { registerIpcHandlers } from './ipc'
+import { registerPerformanceDiagnosticsIpc } from './performanceDiagnosticsIpc'
 import { closeDatabase } from './database'
 import { startPeriodicProbe, applyManualProxy } from './networkProbe'
 import { warmupSession } from './sessionWarmup'
@@ -81,6 +82,7 @@ function createWindow(settings: AppSettings): void {
 
 app.whenReady().then(async () => {
   registerIpcHandlers()
+  registerPerformanceDiagnosticsIpc()
   registerImageProtocol()
   registerLocalImageProtocol()
   startPeriodicProbe()
