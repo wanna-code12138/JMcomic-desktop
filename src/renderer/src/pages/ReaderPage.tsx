@@ -366,10 +366,20 @@ function DescrambledImage(props: {
       return
     }
 
+    const canvasSpan = startPerfSpan(
+      'reader.canvas',
+      { width: w, height: h, stripCount: c },
+      undefined,
+      (event) => window.electronAPI?.performanceRecord(event)
+    )
+
     canvas.width = w
     canvas.height = h
     const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    if (!ctx) {
+      canvasSpan.finish('error')
+      return
+    }
 
     // 反打乱算法（与 Python JmImageTool.decode_and_save 等价）：
     // 打乱时：条带 g 的源 y = s - h*(g+1) - f，目标 y = h*g (+f if g>0)
@@ -392,6 +402,7 @@ function DescrambledImage(props: {
     }
 
     // DESCRAMBLE MATH END
+    canvasSpan.finish('ok')
 
     // 隐藏原图，显示 canvas
     img.style.display = 'none'
