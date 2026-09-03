@@ -75,3 +75,76 @@ export function takeSnapshot(
   if (!snapshot) return undefined
   return structuredClone(snapshot)
 }
+
+let globalPageCache = createPageCacheState('home')
+
+export function getGlobalPageCache(): PageCacheState {
+  return globalPageCache
+}
+
+export function updateGlobalPageCache(
+  updater: (prev: PageCacheState) => PageCacheState
+): PageCacheState {
+  globalPageCache = updater(globalPageCache)
+  return globalPageCache
+}
+
+import React from 'react'
+
+export function usePageSnapshot<TFilters = Record<string, unknown>>(
+  pageId: PrimaryPageId,
+  scrollRef: React.RefObject<HTMLElement | null>,
+  captureFilters?: () => TFilters,
+  restoreFilters?: (filters: TFilters) => void
+): { snapshot: PageSnapshot | undefined; saveCurrentSnapshot: () => void } {
+  const isRestoredRef = React.useRef(false)
+
+  const saveCurrentSnapshot = React.useCallback(() => {
+    const scrollTop = scrollRef.current?.scrollTop ?? 0
+    const filters = captureFilters?.() as Record<string, unknown> | undefined
+    globalPageCache = saveSnapshot(globalPageCache, pageId, {
+      scrollTop,
+      filters
+    })
+  }, [captureFilters, pageId, scrollRef])
+
+  React.useEffect(() => {
+    const snapshot = takeSnapshot(globalPageCache, pageId)
+    if (snapshot && !isRestoredRef.current) {
+      isRestoredRef.current = true
+      if (snapshot.filters && restoreFilters) {
+        restoreFilters(snapshot.filters as TFilters)
+      }
+      if (typeof snapshot.scrollTop === 'number' && snapshot.scrollTop > 0) {
+        const targetScroll = snapshot.scrollTop
+        requestAnimationFrame(() => {
+          if (scrollRef.current) {
+            scrollRef.current.scrollTop = targetScroll
+          }
+          if (scrollRef.current && scrollRef.current.scrollHeight < targetScroll) {
+            let tried = false
+            const ro = new ResizeObserver(() => {
+              if (tried) return
+              if (scrollRef.current && scrollRef.current.scrollHeight >= targetScroll) {
+                tried = true
+                scrollRef.current.scrollTop = targetScroll
+                ro.disconnect()
+              }
+            })
+            ro.observe(scrollRef.current)
+            setTimeout(() => ro.disconnect(), 1000)
+          }
+        })
+      }
+    }
+
+    return () => {
+      saveCurrentSnapshot()
+    }
+  }, [pageId, restoreFilters, saveCurrentSnapshot, scrollRef])
+
+  return {
+    snapshot: takeSnapshot(globalPageCache, pageId),
+    saveCurrentSnapshot
+  }
+}

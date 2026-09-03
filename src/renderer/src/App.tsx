@@ -17,6 +17,8 @@ export const NAV_WIDTH = 208
 // mountedPages.map
 
 
+import { touchPage, createPageCacheState, type PrimaryPageId } from './navigation/pageStateCache'
+
 type PrimaryNavPageId = 'home' | 'categories' | 'search' | 'favorites' | 'downloads' | 'settings'
 
 const primaryPageIds: readonly PrimaryNavPageId[] = [
@@ -27,9 +29,10 @@ function isPrimaryPage(page: string): page is PrimaryNavPageId {
   return primaryPageIds.includes(page as PrimaryNavPageId)
 }
 
-function rememberPrimaryPage(visited: PrimaryNavPageId[], page: string): PrimaryNavPageId[] {
-  if (!isPrimaryPage(page) || visited.includes(page)) return visited
-  return [...visited, page]
+function rememberPrimaryPage(visited: readonly PrimaryNavPageId[], page: string): readonly PrimaryNavPageId[] {
+  if (!isPrimaryPage(page)) return visited
+  const state = { mounted: visited as PrimaryPageId[], snapshots: {} }
+  return touchPage(state, page as PrimaryPageId, 3).mounted as readonly PrimaryNavPageId[]
 }
 
 interface AppProps {
@@ -40,7 +43,8 @@ interface AppProps {
 export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Element {
   const currentPage = useAppStore((state) => state.currentPage)
   const readerSourcePage = useAppStore((state) => state.readerSourcePage)
-  const [visitedPrimaryPages, setVisitedPrimaryPages] = React.useState<PrimaryNavPageId[]>(['home'])
+  const [pageCache, setPageCache] = React.useState(() => createPageCacheState('home'))
+  const visitedPrimaryPages = pageCache.mounted as readonly PrimaryNavPageId[]
 
   React.useEffect(() => {
     const stop = startRendererMetrics((event) => {
@@ -48,6 +52,12 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
     })
     return stop
   }, [])
+
+  React.useEffect(() => {
+    if (isPrimaryPage(currentPage)) {
+      setPageCache((prev) => touchPage(prev, currentPage as PrimaryPageId, 3))
+    }
+  }, [currentPage])
 
   const rememberedPrimaryPages = rememberPrimaryPage(visitedPrimaryPages, currentPage)
   const keepDetailMounted =
@@ -58,10 +68,6 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
     ...(currentPage === 'reader' ? ['reader' as const] : []),
     ...(currentPage === 'diagnostics' ? ['diagnostics' as const] : [])
   ]
-
-  React.useEffect(() => {
-    setVisitedPrimaryPages((visited) => rememberPrimaryPage(visited, currentPage))
-  }, [currentPage])
 
   return (
     <AppFrame

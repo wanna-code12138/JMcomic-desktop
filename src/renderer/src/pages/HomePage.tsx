@@ -12,6 +12,7 @@ import {
 import { ArrowSync20Regular } from '@fluentui/react-icons'
 import { MangaCard, type MangaCardData } from '../components'
 import { useAppStore } from '../stores/appStore'
+import { usePageSnapshot } from '../navigation/pageStateCache'
 import {
   buildRecommendationFeed,
   nextRecommendationVisibleCount,
@@ -123,6 +124,9 @@ export default function HomePage(): JSX.Element {
   const loadedTabs = React.useRef(new Set<string>())
   const streamOff = React.useRef<(() => void) | null>(null)
   const rootRef = React.useRef<HTMLDivElement | null>(null)
+  usePageSnapshot('home', rootRef, () => ({ tab }), (filters: any) => {
+    if (filters?.tab) setTab(filters.tab)
+  })
   const bottomSentinelRef = React.useRef<HTMLDivElement | null>(null)
   const recommendationTagOffset = React.useRef(0)
   const recommendationSeed = React.useRef(Date.now())
