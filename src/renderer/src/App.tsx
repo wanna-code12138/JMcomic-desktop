@@ -206,7 +206,10 @@ interface AppProps {
 
 export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Element {
   const styles = useStyles()
-  const { currentPage, setCurrentPage, networkStatus, readerSourcePage } = useAppStore()
+  const currentPage = useAppStore((state) => state.currentPage)
+  const setCurrentPage = useAppStore((state) => state.setCurrentPage)
+  const networkStatus = useAppStore((state) => state.networkStatus)
+  const readerSourcePage = useAppStore((state) => state.readerSourcePage)
   const [appVersion, setAppVersion] = React.useState('1.0.3')
   const [visitedPrimaryPages, setVisitedPrimaryPages] = React.useState<PageId[]>(['home'])
 
