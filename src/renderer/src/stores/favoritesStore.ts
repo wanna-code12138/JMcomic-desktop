@@ -15,6 +15,8 @@ export interface FavoritesState {
 }
 
 let initPromise: Promise<void> | null = null
+let initialized = false
+const pendingIds = new Set<string>()
 
 export const useFavoritesStore = create<FavoritesState>((set, get) => ({
   favoriteIds: new Set<string>(),
@@ -22,12 +24,14 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
   error: null,
 
   initialize: async () => {
+    if (initialized) return
     if (initPromise) return initPromise
     initPromise = (async () => {
       try {
         set({ loading: true, error: null })
         const list = await window.electronAPI?.favoritesList()
         const ids = new Set<string>((list ?? []).map((f: any) => f.manga_id))
+        initialized = true
         set({ favoriteIds: ids, loading: false })
       } catch (err) {
         set({ error: String(err), loading: false })
@@ -39,6 +43,9 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
   },
 
   toggleFavorite: async (item: FavoriteItem) => {
+    await get().initialize()
+    if (pendingIds.has(item.mangaId)) return get().favoriteIds.has(item.mangaId)
+    pendingIds.add(item.mangaId)
     const prevIds = get().favoriteIds
     const isFav = prevIds.has(item.mangaId)
     const nextIds = new Set(prevIds)
@@ -64,8 +71,13 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
       return !isFav
     } catch (err) {
       // 失败回滚
-      set({ favoriteIds: prevIds, error: String(err) })
+      const restoredIds = new Set(get().favoriteIds)
+      if (isFav) restoredIds.add(item.mangaId)
+      else restoredIds.delete(item.mangaId)
+      set({ favoriteIds: restoredIds, error: String(err) })
       return isFav
+    } finally {
+      pendingIds.delete(item.mangaId)
     }
   }
 }))

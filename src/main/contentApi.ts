@@ -1,4 +1,4 @@
-import { ipcMain, app, BrowserWindow } from 'electron'
+import { ipcMain, app, BrowserWindow, net } from 'electron'
 import { join } from 'node:path'
 import { ensureWarmup, getWarmupState, retryWarmup } from './sessionWarmup'
 import {
@@ -23,6 +23,8 @@ import {
   type HomepageCategory,
   type SearchRequest
 } from './contentGateway'
+import { createJmApiFetchPort } from './content/jmAppApiFetchPort'
+import { createAnonymousApiProvider } from './content/jmAppApiRuntime'
 
 // Ensure session is ready (Cloudflare warmup)
 async function ensureReady(): Promise<void> {
@@ -110,43 +112,15 @@ const browserProvider: ContentProvider = {
   }
 }
 
-import { net } from 'electron'
-import { createJmAppApiTransport } from './content/jmAppApiTransport'
-import { createJmAppApiProvider } from './content/jmAppApiProvider'
-import { BUILTIN_JM_API_PROFILES } from './content/jmAppApiProfiles'
-import type { JmApiRoute } from './content/jmAppApiDomainResolver'
+const apiContentProvider = createAnonymousApiProvider(createJmApiFetchPort((url, init) => net.fetch(url, init)))
 
-const anonymousProfile = BUILTIN_JM_API_PROFILES[0]
-const anonymousRoute: JmApiRoute = {
-  apiOrigin: 'https://api.18comic.vip',
-  imageOrigin: 'https://cdn-msp.18comic.vip',
-  profile: anonymousProfile
+export async function warmAnonymousContentProvider(): Promise<void> {
+  await apiContentProvider.prewarm().catch(() => {})
 }
 
-const anonymousTransport = createJmAppApiTransport({
-  route: anonymousRoute,
-  fetchPort: {
-    async send(req) {
-      const response = await net.fetch(req.url, {
-        method: req.method,
-        headers: req.headers,
-        signal: req.signal,
-        redirect: 'manual'
-      })
-      const bodyText = await response.text()
-      const headers: Record<string, string> = {}
-      response.headers.forEach((v, k) => {
-        headers[k] = v
-      })
-      return { status: response.status, headers, bodyText }
-    }
-  }
-})
-
-const apiContentProvider = createJmAppApiProvider(anonymousTransport, anonymousRoute.imageOrigin)
-
 const contentPersistentCache = createContentCache({
-  filePath: join(getAppDataDir(), 'content-cache.json')
+  filePath: join(getAppDataDir(), 'content-cache.json'),
+  namespace: 'public-content-api-v2'
 })
 
 const contentGateway = createContentGateway({
@@ -159,6 +133,14 @@ const contentGateway = createContentGateway({
 
 export async function clearContentCache(): Promise<void> {
   await contentGateway.clear()
+}
+
+export async function getPublicMangaDetail(mangaId: string) {
+  return (await contentGateway.detail(mangaId)).data
+}
+
+export async function getPublicChapterPages(chapterUrl: string) {
+  return (await contentGateway.pages(chapterUrl)).data
 }
 
 ipcMain.handle('content:homepage', async (_event, category?: string) => {

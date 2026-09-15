@@ -24,7 +24,8 @@ async function main(): Promise<void> {
     const provider = createJmAppApiProvider(
       mockTransport((endpoint, query) => {
         assert.equal(endpoint, 'category')
-        assert.equal(query?.category, 'recommended')
+        assert.equal(query?.c, '0')
+        assert.equal(query?.o, 'mr')
         return {
           total: 1,
           content: [{ id: '101', name: '作品A', image: '/media/albums/101.jpg' }]
@@ -33,7 +34,7 @@ async function main(): Promise<void> {
       'https://cdn-msp.18comic.vip'
     )
 
-    const cards = await provider.homepage('recommended')
+    const cards = await provider.homepage('latest')
     assert.equal(cards.length, 1)
     assert.equal(cards[0].id, '101')
     assert.equal(cards[0].title, '作品A')
@@ -61,7 +62,7 @@ async function main(): Promise<void> {
       order: 'mr',
       time: 'a'
     })
-    assert.equal(list.totalPages, 2)
+    assert.equal(list.totalPages, 1) // Anonymous app API uses 80 items per page.
     assert.equal(list.results[0].id, '202')
   })
 

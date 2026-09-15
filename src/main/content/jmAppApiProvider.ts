@@ -13,16 +13,20 @@ export function createJmAppApiProvider(
 ): ContentProvider {
   return {
     async homepage(category: HomepageCategory): Promise<MangaListItem[]> {
-      const query: Record<string, string> = { category }
+      if (category === 'recommended') throw new Error('api-homepage-recommendation-unsupported')
+      const query: Record<string, string> = { c: '0', page: '1', order: '', o: category === 'latest' ? 'mr' : 'mv' }
       const raw = await transport.request('category', query)
       const list = parseListPayload(raw, imageOrigin)
       return list.results
     },
 
     async search(request: SearchRequest): Promise<GatewayListResult> {
+      if (request.category && request.category !== '0') throw new Error('api-search-filter-unsupported')
       const query: Record<string, string> = {
         search_query: request.query,
-        page: String(request.page)
+        page: String(request.page),
+        main_tag: String(request.mainTag),
+        t: request.time
       }
       if (request.order) query.o = request.order
       const raw = await transport.request('search', query)
@@ -30,11 +34,16 @@ export function createJmAppApiProvider(
     },
 
     async category(request: CategoryRequest): Promise<GatewayListResult> {
-      const query: Record<string, string> = {}
-      if (request.category) query.category = request.category
-      if (request.page) query.page = String(request.page)
-      if (request.order) query.o = request.order
-      const raw = await transport.request('category', query)
+      if (request.subCategory || (request.tag && request.category && request.category !== '0')) throw new Error('api-category-filter-unsupported')
+      const order = request.order ?? 'mr'
+      const time = request.time ?? 'a'
+      const query: Record<string, string> = {
+        c: request.category ?? '0', page: String(request.page ?? 1), order: '',
+        o: time === 'a' ? order : `${order}_${time}`
+      }
+      const raw = request.tag
+        ? await transport.request('search', { search_query: request.tag, main_tag: '0', page: query.page, o: order, t: time })
+        : await transport.request('category', query)
       return parseListPayload(raw, imageOrigin)
     },
 
@@ -44,10 +53,11 @@ export function createJmAppApiProvider(
     },
 
     async pages(chapterUrl: string): Promise<ChapterPagesResult> {
-      const match = chapterUrl.match(/(?:photos?|albums?)\/(\d+)/i)
-      const chapterId = match ? match[1] : chapterUrl.replace(/\D/g, '')
+      const match = chapterUrl.match(/^(?:https:\/\/[^/?#]+)?\/photos?\/([1-9]\d*)(?:[/?#].*)?$/i)
+      const chapterId = match ? match[1] : /^[1-9]\d*$/.test(chapterUrl) ? chapterUrl : ''
+      if (!chapterId) throw new Error('api-chapter-url-invalid')
       const raw = await transport.request('pages', { id: chapterId })
-      return parseComicReadPayload(raw, imageOrigin)
+      return parseComicReadPayload(raw, imageOrigin, chapterId)
     }
   }
 }

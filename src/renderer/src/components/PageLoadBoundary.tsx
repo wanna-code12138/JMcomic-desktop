@@ -4,7 +4,7 @@ import { ArrowSync20Regular } from '@fluentui/react-icons'
 
 interface PageLoadBoundaryProps {
   pageName?: string
-  children: React.ReactNode
+  children: React.ReactNode | ((attempt: number) => React.ReactNode)
 }
 
 interface ErrorBoundaryInternalProps {
@@ -98,7 +98,7 @@ export default function PageLoadBoundary({
           </div>
         }
       >
-        {children}
+        {typeof children === 'function' ? children(retryKey) : children}
       </React.Suspense>
     </ErrorBoundaryInternal>
   )

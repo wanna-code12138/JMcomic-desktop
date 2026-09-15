@@ -19,7 +19,8 @@ export interface SchedulerOptions {
 export interface ImageRequestScheduler {
   run<T>(
     requestOrKey: string | ImageRequestDescriptor,
-    task: (signal: AbortSignal) => Promise<T>
+    task: (signal: AbortSignal) => Promise<T>,
+    holdUntil?: (value: T) => Promise<void>
   ): Promise<T>
   cancel(key: string): void
   activeCount(): number
@@ -40,6 +41,7 @@ interface QueueEntry<T> {
   rank: number
   sequence: number
   task: (signal: AbortSignal) => Promise<T>
+  holdUntil?: (value: T) => Promise<void>
   abortController: AbortController
   subscribers: Subscriber<T>[]
   inFlightPromise: Promise<T>
@@ -48,8 +50,8 @@ interface QueueEntry<T> {
 export function createImageRequestScheduler(
   optionsOrMaxConcurrent: number | SchedulerOptions = 6
 ): ImageRequestScheduler {
-  let maxConcurrent = IMAGE_REQUEST_LIMITS.global
-  let maxPerHost = IMAGE_REQUEST_LIMITS.perHost
+  let maxConcurrent: number = IMAGE_REQUEST_LIMITS.global
+  let maxPerHost: number = IMAGE_REQUEST_LIMITS.perHost
 
   if (typeof optionsOrMaxConcurrent === 'number') {
     if (!Number.isInteger(optionsOrMaxConcurrent) || optionsOrMaxConcurrent < 1) {
@@ -132,6 +134,7 @@ export function createImageRequestScheduler(
             for (const sub of entry.subscribers) {
               sub.resolve(value)
             }
+            if (entry.holdUntil) return entry.holdUntil(value).catch(() => {})
           },
           (error) => {
             for (const sub of entry.subscribers) {
@@ -152,7 +155,8 @@ export function createImageRequestScheduler(
 
   function run<T>(
     requestOrKey: string | ImageRequestDescriptor,
-    task: (signal: AbortSignal) => Promise<T>
+    task: (signal: AbortSignal) => Promise<T>,
+    holdUntil?: (value: T) => Promise<void>
   ): Promise<T> {
     const descriptor: ImageRequestDescriptor =
       typeof requestOrKey === 'string' ? { key: requestOrKey } : requestOrKey
@@ -185,6 +189,7 @@ export function createImageRequestScheduler(
       return new Promise<T>((resolve, reject) => {
         const subscriber: Subscriber<T> = { resolve, reject, signal }
         existing.subscribers.push(subscriber)
+        existing.inFlightPromise.then(resolve, reject)
 
         signal.addEventListener(
           'abort',
@@ -194,6 +199,9 @@ export function createImageRequestScheduler(
             reject(signal.reason ?? new Error('Request aborted'))
             if (existing.subscribers.length === 0) {
               existing.abortController.abort()
+              const queueIdx = queue.indexOf(existing)
+              if (queueIdx !== -1) queue.splice(queueIdx, 1)
+              if (inFlightByKey.get(key) === existing) inFlightByKey.delete(key)
             }
           },
           { once: true }
@@ -217,6 +225,7 @@ export function createImageRequestScheduler(
       rank,
       sequence: ++sequenceCounter,
       task,
+      holdUntil,
       abortController,
       subscribers: [{ resolve: entryResolve, reject: entryReject, signal }],
       inFlightPromise

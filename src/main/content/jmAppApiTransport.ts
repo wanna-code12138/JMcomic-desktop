@@ -27,7 +27,7 @@ export const JM_API_ENDPOINTS: Record<string, JmApiEndpoint> = {
   },
   category: {
     key: 'category',
-    path: '/categories',
+    path: '/categories/filter',
     method: 'GET',
     timeoutMs: 10_000,
     maxResponseBytes: 512 * 1024
@@ -41,7 +41,7 @@ export const JM_API_ENDPOINTS: Record<string, JmApiEndpoint> = {
   },
   pages: {
     key: 'pages',
-    path: '/chapter',
+    path: '/comic_read',
     method: 'GET',
     timeoutMs: 10_000,
     maxResponseBytes: 512 * 1024
@@ -53,6 +53,7 @@ export interface JmApiFetchRequest {
   method: string
   headers: Record<string, string>
   timeoutMs?: number
+  maxResponseBytes?: number
   signal?: AbortSignal
 }
 
@@ -69,6 +70,7 @@ export interface JmAppApiTransportDeps {
   endpoints?: Record<string, JmApiEndpoint>
   clock?: { nowSeconds: () => number }
   fetchPort: JmApiFetchPort
+  maxNetworkAttempts?: number
 }
 
 export interface JmAppApiTransport {
@@ -97,7 +99,7 @@ export function createJmAppApiTransport(deps: JmAppApiTransportDeps): JmAppApiTr
       throw signal.reason ?? new Error('Request aborted')
     }
 
-    const maxAttempts = 2 // 首次 + 最多 1 次重试
+    const maxAttempts = deps.maxNetworkAttempts ?? 2
     let lastError: unknown = null
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -118,20 +120,33 @@ export function createJmAppApiTransport(deps: JmAppApiTransportDeps): JmAppApiTr
       }
 
       let response: { status: number; headers: Record<string, string>; bodyText: string }
+      const controller = new AbortController()
+      const forwardAbort = (): void => controller.abort(signal?.reason)
+      signal?.addEventListener('abort', forwardAbort, { once: true })
+      let rejectAbort!: (reason: unknown) => void
+      const aborted = new Promise<never>((_resolve, reject) => { rejectAbort = reject })
+      const onAbort = (): void => rejectAbort(controller.signal.reason)
+      controller.signal.addEventListener('abort', onAbort, { once: true })
+      const timer = setTimeout(() => controller.abort(new Error('API_TIMEOUT')), endpoint.timeoutMs)
       try {
-        response = await deps.fetchPort.send({
+        response = await Promise.race([deps.fetchPort.send({
           url: urlObj.href,
           method: endpoint.method,
           headers,
           timeoutMs: endpoint.timeoutMs,
-          signal
-        })
+          maxResponseBytes: endpoint.maxResponseBytes,
+          signal: controller.signal
+        }), aborted])
       } catch (networkErr) {
         lastError = networkErr
-        if (attempt === 0 && !signal?.aborted) {
+        if (attempt === 0 && !controller.signal.aborted) {
           continue // 仅重试一次
         }
         throw networkErr
+      } finally {
+        clearTimeout(timer)
+        signal?.removeEventListener('abort', forwardAbort)
+        controller.signal.removeEventListener('abort', onAbort)
       }
 
       // 3xx Redirection Check
@@ -144,7 +159,7 @@ export function createJmAppApiTransport(deps: JmAppApiTransportDeps): JmAppApiTr
       if (response.status === 403) throw new Error('FORBIDDEN')
 
       // Body Size Limit Check
-      if (response.bodyText.length > endpoint.maxResponseBytes) {
+      if (Buffer.byteLength(response.bodyText, 'utf8') > endpoint.maxResponseBytes) {
         throw new Error('RESPONSE_TOO_LARGE')
       }
 

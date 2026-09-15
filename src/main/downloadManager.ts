@@ -8,7 +8,7 @@ import { beginIoPerfSpan } from './ioMetrics'
 import { loadImages } from './imageLoader'
 import { descrambleImage } from './imageDescrambler'
 import { getSettings, updateSettings } from './settingsStore'
-import { extractChapterPages, extractMangaDetail } from './scraperWindow'
+import { getPublicChapterPages, getPublicMangaDetail } from './contentApi'
 import {
   buildChapterSaveDir,
   groupTasksByManga,
@@ -198,7 +198,7 @@ async function resolveTaskUrls(task: DownloadTask): Promise<void> {
   if (!task.chapterUrl) {
     // 旧任务可能没有记录章节地址：尝试从漫画详情页按章节序号找回
     try {
-      const detail = await extractMangaDetail(task.mangaId)
+      const detail = await getPublicMangaDetail(task.mangaId)
       const ch = detail.chapters.find((c) => c.index === task.chapterIndex)
       if (ch?.url) {
         const recoveredUrl = ch.url
@@ -216,7 +216,7 @@ async function resolveTaskUrls(task: DownloadTask): Promise<void> {
   if (!task.chapterUrl) {
     throw new Error('缺少章节地址，无法重新获取图片列表（自动找回章节地址失败）')
   }
-  const data = await extractChapterPages(task.chapterUrl)
+  const data = await getPublicChapterPages(task.chapterUrl)
   if (data.pages.length === 0) {
     throw new Error('章节没有可下载的图片')
   }
@@ -508,7 +508,7 @@ ipcMain.handle('download:addChapters', async (_event, data: {
       stage: 'fetching'
     })
     try {
-      const pagesResult = await extractChapterPages(ch.url)
+      const pagesResult = await getPublicChapterPages(ch.url)
       if (pagesResult.pages.length === 0) {
         throw new Error('章节没有可下载的图片')
       }

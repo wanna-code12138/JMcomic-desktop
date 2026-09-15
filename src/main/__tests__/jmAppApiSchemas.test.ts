@@ -46,7 +46,7 @@ test('parseSettingPayload parses valid setting and rejects invalid versions', ()
 test('parseListPayload parses search fixture and passes card validation', () => {
   const search = loadFixture('search.json')
   const parsed = parseListPayload(search, imageOrigin)
-  assert.equal(parsed.totalPages, 3) // 42 / 20 = 3
+  assert.equal(parsed.totalPages, 1) // App API page size is 80, not the website's 20.
   assert.equal(parsed.results.length, 2)
   assert.equal(parsed.results[0].id, '1215915')
   assert.equal(parsed.results[0].title, '男人配额制')
@@ -74,7 +74,7 @@ test('parseAlbumPayload parses album fixture and passes detail validation', () =
   assert.equal(parsed.id, '1215915')
   assert.equal(parsed.title, '男人配额制')
   assert.equal(parsed.author, 'MALPOI, 達蘭')
-  assert.equal(parsed.tags.length, 5) // 截取前 5 个有效 canonical tags
+  assert.equal(parsed.tags.length, 6) // Preserve all canonical tags returned by the API.
   assert.equal(parsed.chapters.length, 2)
   assert.equal(parsed.chapters[0].index, 0)
   assert.equal(parsed.chapters[0].title, '第 1 话')

@@ -42,7 +42,9 @@ function testProtocolUsesAsyncCacheIo(): void {
 
   assert.doesNotMatch(protocolText, /readFileSync|getCachedImagePath/)
   assert.match(protocolText, /await readCachedImage\(realUrl\)/)
-  assert.match(protocolText, /await storeImage\(realUrl, buf, ct\)/)
+  assert.match(protocolText, /cache:.*storeImage\(realUrl, buffer, contentType\)/)
+  const streamText = readFileSync(resolve(process.cwd(), 'src/main/imageStreamFetch.ts'), 'utf8')
+  assert.match(streamText, /await options.cache/)
   assert.match(loaderText, /rename\(temporaryPath, filepath\)/)
   assert.match(loaderText, /selectEvictionCandidates/)
   console.log('  PASS: protocol cache I/O is async, atomic, and preserves oldest-first eviction')

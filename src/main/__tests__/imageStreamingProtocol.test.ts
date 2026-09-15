@@ -7,7 +7,8 @@ const mangaCard = readFileSync(resolve(process.cwd(), 'src/renderer/src/componen
 const readerPage = readFileSync(resolve(process.cwd(), 'src/renderer/src/pages/ReaderPage.tsx'), 'utf8')
 
 // 1. 协议实现源码断言
-assert.match(proto, /new ReadableStream/)
+assert.match(proto, /fetchImageStream/)
+assert.match(readFileSync(resolve(process.cwd(), 'src/main/imageStreamFetch.ts'), 'utf8'), /new ReadableStream/)
 assert.match(proto, /firstByteMs|totalMs/)
 assert.match(proto, /shouldRetryImage/)
 assert.match(proto, /toProxyUrl\(.*priority/)

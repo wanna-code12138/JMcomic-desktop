@@ -6,6 +6,10 @@ export interface JmApiRoute {
   readonly profile: JmApiProfile
 }
 
+// Public API origins cross-checked with JMComic-Crawler-Python and anonymous
+// /setting probes. This list never accepts origins supplied by renderer input.
+export const JM_API_ORIGINS = ['https://www.cdnhjk.net', 'https://www.cdngwc.cc'] as const
+
 export function normalizeHostname(hostname: string): string {
   return hostname.trim().toLowerCase().replace(/\.+$/, '')
 }
@@ -35,6 +39,7 @@ export function validateApiOrigin(raw: string): { ok: boolean; origin?: string; 
 
   // 严格受信域名校验：必须精确匹配或属于合法 18comic 结构，防止子域欺骗 (如 .evil.com)
   const isTrustedHost =
+    JM_API_ORIGINS.some((origin) => new URL(origin).hostname === hostname) ||
     hostname === '18comic.vip' ||
     hostname.endsWith('.18comic.vip') ||
     hostname === '18comic.org' ||

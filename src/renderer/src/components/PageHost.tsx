@@ -5,11 +5,12 @@ import SearchPage from '../pages/SearchPage'
 import FavoritesPage from '../pages/FavoritesPage'
 import PerformanceDiagnosticsPage from '../pages/PerformanceDiagnosticsPage'
 import PageLoadBoundary from './PageLoadBoundary'
+import { createRetryableLazyPage } from './retryableLazyPage'
 
-const MangaDetailPage = React.lazy(() => import('../pages/MangaDetailPage'))
-const ReaderPage = React.lazy(() => import('../pages/ReaderPage'))
-const DownloadsPage = React.lazy(() => import('../pages/DownloadsPage'))
-const SettingsPage = React.lazy(() => import('../pages/SettingsPage'))
+const MangaDetailPage = createRetryableLazyPage(() => import('../pages/MangaDetailPage'))
+const ReaderPage = createRetryableLazyPage(() => import('../pages/ReaderPage'))
+const DownloadsPage = createRetryableLazyPage(() => import('../pages/DownloadsPage'))
+const SettingsPage = createRetryableLazyPage(() => import('../pages/SettingsPage'))
 
 export type PageId =
   | 'home'
@@ -22,15 +23,13 @@ export type PageId =
   | 'reader'
   | 'diagnostics'
 
-const pageComponents: Record<PageId, React.ComponentType> = {
+const lazyPages = { detail: MangaDetailPage, reader: ReaderPage, downloads: DownloadsPage, settings: SettingsPage }
+
+const pageComponents: Partial<Record<PageId, React.ComponentType>> = {
   home: HomePage,
   categories: CategoriesPage,
   search: SearchPage,
   favorites: FavoritesPage,
-  downloads: DownloadsPage,
-  settings: SettingsPage,
-  detail: MangaDetailPage,
-  reader: ReaderPage,
   diagnostics: PerformanceDiagnosticsPage
 }
 
@@ -55,7 +54,6 @@ function PageHost({ currentPage, mountedPages }: PageHostProps): JSX.Element {
   return (
     <>
       {mountedPages.map((page) => {
-        const Component = pageComponents[page] ?? HomePage
         const isCurrent = page === currentPage
         return (
           <div
@@ -69,7 +67,11 @@ function PageHost({ currentPage, mountedPages }: PageHostProps): JSX.Element {
             aria-hidden={!isCurrent}
           >
             <PageLoadBoundary pageName={pageNames[page]}>
-              <Component />
+              {(attempt) => {
+                const lazyPage = lazyPages[page as keyof typeof lazyPages]
+                const Component = lazyPage ? lazyPage.get(attempt) : pageComponents[page] ?? HomePage
+                return <Component />
+              }}
             </PageLoadBoundary>
           </div>
         )

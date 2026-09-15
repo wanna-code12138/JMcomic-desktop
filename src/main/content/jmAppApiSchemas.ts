@@ -1,6 +1,7 @@
 import type { GatewayListResult } from '../contentGateway'
 import type { ChapterPagesResult, MangaDetail, MangaListItem, ChapterItem, PageItem } from '../types'
 import { validateCards, validateDetail, validatePages } from '../contentValidation'
+import { validateTrustedImageUrl } from '../../shared/imageUrlCore'
 
 export class JmApiSchemaError extends Error {
   constructor(message: string) {
@@ -10,17 +11,10 @@ export class JmApiSchemaError extends Error {
 }
 
 function ensureHttps(urlStr: string, imageOrigin: string): string {
-  const originClean = imageOrigin.replace(/\/+$/, '')
-  if (urlStr.startsWith('https://')) {
-    return urlStr
-  }
-  if (urlStr.startsWith('http://')) {
-    return urlStr.replace(/^http:\/\//, 'https://')
-  }
-  if (urlStr.startsWith('/')) {
-    return `${originClean}${urlStr}`
-  }
-  return `${originClean}/${urlStr}`
+  const resolved = new URL(urlStr, `${imageOrigin.replace(/\/+$/, '')}/`).href
+  const trusted = validateTrustedImageUrl(resolved)
+  if (!trusted) throw new JmApiSchemaError('Untrusted image URL')
+  return trusted
 }
 
 function toNonEmptyString(val: unknown): string | null {
@@ -74,6 +68,7 @@ export function parseListPayload(payload: unknown, imageOrigin: string): Gateway
     const id = toIdString(itemObj.id ?? itemObj.album_id ?? itemObj.aid)
     const title = toNonEmptyString(itemObj.name ?? itemObj.title)
     const imageRaw = toNonEmptyString(itemObj.image ?? itemObj.cover ?? itemObj.coverUrl)
+      ?? (id ? `/media/albums/${id}.jpg` : null)
 
     if (!id || !title || !imageRaw) {
       throw new JmApiSchemaError('Card item missing id, title or image')
@@ -102,7 +97,7 @@ export function parseListPayload(payload: unknown, imageOrigin: string): Gateway
   }
 
   const total = typeof obj.total === 'number' && obj.total >= 0 ? obj.total : results.length
-  const totalPages = Math.max(1, Math.ceil(total / 20))
+  const totalPages = Math.max(1, Math.ceil(total / 80))
 
   return { results, totalPages }
 }
@@ -115,21 +110,22 @@ export function parseAlbumPayload(payload: unknown, imageOrigin: string): MangaD
   const id = toIdString(obj.id ?? obj.aid)
   const title = toNonEmptyString(obj.name ?? obj.title)
   const imageRaw = toNonEmptyString(obj.image ?? obj.cover ?? obj.coverUrl)
+    ?? (id ? `/media/albums/${id}.jpg` : null)
 
   if (!id || !title || !imageRaw) {
     throw new JmApiSchemaError('Album missing id, title or cover image')
   }
 
   const coverUrl = ensureHttps(imageRaw, imageOrigin)
-  const author = toNonEmptyString(obj.author) ?? '未知作者'
+  const author = Array.isArray(obj.author)
+    ? obj.author.filter((value): value is string => typeof value === 'string' && value.trim().length > 0).join(', ')
+    : toNonEmptyString(obj.author) ?? '未知作者'
   const description = typeof obj.description === 'string' ? obj.description.trim() : ''
 
-  // Canonical tags: 最多保留前 5 个
   let tags: string[] = []
   if (Array.isArray(obj.tags)) {
     tags = obj.tags
       .filter((t): t is string => typeof t === 'string' && t.trim().length > 0)
-      .slice(0, 5)
   }
 
   const rawSeries = Array.isArray(obj.series) ? obj.series : Array.isArray(obj.episodes) ? obj.episodes : null
@@ -162,7 +158,8 @@ export function parseAlbumPayload(payload: unknown, imageOrigin: string): MangaD
     coverUrl,
     tags,
     description,
-    chapters
+    chapters,
+    totalViews: toNonEmptyString(obj.total_views) ?? undefined
   }
 
   const validation = validateDetail(detail)
@@ -173,7 +170,7 @@ export function parseAlbumPayload(payload: unknown, imageOrigin: string): MangaD
   return detail
 }
 
-export function parseComicReadPayload(payload: unknown, imageOrigin: string): ChapterPagesResult {
+export function parseComicReadPayload(payload: unknown, imageOrigin: string, expectedChapterId?: string): ChapterPagesResult {
   if (!payload || typeof payload !== 'object') {
     throw new JmApiSchemaError('Invalid comic read payload shape')
   }
@@ -189,10 +186,16 @@ export function parseComicReadPayload(payload: unknown, imageOrigin: string): Ch
     throw new JmApiSchemaError('Invalid or missing scrambleId')
   }
 
-  const chapterId = toIdString(obj.id ?? obj.chapter_id ?? obj.photo_id) ?? '0'
+  const chapterId = toIdString(obj.id ?? obj.chapter_id ?? obj.photo_id)
+  if (!chapterId || (expectedChapterId && chapterId !== expectedChapterId)) {
+    throw new JmApiSchemaError('Chapter ID missing or mismatched')
+  }
   const rawImages = obj.images ?? obj.pages
   if (!Array.isArray(rawImages) || rawImages.length === 0) {
     throw new JmApiSchemaError('Missing images or pages array')
+  }
+  if (obj.total_page !== undefined && Number(obj.total_page) !== rawImages.length) {
+    throw new JmApiSchemaError('Page count mismatch')
   }
 
   const pages: PageItem[] = []
@@ -210,13 +213,13 @@ export function parseComicReadPayload(payload: unknown, imageOrigin: string): Ch
       pages.push({ index: i, imageUrl })
     } else if (item && typeof item === 'object') {
       const itemObj = item as Record<string, unknown>
-      const pageIndex = itemObj.index
+      const pageIndex = itemObj.index ?? (typeof itemObj.page === 'number' ? itemObj.page - 1 : undefined)
       if (typeof pageIndex !== 'number' || pageIndex !== i) {
         throw new JmApiSchemaError(`Page index mismatch or unordered: expected ${i}, got ${pageIndex}`)
       }
-      const rawUrl = toNonEmptyString(itemObj.imageUrl ?? itemObj.url ?? itemObj.src)
+      const rawUrl = toNonEmptyString(itemObj.imageUrl ?? itemObj.url ?? itemObj.src ?? itemObj.image)
       if (!rawUrl) throw new JmApiSchemaError(`Page ${i} missing imageUrl`)
-      const imageUrl = ensureHttps(rawUrl, imageOrigin)
+      const imageUrl = ensureHttps(rawUrl.includes('/') ? rawUrl : `/media/photos/${chapterId}/${rawUrl}`, imageOrigin)
       pages.push({ index: i, imageUrl })
     } else {
       throw new JmApiSchemaError(`Invalid image entry at index ${i}`)
