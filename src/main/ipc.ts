@@ -149,19 +149,6 @@ export function registerIpcHandlers(): void {
     await saveDatabase()
   })
 
-  // Auth
-  ipcMain.handle('auth:save', async (_event, key: string, value: string) => {
-    const db = await getDatabase()
-    db.run('INSERT OR REPLACE INTO auth (key, value) VALUES (?, ?)', [key, value])
-    await saveDatabase()
-  })
-
-  ipcMain.handle('auth:get', async (_event, key: string) => {
-    const db = await getDatabase()
-    const row = db.exec(`SELECT value FROM auth WHERE key = '${key.replace(/'/g, "''")}'`)
-    return row.length > 0 && row[0].values.length > 0 ? row[0].values[0][0] : null
-  })
-
   // Clear all caches (scraper content cache + image disk cache)
   ipcMain.handle('cache:clearAll', async () => {
     const imgCount = await clearImageCacheAsync()

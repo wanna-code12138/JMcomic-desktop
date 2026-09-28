@@ -84,7 +84,7 @@ src/
 └── renderer/             # React 18 + Fluent UI v9 + Tailwind
     └── src/
         ├── pages/        # 首页 / 搜索 / 分类 / 详情 / 阅读器 / 下载 / 收藏 / 设置
-        ├── components/   # 漫画卡片、标题栏、登录弹窗、章节选择等
+        ├── components/   # 漫画卡片、标题栏、章节选择等
         ├── stores/       # zustand 全局状态
         └── theme/        # Aurora Clay 设计变量与样式
 ```

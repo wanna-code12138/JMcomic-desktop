@@ -28,9 +28,6 @@ const api = {
   searchHistoryRemove: (query: string) => ipcRenderer.invoke('searchHistory:remove', query),
   searchHistoryClear: () => ipcRenderer.invoke('searchHistory:clear'),
 
-  // Auth
-  authSave: (key: string, value: string) => ipcRenderer.invoke('auth:save', key, value),
-  authGet: (key: string) => ipcRenderer.invoke('auth:get', key),
 
   // Network probe
   networkProbe: () => ipcRenderer.invoke('network:probe'),
@@ -41,10 +38,6 @@ const api = {
   // Settings
   settingsGet: () => ipcRenderer.invoke('settings:get'),
   settingsSet: (patch: Record<string, unknown>) => ipcRenderer.invoke('settings:set', patch),
-
-  // HTTP (from main process to bypass CORS)
-  httpGet: (url: string, options?: Record<string, unknown>) =>
-    ipcRenderer.invoke('http:get', url, options),
 
   // Image loading
   imageLoad: (urls: string[], options?: Record<string, unknown>) =>

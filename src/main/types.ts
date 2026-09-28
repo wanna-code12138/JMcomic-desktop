@@ -73,11 +73,6 @@ export interface SiteAdapter {
   // Chapter pages (image URLs)
   getChapterPages(chapterUrl: string): Promise<ChapterPagesResult>
 
-  // Login
-  login(username: string, password: string): Promise<{ success: boolean; error?: string }>
-
-  // Favorites (requires login)
-  getFavorites?(page?: number): Promise<{ results: MangaListItem[]; totalPages: number }>
 }
 
 // Network status

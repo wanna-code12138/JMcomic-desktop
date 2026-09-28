@@ -24,24 +24,17 @@ export class JmWebAdapter implements SiteAdapter {
   name = 'JMComic Web'
   baseUrls: string[]
 
-  private cookieJar: Record<string, string> = {}
-  private _username: string | null = null
-
   // ── Regex patterns (from jm_toolkit.py) ──────────────
-  private readonly RE_ALBUM_ID = /<span class="number">.*?：JM(\d+)<\/span>/
   private readonly RE_SCRAMBLE_ID = /var\s+scramble_id\s*=\s*(\d+)/
   private readonly RE_BOOK_NAME = /id="book-name"[^>]*?>([\s\S]*?)<\//
   private readonly RE_EPISODE = /data-album="(\d+)"[^>]*>[\s\S]*?第(\d+)[话話]([\s\S]*?)<[\s\S]*?>/
   private readonly RE_B64_HTML = /const html = base64DecodeUtf8\("(.*?)"\)/
-  private readonly RE_PHOTO_TITLE = /<title>([\s\S]*?)\|.*<\/title>/
   private readonly RE_PAGE_ARR = /var page_arr = (.*?);/
-  private readonly RE_DATA_ORIGINAL = /data-original="(.*?)"[^>]*?id="album_photo/
   private readonly RE_IMG_DOMAIN = /src="https:\/\/(.*?)\/media\/albums\/blank/
 
   // Search patterns (from jm_toolkit.py JmPageTool)
   private readonly RE_SEARCH_TOTAL = /class="text-white">(\d+)<\/span> A漫\./
   private readonly RE_SEARCH_ALBUM = /<a href="\/album\/(\d+)\/[\s\S]*?title="(.*?)"([\s\S]*?)<div class="title-truncate tags .*>([\s\S]*?)<\/div>/
-  private readonly RE_TAG_A = /<a[^>]*?>(.*?)<\/a>/
 
   constructor(baseUrls: string[]) {
     this.baseUrls = baseUrls
@@ -253,74 +246,6 @@ export class JmWebAdapter implements SiteAdapter {
     return { pages, scrambleId }
   }
 
-  // ── Login ─────────────────────────────────────────────
-
-  async login(username: string, password: string): Promise<{ success: boolean; error?: string }> {
-    const formData = new URLSearchParams({
-      username,
-      password,
-      id_remember: 'on',
-      login_remember: 'on',
-      submit_login: ''
-    })
-
-    const resp = await httpRequest(buildUrl('/login'), {
-      method: 'POST',
-      redirect: 'manual',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Cookie: this.serializeCookies(),
-        Referer: buildUrl('/')
-      },
-      body: formData.toString()
-    })
-
-    const setCookie = resp.headers['set-cookie']
-    if (setCookie) this.parseSetCookie(setCookie)
-
-    // With redirect:'manual', a successful login returns 302/301 carrying the
-    // session cookies in Set-Cookie (captured into cookieJar above).
-    if (resp.status === 302 || resp.status === 301) {
-      this._username = username
-      return { success: true }
-    }
-
-    // Fallback: some flows return 200 with a logged-in page body.
-    if (resp.body.includes('欢迎') || resp.body.includes('logout')) {
-      this._username = username
-      return { success: true }
-    }
-
-    return { success: false, error: `登录失败，状态码: ${resp.status}` }
-  }
-
-  async getFavorites(page = 1): Promise<{ results: MangaListItem[]; totalPages: number }> {
-    if (!this._username) throw new Error('未登录')
-    const params = new URLSearchParams({ page: String(page), o: 'mr', folder: '0' })
-    const html = await this.fetchHtml(`/user/${this._username}/favorite/albums?${params.toString()}`)
-
-    // Use the favorite-specific pattern
-    const contentRe = /<div id="favorites_album_[^>]*?>[\s\S]*?<a href="\/album\/(\d+)\/[^"]*">[\s\S]*?<div class="video-title title-truncate">([^<]*?)<\/div>/g
-    const totalRe = / : (\d+)[^/]*\/\D*(\d+)/
-
-    const results: MangaListItem[] = []
-    let m: RegExpExecArray | null
-    while ((m = contentRe.exec(html)) !== null) {
-      results.push({
-        id: m[1],
-        title: m[2].trim(),
-        coverUrl: this.buildCoverUrl(m[1])
-      })
-    }
-
-    const totalMatch = html.match(totalRe)
-    const total = totalMatch ? parseInt(totalMatch[2]) : results.length
-    const perPage = 20
-    const totalPages = Math.ceil(total / perPage)
-
-    return { results, totalPages }
-  }
-
   // ── Private helpers ────────────────────────────────────
 
   private parseSearchPage(html: string, page: number): {
@@ -424,32 +349,11 @@ export class JmWebAdapter implements SiteAdapter {
   private async fetchHtml(path: string): Promise<string> {
     const resp = await httpRequest(buildUrl(path), {
       headers: {
-        Cookie: this.serializeCookies(),
         Referer: buildUrl('/')
       }
     })
 
-    const setCookie = resp.headers['set-cookie']
-    if (setCookie) this.parseSetCookie(setCookie)
-
     return resp.body
-  }
-
-  private serializeCookies(): string {
-    return Object.entries(this.cookieJar)
-      .map(([k, v]) => `${k}=${v}`)
-      .join('; ')
-  }
-
-  private parseSetCookie(header: string): void {
-    for (const part of header.split(';')) {
-      const eqIdx = part.indexOf('=')
-      if (eqIdx > 0) {
-        const key = part.substring(0, eqIdx).trim()
-        const val = part.substring(eqIdx + 1).trim()
-        if (key && val) this.cookieJar[key] = val
-      }
-    }
   }
 
   private normalizeImageUrl(url: string): string {

@@ -118,11 +118,9 @@ test('direct adapter retains canonical metadata selectors and chapter scrambleId
   assert.match(types, /getChapterPages\(chapterUrl: string\): Promise<ChapterPagesResult>/)
 })
 
-test('direct adapter uses current Cheerio types and matches the paged favorites contract', () => {
+test('direct adapter uses current Cheerio types', () => {
   const adapter = readFileSync(resolve(process.cwd(), 'src/main/siteAdapter.ts'), 'utf-8')
-  const types = readFileSync(resolve(process.cwd(), 'src/main/types.ts'), 'utf-8')
   assert.doesNotMatch(adapter, /declare module 'cheerio'/)
-  assert.match(types, /getFavorites\?\(page\?: number\): Promise<\{\s*results: MangaListItem\[\];\s*totalPages: number\s*\}>/)
 })
 
 if (process.exitCode) {
