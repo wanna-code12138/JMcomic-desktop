@@ -1,0 +1,19 @@
+{
+  "runId": "history-retry-green-20260929",
+  "mode": "hidden Chromium / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "initial history write failure can recover and save before leaving"
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 3
+  },
+  "summaryQueries": 0
+}
