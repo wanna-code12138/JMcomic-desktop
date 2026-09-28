@@ -1,12 +1,14 @@
 import { ipcMain, app, BrowserWindow, dialog, shell } from 'electron'
 import type { BindParams, Database as SqlJsDatabase } from 'sql.js'
 import { isAbsolute, join } from 'path'
-import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync, statSync } from 'fs'
-import { getDatabase, saveDatabase } from './database'
+import { existsSync, rmSync } from 'fs'
+import { mkdir, readFile, readdir, rename, stat, unlink, writeFile } from 'fs/promises'
+import { getDatabase, saveDatabase, scheduleDatabaseSave } from './database'
+import { beginIoPerfSpan } from './ioMetrics'
 import { loadImages } from './imageLoader'
 import { descrambleImage } from './imageDescrambler'
 import { getSettings, updateSettings } from './settingsStore'
-import { extractChapterPages, extractMangaDetail } from './scraperWindow'
+import { getPublicChapterPages, getPublicMangaDetail } from './contentApi'
 import {
   buildChapterSaveDir,
   groupTasksByManga,
@@ -14,6 +16,7 @@ import {
   normalizeTaskRow,
   pickRetryableTasks,
   resolveLocalChapterPages,
+  resolveLocalChapterPagesAsync,
   sanitizeFileName,
   type DownloadTaskRow
 } from './downloadCore'
@@ -50,6 +53,7 @@ interface DownloadProgress {
 }
 
 const activeDownloads = new Map<number, AbortController>()
+const runningTasks = new Map<number, Promise<void>>()
 let downloadQueue: DownloadTask[] = []
 let activeCount = 0
 const PER_TASK_IMAGE_CONCURRENCY = 4
@@ -92,7 +96,7 @@ async function loadQueueFromDb(): Promise<void> {
   const db = await getDatabase()
   // 上次退出时仍在下载的任务 → 恢复为 pending，等待启动续传
   db.run(`UPDATE downloads SET status = 'pending' WHERE status = 'downloading'`)
-  saveDatabase()
+  await saveDatabase()
 
   const settings = await getSettings()
   if (!settings.downloadResumeOnStartup) return
@@ -118,7 +122,7 @@ function updateTaskInDb(task: DownloadTask): void {
         `UPDATE downloads SET status = ?, downloaded_pages = ?, total_pages = ?, error = ? WHERE id = ?`,
         [task.status, task.downloadedPages, task.totalPages, task.error ?? null, task.id]
       )
-      saveDatabase()
+      scheduleDatabaseSave('download')
     })
     .catch((err) => {
       console.error('[download] updateTaskInDb failed for task', task.id, ':', err)
@@ -182,10 +186,12 @@ async function processDownloadQueue(): Promise<void> {
     activeCount++
     sendProgress(progressFor(pendingTask, 'downloading'))
 
-    void downloadTask(pendingTask).finally(() => {
+    const running = downloadTask(pendingTask).finally(() => {
+      runningTasks.delete(pendingTask.id)
       activeCount--
       void processDownloadQueue()
     })
+    runningTasks.set(pendingTask.id, running)
   }
 }
 
@@ -195,14 +201,14 @@ async function resolveTaskUrls(task: DownloadTask): Promise<void> {
   if (!task.chapterUrl) {
     // 旧任务可能没有记录章节地址：尝试从漫画详情页按章节序号找回
     try {
-      const detail = await extractMangaDetail(task.mangaId)
+      const detail = await getPublicMangaDetail(task.mangaId)
       const ch = detail.chapters.find((c) => c.index === task.chapterIndex)
       if (ch?.url) {
         const recoveredUrl = ch.url
         task.chapterUrl = recoveredUrl
-        getDatabase().then((d) => {
+        await getDatabase().then(async (d) => {
           d.run('UPDATE downloads SET chapter_url = ? WHERE id = ?', [recoveredUrl, task.id])
-          saveDatabase()
+          await saveDatabase()
         })
         console.log('[download] recovered chapter url for task', task.id, ':', task.chapterUrl)
       }
@@ -213,34 +219,48 @@ async function resolveTaskUrls(task: DownloadTask): Promise<void> {
   if (!task.chapterUrl) {
     throw new Error('缺少章节地址，无法重新获取图片列表（自动找回章节地址失败）')
   }
-  const data = await extractChapterPages(task.chapterUrl)
+  const data = await getPublicChapterPages(task.chapterUrl)
   if (data.pages.length === 0) {
     throw new Error('章节没有可下载的图片')
   }
   task.imageUrls = data.pages.map((p) => p.imageUrl)
   task.totalPages = data.pages.length
   task.scrambleId = data.scrambleId
-  getDatabase().then((d) => {
+  await getDatabase().then(async (d) => {
     d.run('UPDATE downloads SET total_pages = ? WHERE id = ?', [task.totalPages, task.id])
-    saveDatabase()
+    await saveDatabase()
   })
 }
 
-function existingPages(saveDir: string): Map<number, string> {
+async function existingPagesAsync(saveDir: string): Promise<Map<number, string>> {
+  const span = beginIoPerfSpan('download.scan')
   const found = new Map<number, string>()
-  if (!existsSync(saveDir)) return found
-  for (const name of readdirSync(saveDir)) {
-    const match = name.match(/^(\d+)\.(jpg|jpeg|png|webp|gif|bmp)$/i)
-    if (!match) continue
-    try {
-      if (statSync(join(saveDir, name)).size > 0) {
-        found.set(Number(match[1]), join(saveDir, name))
-      }
-    } catch {
-      /* 忽略读取失败 */
-    }
+  if (!existsSync(saveDir)) {
+    span.finish('ok', { itemCount: 0 })
+    return found
   }
-  return found
+  try {
+    const entries = await readdir(saveDir)
+    await Promise.all(
+      entries.map(async (name) => {
+        const match = name.match(/^(\d+)\.(jpg|jpeg|png|webp|gif|bmp)$/i)
+        if (!match) return
+        try {
+          const st = await stat(join(saveDir, name))
+          if (st.size > 0) {
+            found.set(Number(match[1]), join(saveDir, name))
+          }
+        } catch {
+          /* 忽略读取失败 */
+        }
+      })
+    )
+    span.finish('ok', { itemCount: entries.length })
+    return found
+  } catch {
+    span.finish('error')
+    return found
+  }
 }
 
 async function downloadTask(task: DownloadTask): Promise<void> {
@@ -250,71 +270,64 @@ async function downloadTask(task: DownloadTask): Promise<void> {
 
   try {
     await resolveTaskUrls(task)
+    controller.signal.throwIfAborted()
+    task.totalPages = task.imageUrls.length
+    if (task.totalPages === 0) throw new Error('章节没有可下载的图片')
 
     const saveDir = buildChapterSaveDir(task.savePath, task.mangaTitle, task.chapterTitle, task.chapterIndex)
-    mkdirSync(saveDir, { recursive: true })
+    await mkdir(saveDir, { recursive: true })
     console.log('[download] starting task', task.id, 'images:', task.imageUrls.length, 'dir:', saveDir)
 
     const retries = await getRetries()
-    const existing = existingPages(saveDir)
+    const existing = await existingPagesAsync(saveDir)
     const missingIndices: number[] = []
     for (let i = 0; i < task.totalPages; i++) {
       if (!existing.has(i + 1)) missingIndices.push(i)
     }
+    task.downloadedPages = task.totalPages - missingIndices.length
 
-    if (missingIndices.length === 0) {
-      task.downloadedPages = task.totalPages
-    } else {
+    if (missingIndices.length > 0) {
       const results = await loadImages(
         missingIndices.map((i) => task.imageUrls[i]),
         {
           concurrency: PER_TASK_IMAGE_CONCURRENCY,
-          maxRetries: retries
+          maxRetries: retries,
+          signal: controller.signal,
+          onImage: async (result, index) => {
+            controller.signal.throwIfAborted()
+            if (!result.buffer && !result.localPath) return
+            const rawBytes = result.buffer ?? await readFile(result.localPath!)
+            const scrambled = Boolean(task.scrambleId && task.scrambleId > 0)
+            const finalBytes = scrambled
+              ? await descrambleImage(rawBytes, task.scrambleId!, result.url)
+              : rawBytes
+            controller.signal.throwIfAborted()
+            if (finalBytes.length === 0) throw new Error('图片内容为空')
+            const pageIndex = missingIndices[index]
+            const ext = scrambled ? 'png' : result.url.match(/\.(jpg|jpeg|png|webp|gif)/i)?.[1] ?? 'jpg'
+            const dest = join(saveDir, `${String(pageIndex + 1).padStart(4, '0')}.${ext}`)
+            const temporary = `${dest}.${task.id}.part`
+            try {
+              await writeFile(temporary, finalBytes, { signal: controller.signal })
+              controller.signal.throwIfAborted()
+              await rename(temporary, dest)
+            } finally {
+              await unlink(temporary).catch(() => {})
+            }
+            task.downloadedPages++
+            updateTaskInDb(task)
+            sendProgress(progressFor(task, 'downloading'))
+          }
         }
       )
-
-      for (let k = 0; k < missingIndices.length; k++) {
-        const result = results[k]
-        if (result.localPath && existsSync(result.localPath)) {
-          const pageIndex = missingIndices[k]
-          const ext = result.url.match(/\.(jpg|jpeg|png|webp|gif)/i)?.[1] ?? 'jpg'
-          const dest = join(saveDir, `${String(pageIndex + 1).padStart(4, '0')}.${ext}`)
-          if (!existsSync(dest)) {
-            const rawBytes = readFileSync(result.localPath)
-            let finalBytes: Buffer = rawBytes
-            if (task.scrambleId && task.scrambleId > 0) {
-              try {
-                finalBytes = await descrambleImage(
-                  Buffer.from(Uint8Array.from(rawBytes)),
-                  task.scrambleId,
-                  result.url
-                )
-                console.log('[download] descrambled image', pageIndex + 1)
-              } catch (err) {
-                console.warn('[download] descramble failed for image', pageIndex + 1, ':', err)
-                finalBytes = rawBytes
-              }
-            }
-            // Uint8Array.from 复制到新的 ArrayBuffer，规避新版 @types/node 的
-            // NonSharedBuffer 类型限制
-            writeFileSync(dest, Buffer.from(Uint8Array.from(finalBytes)))
-          }
-          task.downloadedPages = Math.max(task.downloadedPages, pageIndex + 1)
-          sendProgress(progressFor(task, 'downloading'))
-        } else {
-          console.warn('[download] image', missingIndices[k], 'failed:', result.error)
-        }
-
-    if (controller.signal.aborted) {
-      task.status = 'cancelled'
-      task.error = '已取消'
-      updateTaskInDb(task)
-      sendProgress(progressFor(task, 'cancelled'))
-      return
-        }
+      controller.signal.throwIfAborted()
+      const failures = results.filter((result) => result.error)
+      if (failures.length > 0 || task.downloadedPages !== task.totalPages) {
+        throw new Error(`图片下载失败：已保存 ${task.downloadedPages}/${task.totalPages} 页${failures[0]?.error ? `，${failures[0].error}` : ''}`)
       }
     }
 
+    controller.signal.throwIfAborted()
     task.status = 'completed'
     task.downloadedPages = task.totalPages
     updateTaskInDb(task)
@@ -413,7 +426,7 @@ async function enqueueDownload(data: AddDownloadData): Promise<{ ok: boolean; ta
 
   const idResult = db.exec('SELECT last_insert_rowid()')
   const taskId = Number(idResult[0].values[0][0])
-  saveDatabase()
+  await saveDatabase()
 
   const task: DownloadTask = {
     id: taskId,
@@ -468,7 +481,7 @@ ipcMain.handle('download:addChapters', async (_event, data: {
       stage: 'fetching'
     })
     try {
-      const pagesResult = await extractChapterPages(ch.url)
+      const pagesResult = await getPublicChapterPages(ch.url)
       if (pagesResult.pages.length === 0) {
         throw new Error('章节没有可下载的图片')
       }
@@ -553,7 +566,7 @@ ipcMain.handle('download:retry', async (_event, taskId: number) => {
     `UPDATE downloads SET status = 'pending', downloaded_pages = 0, error = NULL WHERE id = ?`,
     [taskId]
   )
-  saveDatabase()
+  await saveDatabase()
 
   removeFromQueue(taskId)
   const task = rowToTask({ ...row, status: 'pending', downloadedPages: 0, error: undefined })
@@ -586,7 +599,7 @@ ipcMain.handle('download:retryFailed', async () => {
     downloadQueue.push(rowToTask({ ...row, status: 'pending', downloadedPages: 0, error: undefined }))
     retried++
   }
-  saveDatabase()
+  await saveDatabase()
   void processDownloadQueue()
   return { ok: true, retried }
 })
@@ -598,10 +611,11 @@ ipcMain.handle('download:remove', async (_event, taskId: number, deleteFiles: bo
   const controller = activeDownloads.get(taskId)
   if (controller) controller.abort()
   removeFromQueue(taskId)
+  await runningTasks.get(taskId)
 
   const db = await getDatabase()
   db.run('DELETE FROM downloads WHERE id = ?', [taskId])
-  saveDatabase()
+  await saveDatabase()
 
   const filesRemoved = deleteFiles ? await deleteTaskFiles(row) : false
   return { ok: true, filesRemoved }
@@ -617,10 +631,11 @@ ipcMain.handle('download:removeManga', async (_event, mangaId: string, deleteFil
     const controller = activeDownloads.get(row.id)
     if (controller) controller.abort()
     removeFromQueue(row.id)
+    await runningTasks.get(row.id)
     db.run('DELETE FROM downloads WHERE id = ?', [row.id])
     if (deleteFiles && await deleteTaskFiles(row)) filesRemoved++
   }
-  saveDatabase()
+  await saveDatabase()
   return { ok: true, filesRemoved }
 })
 
@@ -684,7 +699,7 @@ ipcMain.handle('download:chapterPages', async (_event, mangaId: string, chapterI
     row.chapterTitle ?? '',
     row.chapterIndex
   )
-  const pages = resolveLocalChapterPages(saveDir)
+  const pages = await resolveLocalChapterPagesAsync(saveDir)
   if (pages.length === 0) {
     return { ok: false, error: '章节目录中没有图片文件' }
   }

@@ -35,7 +35,7 @@ export async function updateSettings(patch: Record<string, unknown>): Promise<Ap
   for (const [key, value] of Object.entries(merged)) {
     db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [key, serialize(value)])
   }
-  saveDatabase()
+  await saveDatabase()
   cached = merged
   return merged
 }

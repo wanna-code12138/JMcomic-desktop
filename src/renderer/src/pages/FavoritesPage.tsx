@@ -38,7 +38,7 @@ const useStyles = makeStyles({
     alignItems: 'center',
     ':hover': {
       backgroundColor: 'var(--ui-bg-hover)',
-      borderColor: 'var(--ui-stroke-card)'
+      border: '1px solid var(--ui-stroke-card)'
     }
   },
   historyCover: {

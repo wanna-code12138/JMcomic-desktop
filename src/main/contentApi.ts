@@ -1,7 +1,6 @@
-import { ipcMain, app, BrowserWindow } from 'electron'
+import { ipcMain, app, BrowserWindow, net } from 'electron'
 import { join } from 'node:path'
-import { getNetworkStatus } from './networkProbe'
-import { isSessionWarmedUp, warmupSession } from './sessionWarmup'
+import { ensureWarmup, getWarmupState, retryWarmup } from './sessionWarmup'
 import {
   extractHomepage,
   extractMangaDetail,
@@ -24,13 +23,16 @@ import {
   type HomepageCategory,
   type SearchRequest
 } from './contentGateway'
+import { createJmApiFetchPort } from './content/jmAppApiFetchPort'
+import { createAnonymousApiProvider } from './content/jmAppApiRuntime'
 
 // Ensure session is ready (Cloudflare warmup)
 async function ensureReady(): Promise<void> {
-  if (!isSessionWarmedUp()) {
-    const hostWindow = BrowserWindow.getAllWindows().find((window) => !window.isDestroyed())
-    if (!hostWindow) throw new Error('找不到用于网页验证的主窗口')
-    await warmupSession(hostWindow)
+  const hostWindow = BrowserWindow.getAllWindows().find((window) => !window.isDestroyed())
+  if (!hostWindow) throw new Error('找不到用于网页验证的主窗口')
+  const state = await ensureWarmup('browser-fallback', hostWindow)
+  if (state.phase === 'failed') {
+    throw new Error(`浏览器验证失败: ${state.reason}`)
   }
 }
 
@@ -110,11 +112,19 @@ const browserProvider: ContentProvider = {
   }
 }
 
+const apiContentProvider = createAnonymousApiProvider(createJmApiFetchPort((url, init) => net.fetch(url, init)))
+
+export async function warmAnonymousContentProvider(): Promise<void> {
+  await apiContentProvider.prewarm().catch(() => {})
+}
+
 const contentPersistentCache = createContentCache({
-  filePath: join(getAppDataDir(), 'content-cache.json')
+  filePath: join(getAppDataDir(), 'content-cache.json'),
+  namespace: 'public-content-api-v2'
 })
 
 const contentGateway = createContentGateway({
+  api: apiContentProvider,
   direct: directProvider,
   browser: browserProvider,
   ttlMs: 60_000,
@@ -123,6 +133,14 @@ const contentGateway = createContentGateway({
 
 export async function clearContentCache(): Promise<void> {
   await contentGateway.clear()
+}
+
+export async function getPublicMangaDetail(mangaId: string) {
+  return (await contentGateway.detail(mangaId)).data
+}
+
+export async function getPublicChapterPages(chapterUrl: string) {
+  return (await contentGateway.pages(chapterUrl)).data
 }
 
 ipcMain.handle('content:homepage', async (_event, category?: string) => {
@@ -303,10 +321,17 @@ ipcMain.on('content:pages:cancel', (_event, chapterUrl?: string) => {
 })
 
 ipcMain.handle('content:warmupStatus', () => {
+  const state = getWarmupState()
   return {
-    warmedUp: isSessionWarmedUp(),
-    networkStatus: getNetworkStatus()
+    warmedUp: state.phase === 'verified',
+    state
   }
+})
+
+ipcMain.handle('content:warmupRetry', async () => {
+  const hostWindow = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed())
+  if (!hostWindow) return { phase: 'failed', reason: 'window-closed', retryable: true }
+  return retryWarmup(hostWindow)
 })
 
 app.on('before-quit', () => {

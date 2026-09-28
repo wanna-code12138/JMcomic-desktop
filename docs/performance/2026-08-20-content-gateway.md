@@ -1,5 +1,7 @@
 # Content Gateway Performance and Correctness Report
 
+> 历史基线：本文记录对应日期的历史实现与观测，本次修订未重新测量。当前结论以[项目收敛与阅读器改进方案](../../outputs/2026-09-28-project-improvement-review.md)及后续实施验收为准。
+
 Date measured: 2026-08-23
 Branch: `feat/ui-performance-design`
 

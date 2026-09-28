@@ -1,6 +1,7 @@
 import initSqlJs, { Database as SqlJsDatabase } from 'sql.js'
 import { app } from 'electron'
-import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs'
+import { readFileSync, existsSync, mkdirSync } from 'fs'
+import { open, copyFile, rename, unlink } from 'fs/promises'
 import {
   getAppDataDir,
   getDatabasePath,
@@ -8,13 +9,24 @@ import {
   migrateLegacyDatabase
 } from './dataPaths'
 import { beginMainPerfSpan } from './performanceTrace'
+import { beginIoPerfSpan } from './ioMetrics'
+import {
+  createDatabaseWriteCoordinator,
+  type DatabaseScheduleReason,
+  type DatabaseWriteCoordinator
+} from './databaseWriteCoordinator'
 
 let db: SqlJsDatabase | null = null
+let initializing: Promise<SqlJsDatabase> | null = null
 const DB_PATH = getDatabasePath()
 
 export async function getDatabase(): Promise<SqlJsDatabase> {
   if (db) return db
+  if (!initializing) initializing = initializeDatabase().finally(() => { initializing = null })
+  return initializing
+}
 
+async function initializeDatabase(): Promise<SqlJsDatabase> {
   const SQL = await initSqlJs()
 
   if (existsSync(DB_PATH)) {
@@ -171,23 +183,58 @@ function initTables(d: SqlJsDatabase): void {
   }
 }
 
-export function saveDatabase(): void {
+export const databaseCoordinator: DatabaseWriteCoordinator = createDatabaseWriteCoordinator({
+  debounceMs: 100,
+  writer: async () => {
+    await saveDatabaseNow()
+  }
+})
+
+async function saveDatabaseNow(): Promise<void> {
   if (!db) return
   const perf = beginMainPerfSpan('database.save')
+  const perfFlush = beginIoPerfSpan('database.flush')
   try {
     const data = db.export()
     const buffer = Buffer.from(data)
-    writeFileSync(DB_PATH, buffer)
+    const temporary = `${DB_PATH}.tmp`
+    try {
+      const file = await open(temporary, 'w')
+      try {
+        await file.writeFile(buffer)
+        await file.sync()
+      } finally {
+        await file.close()
+      }
+      await copyFile(DB_PATH, `${DB_PATH}.bak`).catch((error: NodeJS.ErrnoException) => {
+        if (error.code !== 'ENOENT') throw error
+      })
+      await rename(temporary, DB_PATH)
+    } finally {
+      await unlink(temporary).catch(() => {})
+    }
     perf.finish('ok', { bytes: buffer.length })
+    perfFlush.finish('ok', { bytes: buffer.length })
   } catch (err) {
     perf.finish('error')
+    perfFlush.finish('error')
     throw err
   }
 }
 
-export function closeDatabase(): void {
+export function scheduleDatabaseSave(reason: DatabaseScheduleReason = 'history'): void {
+  databaseCoordinator.schedule(reason)
+}
+
+export async function saveDatabase(): Promise<void> {
+  databaseCoordinator.schedule('settings')
+  await databaseCoordinator.flush()
+}
+
+export async function closeDatabase(timeoutMs = 2000): Promise<void> {
   if (db) {
-    saveDatabase()
+    const result = await databaseCoordinator.close(timeoutMs)
+    if (result === 'timeout') throw new Error('数据库保存超时，尚未关闭数据库')
     db.close()
     db = null
   }

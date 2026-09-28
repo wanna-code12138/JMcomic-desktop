@@ -63,5 +63,16 @@ test('provider metrics are privacy-safe and content URLs are not logged', () => 
   assert.doesNotMatch(source, /metadata: \{[^}]*url/s)
 })
 
+test('preload exposes warmup methods and HomePage does not block on global warmingUp flag', () => {
+  const preloadSource = readFileSync(resolve(process.cwd(), 'src/preload/index.ts'), 'utf-8')
+  assert.match(preloadSource, /contentWarmupStatus/)
+  assert.match(preloadSource, /contentWarmupRetry/)
+  assert.match(preloadSource, /onWarmupStateChanged/)
+
+  const homePageSource = readFileSync(resolve(process.cwd(), 'src/renderer/src/pages/HomePage.tsx'), 'utf-8')
+  assert.doesNotMatch(homePageSource, /if \(warmingUp\) return/)
+  assert.doesNotMatch(homePageSource, /if \(warmingUp \|\| currentPage !== 'home'\) return/)
+})
+
 if (process.exitCode) console.log('Some tests failed.')
 else console.log('All tests passed!')

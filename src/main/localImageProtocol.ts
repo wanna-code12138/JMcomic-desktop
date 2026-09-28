@@ -77,7 +77,7 @@ export function registerLocalImageProtocol(): void {
 
       const buf = await openLocalImage(filepath)
       perf.finish('ok', { bytes: buf.length })
-      return new Response(buf, {
+      return new Response(new Uint8Array(buf), {
         status: 200,
         headers: {
           'Content-Type': contentTypeForFile(filepath),

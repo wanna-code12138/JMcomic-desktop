@@ -16,11 +16,6 @@ const api = {
     }
   },
 
-  // Database
-  dbRun: (sql: string, params?: unknown[]) => ipcRenderer.invoke('db:run', sql, params),
-  dbGet: (sql: string, params?: unknown[]) => ipcRenderer.invoke('db:get', sql, params),
-  dbAll: (sql: string, params?: unknown[]) => ipcRenderer.invoke('db:all', sql, params),
-
   // Favorites
   favoritesAdd: (manga: { mangaId: string; title?: string; coverUrl?: string }) =>
     ipcRenderer.invoke('favorites:add', manga),
@@ -36,10 +31,6 @@ const api = {
   // Auth
   authSave: (key: string, value: string) => ipcRenderer.invoke('auth:save', key, value),
   authGet: (key: string) => ipcRenderer.invoke('auth:get', key),
-
-  // Cache
-  cacheSetManga: (manga: Record<string, unknown>) => ipcRenderer.invoke('cache:setManga', manga),
-  cacheGetManga: (id: string) => ipcRenderer.invoke('cache:getManga', id),
 
   // Network probe
   networkProbe: () => ipcRenderer.invoke('network:probe'),
@@ -140,7 +131,15 @@ const api = {
       ipcRenderer.removeListener('content:pages:batch', handler)
     }
   },
-  contentWarmupStatus: () => ipcRenderer.invoke('content:warmupStatus'),
+  contentWarmupStatus: () => ipcRenderer.invoke('session:warmupStatus'),
+  contentWarmupRetry: () => ipcRenderer.invoke('session:warmupRetry'),
+  onWarmupStateChanged: (callback: (state: unknown) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, state: unknown): void => callback(state)
+    ipcRenderer.on('app:warmupStateChanged', handler)
+    return () => {
+      ipcRenderer.removeListener('app:warmupStateChanged', handler)
+    }
+  },
 
   // Local history
   historyUpsert: (data: Record<string, unknown>) => ipcRenderer.invoke('history:upsert', data),
@@ -156,7 +155,12 @@ const api = {
   personalDataClear: () => ipcRenderer.invoke('data:clearPersonal'),
 
   // App info
-  appVersion: () => ipcRenderer.invoke('app:getVersion')
+  appVersion: () => ipcRenderer.invoke('app:getVersion'),
+
+  // Performance diagnostics
+  performanceRecord: (event: unknown) => ipcRenderer.send('performance:record', event),
+  performanceSnapshot: () => ipcRenderer.invoke('performance:snapshot'),
+  performanceClear: () => ipcRenderer.invoke('performance:clear')
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)

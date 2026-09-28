@@ -2,9 +2,9 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import { registerIpcHandlers } from './ipc'
+import { registerPerformanceDiagnosticsIpc } from './performanceDiagnosticsIpc'
 import { closeDatabase } from './database'
 import { startPeriodicProbe, applyManualProxy } from './networkProbe'
-import { warmupSession } from './sessionWarmup'
 import { registerImageProtocol, registerImageScheme } from './imageProtocol'
 import { registerLocalImageProtocol, registerLocalImageScheme } from './localImageProtocol'
 import { setImageCacheLimit } from './imageLoader'
@@ -13,7 +13,7 @@ import type { AppSettings } from './settingsCore'
 import { applyWindowBackground, backgroundMaterialFor, windowBackgroundColorFor } from './windowChrome'
 import './downloadManager'
 import { initDownloadManager } from './downloadManager'
-import './contentApi'
+import { warmAnonymousContentProvider } from './contentApi'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -81,6 +81,7 @@ function createWindow(settings: AppSettings): void {
 
 app.whenReady().then(async () => {
   registerIpcHandlers()
+  registerPerformanceDiagnosticsIpc()
   registerImageProtocol()
   registerLocalImageProtocol()
   startPeriodicProbe()
@@ -92,20 +93,9 @@ app.whenReady().then(async () => {
   applyWindowBackground(settings)
   await applyManualProxy(settings.proxyEnabled, settings.proxyUrl)
 
-  // Warm up session in background — bypass Cloudflare
-  // 主窗口必须先创建，warmup 会把验证视图内嵌到主窗口内容区
-  if (mainWindow) {
-    warmupSession(mainWindow).then(() => {
-      // 会话就绪后再恢复未完成任务，避免续传时抓取失败
-      initDownloadManager()
-      // Send status update to renderer
-      BrowserWindow.getAllWindows().forEach((w) => {
-        w.webContents.send('app:warmupDone')
-      })
-    })
-  } else {
-    initDownloadManager()
-  }
+  // Public API discovery never blocks the shell or local task recovery.
+  void warmAnonymousContentProvider()
+  initDownloadManager()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -114,8 +104,8 @@ app.whenReady().then(async () => {
   })
 })
 
-app.on('window-all-closed', () => {
-  closeDatabase()
+app.on('window-all-closed', async () => {
+  await closeDatabase(2000)
   if (process.platform !== 'darwin') {
     app.quit()
   }

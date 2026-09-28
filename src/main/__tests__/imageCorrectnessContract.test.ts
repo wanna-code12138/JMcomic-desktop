@@ -97,14 +97,5 @@ test('page_arr index remains the source of online page order', () => {
   assert.match(text, /pages\.push\(\{ index: i, imageUrl: url \}\)/)
 })
 
-test('concurrent image results are written back to their input index', () => {
-  const text = source('src/main/imageLoader.ts')
-  assert.match(text, /const results: ImageResult\[\] = new Array\(urls\.length\)/)
-  assert.match(text, /results\[index\] = \{ url, localPath: filepath, cached: false \}/)
-})
-
-test('download numbering uses the original missing page index', () => {
-  const text = source('src/main/downloadManager.ts')
-  assert.match(text, /const pageIndex = missingIndices\[k\]/)
-  assert.match(text, /String\(pageIndex \+ 1\)\.padStart\(4, '0'\)/)
-})
+// Input-order and missing-page numbering now execute the production loader and
+// downloader in imageLoaderRuntime.test.ts and downloadLifecycle.test.ts.

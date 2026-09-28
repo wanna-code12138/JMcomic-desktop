@@ -7,12 +7,13 @@ import {
   ArrowDownload20Regular, SlideText20Regular
 } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
-import { toJmImg } from '../utils/image'
+import { toProxyUrl, toJmImg } from '../utils/image'
 import {
   formatPerfEvent,
   startPerfSpan,
   type PerfSpan
 } from '../../../shared/performanceTraceCore'
+import { buildDescrambleSlices, getDescrambleStripCount } from '../../../shared/imageDescrambleCore'
 
 const TOOLBAR_HEIGHT = 48
 
@@ -365,10 +366,20 @@ function DescrambledImage(props: {
       return
     }
 
+    const canvasSpan = startPerfSpan(
+      'reader.canvas',
+      { width: w, height: h, stripCount: c },
+      undefined,
+      (event) => window.electronAPI?.performanceRecord(event)
+    )
+
     canvas.width = w
     canvas.height = h
     const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    if (!ctx) {
+      canvasSpan.finish('error')
+      return
+    }
 
     // 反打乱算法（与 Python JmImageTool.decode_and_save 等价）：
     // 打乱时：条带 g 的源 y = s - h*(g+1) - f，目标 y = h*g (+f if g>0)
@@ -391,6 +402,7 @@ function DescrambledImage(props: {
     }
 
     // DESCRAMBLE MATH END
+    canvasSpan.finish('ok')
 
     // 隐藏原图，显示 canvas
     img.style.display = 'none'
@@ -638,8 +650,13 @@ export default function ReaderPage(): JSX.Element {
     )
   }
 
-  // 图片 URL 通过 jmimg:// 协议代理（主进程附加 Referer + Cookie + UA）
-  const imgSrc = (page: PageData): string => toJmImg(page.imageUrl)
+  // 图片 URL 通过 jmimg:// 协议代理（主进程附加 Referer + Cookie + UA 并带视口优先级）
+  const imgSrc = (page: PageData, pageIndex?: number): string => {
+    const isCurrent = pageIndex !== undefined && pageIndex === currentPage
+    const isNear = pageIndex !== undefined && Math.abs(pageIndex - currentPage) <= 1
+    const priority = isCurrent ? 'critical' : isNear ? 'near' : 'background'
+    return toProxyUrl(page.imageUrl, priority)
+  }
 
   return (
     <div className={styles.root}>
@@ -731,7 +748,7 @@ export default function ReaderPage(): JSX.Element {
                 >
                   <DescrambledImage
                     className={styles.mangaImage}
-                    src={imgSrc(page)}
+                    src={imgSrc(page, vi.index)}
                     imageUrl={page.imageUrl}
                     alt={`第 ${vi.index + 1} 页`}
                     scrambleId={scrambleId}
@@ -752,7 +769,7 @@ export default function ReaderPage(): JSX.Element {
               {pages[currentPage] && (
                 <DescrambledImage
                   className={styles.mangaImage}
-                  src={imgSrc(pages[currentPage])}
+                  src={imgSrc(pages[currentPage], currentPage)}
                   imageUrl={pages[currentPage].imageUrl}
                   alt={`第 ${currentPage + 1} 页`}
                   style={{ maxHeight: '100%' }}

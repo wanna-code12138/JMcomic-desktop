@@ -129,10 +129,31 @@ img.manga-page {
   image-rendering: auto;
 }
 
+/* Manga Card CSS containment and hover/focus styling */
+.manga-card {
+  contain: layout paint style;
+}
+
+.manga-card .manga-card-fav-btn {
+  opacity: 0;
+  transition: opacity 100ms ease-out, background-color 100ms ease-out;
+}
+
+.manga-card:hover .manga-card-fav-btn,
+.manga-card:focus-within .manga-card-fav-btn,
+.manga-card .manga-card-fav-btn.is-active {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  .manga-card,
+  .manga-card .manga-card-fav-btn,
+  .manga-card img {
+    transition-duration: 0ms !important;
   }
 }

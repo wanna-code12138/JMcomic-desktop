@@ -47,7 +47,7 @@ const migratedPages = [
 const pageViolations: string[] = []
 for (const file of migratedPages) {
   const text = read(`src/renderer/src/pages/${file}`)
-  const forbidden = text.match(/--ac-glass|--ac-clay|radial-gradient|brand-glow/gi) ?? []
+  const forbidden: string[] = [...(text.match(/--ac-glass|--ac-clay|radial-gradient|brand-glow/gi) ?? [])]
   if (file !== 'ReaderPage.tsx') forbidden.push(...(text.match(/translateY\(-[1-9]/g) ?? []))
   if (forbidden.length > 0) pageViolations.push(`${file}: ${[...new Set(forbidden)].join(', ')}`)
 }

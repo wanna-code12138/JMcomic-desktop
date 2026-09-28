@@ -9,6 +9,7 @@ import {
   Dismiss20Regular, Search20Regular
 } from '@fluentui/react-icons'
 import { MangaCard, type MangaCardData } from '../components'
+import { usePageSnapshot } from '../navigation/pageStateCache'
 import {
   CATEGORIES, ORDERS, TIMES, POPULAR_TAGS,
   type CategoryOption
@@ -186,6 +187,16 @@ export default function CategoriesPage(): JSX.Element {
   const [page, setPage] = React.useState(1)
   const [totalPages, setTotalPages] = React.useState(1)
   const [hasSearched, setHasSearched] = React.useState(false)
+  const rootRef = React.useRef<HTMLDivElement | null>(null)
+
+  usePageSnapshot('categories', rootRef, () => ({ category, subCategory, order, time, selectedTag, page }), (filters: any) => {
+    if (filters?.category) setCategory(filters.category)
+    if (filters?.subCategory !== undefined) setSubCategory(filters.subCategory)
+    if (filters?.order) setOrder(filters.order)
+    if (filters?.time) setTime(filters.time)
+    if (filters?.selectedTag !== undefined) setSelectedTag(filters.selectedTag)
+    if (typeof filters?.page === 'number') setPage(filters.page)
+  })
 
   const currentCat: CategoryOption | undefined = CATEGORIES.find((c) => c.value === category)
   const showSubCategory = !!(currentCat?.subCategories && currentCat.subCategories.length > 0)
@@ -275,7 +286,7 @@ export default function CategoriesPage(): JSX.Element {
   }
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} ref={rootRef}>
       <Text size={600} weight="semibold" className={styles.title}>分类浏览</Text>
 
       <div className={styles.filterBar}>

@@ -1,8 +1,8 @@
 import { app, dialog, ipcMain } from 'electron'
 import { writeFileSync, readFileSync } from 'fs'
-import { getDatabase, saveDatabase } from './database'
+import { getDatabase, saveDatabase, scheduleDatabaseSave } from './database'
 import { clearScraperCache } from './scraperWindow'
-import { clearImageCache, setImageCacheLimit } from './imageLoader'
+import { clearImageCacheAsync, setImageCacheLimit } from './imageLoader'
 import { getSettings, updateSettings } from './settingsStore'
 import { applyWindowBackground } from './windowChrome'
 import { invalidateLocalImageAllowedRoots } from './localImageProtocol'
@@ -14,54 +14,6 @@ import {
 } from './personalData'
 
 export function registerIpcHandlers(): void {
-  // Database queries (generic)
-  ipcMain.handle('db:run', async (_event, sql: string, params?: unknown[]) => {
-    const db = await getDatabase()
-    db.run(sql, params)
-    saveDatabase()
-  })
-
-  ipcMain.handle('db:get', async (_event, sql: string, params?: unknown[]) => {
-    const db = await getDatabase()
-    const stmt = db.prepare(sql)
-    if (params) stmt.bind(params)
-    const row = stmt.get()
-    stmt.free()
-    return row ? toObject(row) : null
-  })
-
-  ipcMain.handle('db:all', async (_event, sql: string, params?: unknown[]) => {
-    const db = await getDatabase()
-    const stmt = db.prepare(sql)
-    if (params) stmt.bind(params)
-    const rows: unknown[] = []
-    while (stmt.step()) {
-      rows.push(toObject(stmt.getAsObject()))
-    }
-    stmt.free()
-    return rows
-  })
-
-  // Manga cache
-  ipcMain.handle('cache:setManga', async (_event, manga: MangaCache) => {
-    const db = await getDatabase()
-    db.run(
-      `INSERT OR REPLACE INTO manga_cache (id, title, author, cover_url, tags, description, chapters_json, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%s','now'))`,
-      [manga.id, manga.title, manga.author ?? null, manga.coverUrl ?? null,
-       manga.tags ? JSON.stringify(manga.tags) : null, manga.description ?? null,
-       manga.chapters ? JSON.stringify(manga.chapters) : null]
-    )
-    saveDatabase()
-  })
-
-  ipcMain.handle('cache:getManga', async (_event, id: string) => {
-    const db = await getDatabase()
-    const row = db.exec(`SELECT * FROM manga_cache WHERE id = '${id.replace(/'/g, "''")}'`)
-    // ... would need proper param binding
-    return null
-  })
-
   // Favorites
   ipcMain.handle('favorites:add', async (_event, manga: { mangaId: string; title?: string; coverUrl?: string }) => {
     const db = await getDatabase()
@@ -69,13 +21,13 @@ export function registerIpcHandlers(): void {
       'INSERT OR IGNORE INTO favorites (manga_id, title, cover_url) VALUES (?, ?, ?)',
       [manga.mangaId, manga.title ?? null, manga.coverUrl ?? null]
     )
-    saveDatabase()
+    await saveDatabase()
   })
 
   ipcMain.handle('favorites:remove', async (_event, mangaId: string) => {
     const db = await getDatabase()
     db.run('DELETE FROM favorites WHERE manga_id = ?', [mangaId])
-    saveDatabase()
+    await saveDatabase()
   })
 
   ipcMain.handle('favorites:list', async () => {
@@ -101,7 +53,7 @@ export function registerIpcHandlers(): void {
       'DELETE FROM search_history WHERE id NOT IN ' +
       '(SELECT id FROM search_history ORDER BY searched_at DESC LIMIT 20)'
     )
-    saveDatabase()
+    await saveDatabase()
   })
 
   ipcMain.handle('searchHistory:list', async () => {
@@ -113,13 +65,13 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('searchHistory:remove', async (_event, query: string) => {
     const db = await getDatabase()
     db.run('DELETE FROM search_history WHERE query = ?', [query])
-    saveDatabase()
+    await saveDatabase()
   })
 
   ipcMain.handle('searchHistory:clear', async () => {
     const db = await getDatabase()
     db.run('DELETE FROM search_history')
-    saveDatabase()
+    await saveDatabase()
   })
 
   // History (local reading history — one row per manga, UPSERT semantics)
@@ -146,7 +98,7 @@ export function registerIpcHandlers(): void {
        data.chapter_title ?? null, data.chapter_url ?? null, data.cover_url ?? null,
        data.page_index, data.total_pages ?? 0]
     )
-    saveDatabase()
+    await saveDatabase()
   })
 
   ipcMain.handle('history:upsertPage', async (_event, mangaId: string, pageIndex: number) => {
@@ -156,7 +108,7 @@ export function registerIpcHandlers(): void {
        WHERE manga_id = ?`,
       [pageIndex, mangaId]
     )
-    saveDatabase()
+    await saveDatabase()
   })
 
   ipcMain.handle('history:listLocal', async () => {
@@ -188,20 +140,20 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('history:removeLocal', async (_event, mangaId: string) => {
     const db = await getDatabase()
     db.run('DELETE FROM reading_history WHERE manga_id = ?', [mangaId])
-    saveDatabase()
+    await saveDatabase()
   })
 
   ipcMain.handle('history:clearLocal', async () => {
     const db = await getDatabase()
     db.run('DELETE FROM reading_history')
-    saveDatabase()
+    await saveDatabase()
   })
 
   // Auth
   ipcMain.handle('auth:save', async (_event, key: string, value: string) => {
     const db = await getDatabase()
     db.run('INSERT OR REPLACE INTO auth (key, value) VALUES (?, ?)', [key, value])
-    saveDatabase()
+    await saveDatabase()
   })
 
   ipcMain.handle('auth:get', async (_event, key: string) => {
@@ -212,7 +164,7 @@ export function registerIpcHandlers(): void {
 
   // Clear all caches (scraper content cache + image disk cache)
   ipcMain.handle('cache:clearAll', async () => {
-    const imgCount = clearImageCache()
+    const imgCount = await clearImageCacheAsync()
     clearScraperCache()
     await clearContentCache()
     return { imageFilesRemoved: imgCount }
@@ -268,7 +220,7 @@ export function registerIpcHandlers(): void {
     const db = await getDatabase()
     try {
       const result = importPersonalData(db, payload)
-      saveDatabase()
+      await saveDatabase()
       return { canceled: false, ...result, path: filePaths[0] }
     } catch (err) {
       return { canceled: false, error: err instanceof Error ? err.message : String(err) }
@@ -278,27 +230,7 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('data:clearPersonal', async () => {
     const db = await getDatabase()
     const counts = clearPersonalData(db)
-    saveDatabase()
+    await saveDatabase()
     return counts
   })
-}
-
-interface MangaCache {
-  id: string
-  title: string
-  author?: string
-  coverUrl?: string
-  tags?: string[]
-  description?: string
-  chapters?: ChapterInfo[]
-}
-
-interface ChapterInfo {
-  index: number
-  title: string
-  url: string
-}
-
-function toObject(row: Record<string, unknown>): Record<string, unknown> {
-  return row
 }

@@ -93,7 +93,7 @@ const useStyles = makeStyles({
     border: '1px solid transparent',
     ':hover': {
       backgroundColor: 'var(--ui-bg-hover)',
-      borderColor: 'var(--ui-stroke-card)'
+      border: '1px solid var(--ui-stroke-card)'
     },
     ':active': {
       transform: 'scale(0.97)'

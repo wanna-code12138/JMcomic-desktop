@@ -10,6 +10,7 @@ import {
 } from '@fluentui/react-icons'
 import { MangaCard, type MangaCardData } from '../components'
 import { useAppStore } from '../stores/appStore'
+import { usePageSnapshot } from '../navigation/pageStateCache'
 
 const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
@@ -158,6 +159,16 @@ export default function SearchPage(): JSX.Element {
   const [totalPages, setTotalPages] = React.useState(1)
   const [jumpedCarPlate, setJumpedCarPlate] = React.useState(false)
   const [history, setHistory] = React.useState<string[]>([])
+  const rootRef = React.useRef<HTMLDivElement | null>(null)
+
+  usePageSnapshot('search', rootRef, () => ({ query: submittedQuery, page, mainTag }), (filters: any) => {
+    if (filters?.query) {
+      setQuery(filters.query)
+      setSubmittedQuery(filters.query)
+    }
+    if (typeof filters?.page === 'number') setPage(filters.page)
+    if (typeof filters?.mainTag === 'number') setMainTag(filters.mainTag)
+  })
 
   const refreshHistory = React.useCallback(async (): Promise<void> => {
     try {
@@ -264,7 +275,7 @@ export default function SearchPage(): JSX.Element {
   const showEmpty = hasQuery && !loading && !error && results.length === 0 && !jumpedCarPlate
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} ref={rootRef}>
       <Text size={600} weight="semibold" style={{ marginBottom: '16px', display: 'block' }}>搜索漫画</Text>
       <div className={styles.searchBar}>
         <SearchBox
