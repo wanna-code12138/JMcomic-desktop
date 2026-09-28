@@ -317,8 +317,8 @@ export default function MangaDetailPage(): JSX.Element {
         <Button appearance="subtle" icon={<ArrowLeft20Regular />} onClick={() => setCurrentPage(previousPage || 'home')}>返回</Button>
       </div>
 
-      <div className={styles.hero}>
-        <div className={styles.coverWrap}>
+      <div className={`${styles.hero} manga-detail-hero`}>
+        <div className={`${styles.coverWrap} manga-detail-cover`}>
           {manga.coverUrl ? (
             <img
               className={`${styles.cover} ${coverLoaded ? styles.coverLoaded : ''}`}
@@ -333,7 +333,7 @@ export default function MangaDetailPage(): JSX.Element {
           )}
         </div>
         <div className={styles.info}>
-          <h1 className={styles.title}>{manga.title}</h1>
+          <h1 className={`${styles.title} manga-detail-title`}>{manga.title}</h1>
           <div className={styles.carPlate}>车牌号: JM{manga.id}</div>
           <div className={styles.author}>✍️ {manga.author || '未知作者'}</div>
           {manga.tags.length > 0 && (
@@ -355,7 +355,7 @@ export default function MangaDetailPage(): JSX.Element {
             </div>
           )}
           {manga.description && <div className={styles.description}>{manga.description}</div>}
-          <div className={styles.actions}>
+          <div className={`${styles.actions} manga-detail-actions`}>
             {detailSource === 'local' ? (
               <Button appearance="primary" size="large" icon={<FolderOpen20Regular />}
                 onClick={async () => {
@@ -421,7 +421,7 @@ export default function MangaDetailPage(): JSX.Element {
       {manga.chapters.length > 0 && (
         <>
           <Divider />
-          <div className={styles.chaptersSection}>
+          <div className={`${styles.chaptersSection} manga-detail-chapters`}>
             <div className={styles.chapterHeader}>
               <Text size={500} weight="semibold">章节列表 ({manga.chapters.length})</Text>
               <Button size="small" appearance="subtle"

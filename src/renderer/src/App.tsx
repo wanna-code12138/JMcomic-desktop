@@ -6,6 +6,7 @@ import AppFrame from './components/AppFrame'
 import AppNavigation from './components/AppNavigation'
 import AppStatusBar from './components/AppStatusBar'
 import PageHost, { type PageId } from './components/PageHost'
+import ReaderWorkspace from './reader/ReaderWorkspace'
 
 import { touchPage, createPageCacheState, type PrimaryPageId } from './navigation/pageStateCache'
 
@@ -32,10 +33,17 @@ interface AppProps {
 
 export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Element {
   const currentPage = useAppStore((state) => state.currentPage)
-  const readerSidebarCollapsed = useAppStore((state) => state.readerSidebarCollapsed)
-  const readerSourcePage = useAppStore((state) => state.readerSourcePage)
+  const hasReader = useAppStore((state) => state.readerTabs.length > 0)
+  const readerExpanded = useAppStore((state) => state.readerExpanded)
+  const readerClosing = useAppStore((state) => state.readerClosing)
   const [pageCache, setPageCache] = React.useState(() => createPageCacheState('home'))
   const visitedPrimaryPages = pageCache.mounted as readonly PrimaryNavPageId[]
+
+  React.useEffect(() => {
+    const offClose = window.electronAPI?.onBeforeClose(() => useAppStore.getState().flushReaderWorkspace())
+    const offCancel = window.electronAPI?.onCloseCancelled(() => useAppStore.getState().cancelReaderClose())
+    return () => { offClose?.(); offCancel?.() }
+  }, [])
 
   React.useEffect(() => {
     const stop = startRendererMetrics((event) => {
@@ -51,21 +59,21 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
   }, [currentPage])
 
   const rememberedPrimaryPages = rememberPrimaryPage(visitedPrimaryPages, currentPage)
-  const keepDetailMounted =
-    currentPage === 'detail' || (currentPage === 'reader' && readerSourcePage === 'detail')
   const mountedPages: PageId[] = [
     ...rememberedPrimaryPages,
-    ...(keepDetailMounted ? ['detail' as const] : []),
-    ...(currentPage === 'reader' ? ['reader' as const] : []),
+    ...(currentPage === 'detail' ? ['detail' as const] : []),
     ...(currentPage === 'diagnostics' ? ['diagnostics' as const] : [])
   ]
 
   return (
     <AppFrame
       titleBar={<TitleBar darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />}
-      navigation={currentPage === 'reader' && readerSidebarCollapsed ? null : <AppNavigation />}
+      navigation={<AppNavigation />}
       page={<PageHost currentPage={currentPage as PageId} mountedPages={mountedPages} />}
-      statusBar={currentPage === 'reader' ? null : <AppStatusBar />}
+      statusBar={hasReader ? null : <AppStatusBar />}
+      reader={hasReader ? <ReaderWorkspace /> : null}
+      readerExpanded={readerExpanded}
+      closing={readerClosing}
     />
   )
 }

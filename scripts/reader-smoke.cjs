@@ -31,6 +31,12 @@ if (benchmark) ipcMain.on('performance:record', (_event,value) => rendererEvents
 const report = { runId, mode: `${visible ? 'visible' : 'hidden'} Chromium / synthetic network`, assertions: [], errors: [], network: { api: 0, image: 0, blocked: 0 }, summaryQueries: 0 }
 let rejectPreferenceSaves = false
 let rejectHistorySaves = false
+let closeFailures = 0
+if (process.env.JM_QA_CLOSE_RETRY) dialog.showMessageBox = async options => {
+  assert.equal(options.title, '尚未完成保存')
+  closeFailures++
+  return { response: 0, checkboxChecked: false }
+}
 const registerHandle = ipcMain.handle.bind(ipcMain)
 ipcMain.handle = (channel, handler) => registerHandle(channel, (...args) => {
   if(channel === 'download:summary')report.summaryQueries++
@@ -135,7 +141,7 @@ net.fetch = async (target, init = {}) => {
   if(benchmark){await sleep(80);init.signal?.throwIfAborted()}
   let data
   if (url.pathname === '/setting') data = { jm3_version: '2.1.7', img_host: 'https://cdn-msp.18comic.vip' }
-  else if (url.pathname === '/album') data = { id: '101', name: '山间来信 · 合成阅读样章', author: ['阅读体验实验室'], tags: ['风景', '旅途'], description: '用于测试长图、横图与章节切换的合成内容。', series: [{ id: benchmark?'267000':'202', sort: '1', name: '第一章 · 出发' }, { id: '203', sort: '2', name: '第二章 · 抵达' }] }
+  else if (url.pathname === '/album') data = { id: url.searchParams.get('id') || '101', name: url.searchParams.get('id') === '102' ? '海边日记 · 合成阅读样章' : '山间来信 · 合成阅读样章', author: ['阅读体验实验室'], tags: ['风景', '旅途'], description: '用于测试长图、横图与章节切换的合成内容。', series: [{ id: url.searchParams.get('id') === '102' ? '204' : benchmark?'267000':'202', sort: '1', name: '第一章 · 出发' }, { id: '203', sort: '2', name: '第二章 · 抵达' }] }
   else if (url.pathname === '/comic_read') data = { id: url.searchParams.get('id') || '202', scramble_id: benchmark?200000:0, total_page: 36, images: Array.from({ length: 36 }, (_, i) => `${i}.png${benchmark?'?fixture='+fixtureEpoch:''}`) }
   else if (['/categories/filter', '/search', '/promote'].includes(url.pathname)) data = { total: 1, content: [{ id: '101', name: '山间来信 · 合成阅读样章', image: '/media/albums/101.png' }] }
   else throw new Error(`Unexpected fixture route: ${url.pathname}`)
@@ -154,7 +160,7 @@ async function run(win) {
     throw new Error(`Timed out: ${label}\n${await js('document.body.innerText.slice(-3000)')}`)
   }
   const clickText = async (text) => {
-    const query = `[...document.querySelectorAll('button,[role="button"],[role="tab"]')].find(e=>e.getBoundingClientRect().width>0 && e.innerText.trim()===${JSON.stringify(text)})`
+    const query = `[...document.querySelectorAll('button,[role="button"],[role="tab"]')].find(e=>e.getBoundingClientRect().width>0 && (e.innerText.trim()===${JSON.stringify(text)} || e.getAttribute('aria-label')===${JSON.stringify(text)}))`
     await wait(`Boolean(${query})`, `button ${text}`)
     await js(`${query}.click()`)
   }
@@ -209,16 +215,57 @@ async function run(win) {
     mark('cold process restart restores offline mode, last page, preferences and chapter directory')
     finish(0); return
   }
+  if(process.env.JM_QA_WORKSPACE)await js(`window.electronAPI.favoritesAdd({ mangaId:'102', title:'海边日记 · 合成阅读样章', coverUrl:'https://cdn-msp.18comic.vip/media/albums/102.png' })`)
   await js(`window.electronAPI.favoritesAdd({ mangaId:'101', title:'山间来信 · 合成阅读样章', coverUrl:'https://cdn-msp.18comic.vip/media/albums/101.png' })`)
   await clickText('收藏')
   await wait(`Boolean([...document.querySelectorAll('.manga-card')].find(e=>e.getBoundingClientRect().width>0))`, 'favorite card')
   await screenshot('library')
-  await js(`[...document.querySelectorAll('.manga-card')].find(e=>e.getBoundingClientRect().width>0).click()`)
+  await js(`[...document.querySelectorAll('.manga-card')].find(e=>e.textContent.includes('山间来信') && e.getBoundingClientRect().width>0).click()`)
   if(process.env.JM_QA_HISTORY_RETRY)rejectHistorySaves=true
   await clickText('开始阅读')
   await wait(`Boolean([...document.images].find(e=>e.alt==='第 1 页' && e.naturalWidth>0))`, 'decoded first page')
   mark('real preload / IPC / encrypted API / jmimg / Chromium decode')
   await screenshot('reader-first')
+  if (process.env.JM_QA_CLOSE_RETRY) {
+    rejectPreferenceSaves = true
+    await js(`document.querySelector('[aria-label="放大"]').click()`)
+    await wait(`document.querySelector('.reader-save-error')?.textContent.includes('偏好暂未保存')`, 'preference write fault before closing')
+    win.close()
+    await wait(`!document.querySelector('[data-app-closing]') && Boolean(document.querySelector('[data-reader-transition-error]'))`, 'failed close remains usable')
+    assert.equal(closeFailures, 1)
+    assert.equal(win.isDestroyed(), false)
+    rejectPreferenceSaves = false
+    await js(`document.querySelector('[data-reader-transition-error] button').click()`)
+    await wait(`!document.querySelector('[data-reader-transition-error]')`, 'recovered close save clears error')
+    assert.equal((await js('window.electronAPI.settingsGet()')).readerZoom, 1.1)
+    await js(`void(window.__qaOffClose=window.electronAPI.onBeforeClose(async()=>{await new Promise(done=>setTimeout(done,150));throw Error('Synthetic final save failure')}))`)
+    win.close()
+    await wait(`Boolean(document.querySelector('[data-app-closing]'))`, 'freeze during close preparation')
+    assert.ok(await js(`document.querySelector('.app-workspace-body').inert`))
+    await wait(`!document.querySelector('[data-app-closing]')`, 'main close cancellation resumes the renderer')
+    assert.equal(closeFailures, 2)
+    assert.equal(await js(`document.querySelector('.app-workspace-body').inert`), false)
+    await js(`window.__qaOffClose();document.querySelector('[data-reader-viewport]').focus()`)
+    wc.sendInputEvent({ type: 'keyDown', keyCode: 'Right' }); wc.sendInputEvent({ type: 'keyUp', keyCode: 'Right' })
+    await wait(`document.querySelector('[aria-label="跳转页码"]')?.value==='2'`, 'continued reading after close cancellation')
+    mark('preference and final-save failures retain the window; IPC cancellation restores interaction; retry clears the error')
+    app.once('will-quit', event => {
+      event.preventDefault()
+      require('sql.js')().then(SQL => {
+        const disk = new SQL.Database(require('node:fs').readFileSync(require('../src/main/dataPaths.ts').getDatabasePath()))
+        assert.equal(disk.exec("SELECT page_index FROM reading_history WHERE manga_id='101'")[0].values[0][0], 1)
+        disk.close()
+        mark('normal close after recovery persists the final page to disk')
+        assert.equal(report.errors.length, 0, report.errors.join('\n'))
+        finish(0)
+      }).catch(fail)
+    })
+    win.close(); return
+  }
+  if(process.env.JM_QA_WORKSPACE) {
+    await require('./reader-workspace-smoke.cjs')({win,js,wait,clickText,screenshot,mark,rejectSaves:value=>{rejectPreferenceSaves=value}})
+    assert.equal(report.errors.length,0,report.errors.join('\n'));finish(0);return
+  }
   if(process.env.JM_QA_HISTORY_RETRY) {
     await wait(`document.querySelector('.reader-save-error')?.textContent.includes('阅读位置暂未保存')`,'history write failure feedback')
     rejectHistorySaves=false
@@ -238,7 +285,7 @@ async function run(win) {
       for(const [width,height] of [[960,640],[1280,860]]) {
         win.setSize(width,height)
         await screenshot(`layout-${theme}-${width}`)
-        const geometry=await js(`(()=>{const root=document.querySelector('.reader-root').getBoundingClientRect();return [...document.querySelectorAll('.reader-toolbar button,.reader-toolbar select,.reader-footer button,.reader-footer input')].map(e=>{const r=e.getBoundingClientRect();return {label:e.getAttribute('aria-label')||e.textContent.trim(),fits:r.left>=root.left-1&&r.right<=root.right+1&&r.top>=root.top&&r.bottom<=root.bottom+1}})})()`)
+        const geometry=await js(`(()=>{const root=document.querySelector('.reader-root').getBoundingClientRect();return [...document.querySelectorAll('.reader-toolbar button,.reader-toolbar select,.reader-footer button,.reader-footer input')].filter(e=>e.getBoundingClientRect().width>0).map(e=>{const r=e.getBoundingClientRect();return {label:e.getAttribute('aria-label')||e.textContent.trim(),fits:r.left>=root.left-1&&r.right<=root.right+1&&r.top>=root.top&&r.bottom<=root.bottom+1}})})()`)
         assert.ok(geometry.every(control=>control.fits),JSON.stringify(geometry.filter(control=>!control.fits)))
       }
       if(theme===0)await js(`document.querySelector('button').click()`)
@@ -294,6 +341,7 @@ async function run(win) {
   await js(`document.querySelector('[data-reader-viewport]').focus()`)
   wc.sendInputEvent({ type: 'keyDown', keyCode: 'Right' }); wc.sendInputEvent({ type: 'keyUp', keyCode: 'Right' })
   await wait(`Number(document.querySelector('[aria-label="跳转页码"]').value)===${position.visible+2}`, 'keyboard next page')
+  await js(`document.querySelector('[aria-label="阅读设置"]').click()`)
   await select('阅读方向', 'rtl')
   await js(`document.querySelector('[data-reader-viewport]').focus()`)
   wc.sendInputEvent({ type: 'keyDown', keyCode: 'Left' }); wc.sendInputEvent({ type: 'keyUp', keyCode: 'Left' })
@@ -301,9 +349,10 @@ async function run(win) {
   mark('fit, persisted zoom, focus isolation and both keyboard directions')
   win.setSize(960, 640)
   await clickText('自动隐藏')
+  await js(`document.querySelector('[aria-label="阅读设置"]').click()`)
   await screenshot('reader-compact')
   assert.ok(await js(`document.querySelector('.reader-toolbar').scrollWidth<=document.querySelector('.reader-root').clientWidth`), 'toolbar must fit minimum window')
-  assert.ok(await js(`getComputedStyle(document.querySelector('.reader-toolbar')).opacity==='1' && [...document.querySelectorAll('.reader-toolbar button,.reader-toolbar select,.reader-toolbar input')].every(e=>{const r=e.getBoundingClientRect(),root=document.querySelector('.reader-root').getBoundingClientRect();return r.left>=root.left && r.right<=root.right && r.top>=root.top && r.bottom<=root.bottom})`), 'minimum-window controls are visible and inside the reader')
+  assert.ok(await js(`getComputedStyle(document.querySelector('.reader-toolbar')).opacity==='1' && [...document.querySelectorAll('.reader-toolbar button,.reader-toolbar select,.reader-toolbar input')].filter(e=>e.getBoundingClientRect().width>0).every(e=>{const r=e.getBoundingClientRect(),root=document.querySelector('.reader-root').getBoundingClientRect();return r.left>=root.left && r.right<=root.right && r.top>=root.top && r.bottom<=root.bottom})`), 'minimum-window controls are visible and inside the reader')
   win.setSize(1280, 860)
   await js(`document.querySelector('[aria-label="目录与缩略图"]').click()`)
   await wait(`Boolean(document.querySelector('.reader-drawer'))`, 'directory')
@@ -316,6 +365,8 @@ async function run(win) {
   await js('document.exitFullscreen()')
   await clickText('下一章')
   await wait(`document.querySelector('.reader-heading')?.textContent.includes('抵达')`, 'next chapter')
+  await wait(`Boolean(document.querySelector('[data-reader-viewport]'))`, 'next chapter viewport')
+  assert.ok(await js(`document.activeElement===document.querySelector('[data-reader-viewport]')`), 'chapter change returns focus to the new viewport for continued keyboard reading')
   await wait(`Boolean(document.querySelector('.reader-image[data-reader-image-status="error"]'))`, 'individual failing page')
   await screenshot('reader-page-error')
   failingSecondChapter = false
@@ -355,17 +406,27 @@ async function run(win) {
   const end = zip.lastIndexOf(Buffer.from([0x50,0x4b,0x05,0x06]))
   assert.equal(zip.readUInt16LE(end+10), 36)
   mark('real download, stable identity, missing-page repair, local protocol and CBZ export', { pages:36, archiveBytes:zip.length })
+  await clickText('收藏')
+  await js(`[...document.querySelectorAll('.manga-card')].find(e=>e.textContent.includes('山间来信') && e.getBoundingClientRect().width>0).click()`)
+  await clickText('开始阅读')
+  await wait(`Boolean(document.querySelector('[data-reader-image-status="ready"]'))`, 'online tab before offline reading')
+  await clickText('下载')
   await wait(`Boolean([...document.querySelectorAll('[role="button"]')].find(e=>e.textContent.includes('山间来信') && e.getBoundingClientRect().width>0))`, 'downloaded manga card')
   await js(`[...document.querySelectorAll('[role="button"]')].find(e=>e.textContent.includes('山间来信') && e.getBoundingClientRect().width>0).click()`)
   await wait(`Boolean([...document.querySelectorAll('[role="button"]')].find(e=>e.textContent.includes('第一章') && e.getBoundingClientRect().width>0))`, 'offline chapter')
   const networkBeforeOffline = { ...report.network }
   await js(`[...document.querySelectorAll('[role="button"]')].find(e=>e.textContent.includes('第一章') && e.getBoundingClientRect().width>0).click()`)
+  await wait(`document.querySelector('[data-reader-tab="local:101"]')?.getAttribute('aria-selected')==='true' && document.querySelector('.reader-heading')?.textContent.includes('离线阅读')`, 'local source becomes active')
   await wait(`Boolean(document.querySelector('.reader-single-content'))`, 'persisted reader mode')
   await wait(`Boolean(document.querySelector('.reader-image[data-reader-image-status="ready"]'))`, 'offline image')
   assert.ok(await js(`document.querySelector('.reader-heading').textContent.includes('离线阅读')`))
   assert.equal(report.network.image,networkBeforeOffline.image)
   assert.equal(report.network.api,networkBeforeOffline.api)
   mark('download library opens the full offline reader without a content or image network request')
+  assert.equal(await js(`document.querySelectorAll('[data-reader-tab]').length`),2)
+  assert.ok(await js(`document.querySelector('[data-reader-tab="local:101"]').getAttribute('aria-selected')==='true'`))
+  assert.ok(await js(`Boolean(document.querySelector('[data-reader-tab="online:101"]'))`))
+  mark('online and offline tabs for the same book coexist with the local source selected')
   await js(`document.querySelector('[data-reader-viewport]').focus()`)
   wc.sendInputEvent({type:'keyDown',keyCode:'End'}); wc.sendInputEvent({type:'keyUp',keyCode:'End'})
   await wait(`document.querySelector('[aria-label="跳转页码"]')?.value==='36'`, 'last page before closing')

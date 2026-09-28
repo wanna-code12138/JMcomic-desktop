@@ -23,10 +23,6 @@ test('App uses bounded page cache with limit of 3', () => {
   assert.match(appSource, /3/)
 })
 
-test('ReaderPage is mounted only when current page is reader', () => {
-  assert.match(appSource, /currentPage === 'reader'\s*\?\s*\[\s*'reader'/)
-})
-
 test('Home, Search, and Categories pages capture and restore snapshots', () => {
   assert.match(homeSource, /usePageSnapshot/)
   assert.match(searchSource, /usePageSnapshot/)

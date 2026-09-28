@@ -8,7 +8,6 @@ import PageLoadBoundary from './PageLoadBoundary'
 import { createRetryableLazyPage } from './retryableLazyPage'
 
 const MangaDetailPage = createRetryableLazyPage(() => import('../pages/MangaDetailPage'))
-const ReaderPage = createRetryableLazyPage(() => import('../pages/ReaderPage'))
 const DownloadsPage = createRetryableLazyPage(() => import('../pages/DownloadsPage'))
 const SettingsPage = createRetryableLazyPage(() => import('../pages/SettingsPage'))
 
@@ -20,10 +19,9 @@ export type PageId =
   | 'downloads'
   | 'settings'
   | 'detail'
-  | 'reader'
   | 'diagnostics'
 
-const lazyPages = { detail: MangaDetailPage, reader: ReaderPage, downloads: DownloadsPage, settings: SettingsPage }
+const lazyPages = { detail: MangaDetailPage, downloads: DownloadsPage, settings: SettingsPage }
 
 const pageComponents: Partial<Record<PageId, React.ComponentType>> = {
   home: HomePage,
@@ -41,7 +39,6 @@ const pageNames: Record<PageId, string> = {
   downloads: '下载',
   settings: '设置',
   detail: '漫画详情',
-  reader: '阅读器',
   diagnostics: '性能诊断'
 }
 

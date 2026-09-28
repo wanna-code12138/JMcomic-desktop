@@ -12,7 +12,9 @@ import {
   ArrowDownload20Regular,
   ArrowDownload20Filled,
   Settings20Regular,
-  Settings20Filled
+  Settings20Filled,
+  PanelLeftContract20Regular,
+  PanelLeftExpand20Regular
 } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
 
@@ -31,6 +33,8 @@ const useStyles = makeStyles({
     userSelect: 'none',
     flexShrink: 0
   },
+  collapsed: { width: '64px', minWidth: '64px' },
+  collapsedItem: { justifyContent: 'center', padding: '0', minHeight: '40px' },
   navItem: {
     display: 'flex',
     alignItems: 'center',
@@ -109,27 +113,36 @@ function AppNavigation(): JSX.Element {
   const styles = useStyles()
   const currentPage = useAppStore((state) => state.currentPage)
   const setCurrentPage = useAppStore((state) => state.setCurrentPage)
+  const collapsed = useAppStore((state) => state.readerSidebarCollapsed)
+  const setCollapsed = useAppStore((state) => state.setReaderSidebarCollapsed)
 
   return (
-    <nav className={styles.nav}>
+    <nav className={mergeClasses(styles.nav, collapsed && styles.collapsed)} aria-label="主导航" data-collapsed={collapsed}>
+      <button className={mergeClasses(styles.navItem, collapsed && styles.collapsedItem)}
+        aria-label={collapsed ? '展开导航' : '收起导航'} title={collapsed ? '展开导航' : '收起导航'}
+        onClick={() => setCollapsed(!collapsed)}>
+        {collapsed ? <PanelLeftExpand20Regular /> : <PanelLeftContract20Regular />}{!collapsed && '导航'}
+      </button>
       {navItems.map((item) => {
         const active = currentPage === item.id
         return (
           <button
             key={item.id}
             type="button"
-            className={mergeClasses(styles.navItem, active && styles.navItemActive)}
+            className={mergeClasses(styles.navItem, active && styles.navItemActive, collapsed && styles.collapsedItem)}
+            aria-label={item.label} aria-current={active ? 'page' : undefined} title={collapsed ? item.label : undefined}
             onClick={() => setCurrentPage(item.id)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                setCurrentPage(item.id)
-              }
+            onKeyDown={(event) => {
+              if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+              event.preventDefault()
+              const buttons = Array.from(event.currentTarget.closest('nav')!.querySelectorAll<HTMLButtonElement>('button'))
+              buttons[(buttons.indexOf(event.currentTarget) + (event.key === 'ArrowDown' ? 1 : buttons.length - 1)) % buttons.length].focus()
             }}
           >
             <span className={styles.navIcon}>
               {active ? item.iconActive : item.icon}
             </span>
-            {item.label}
+            {!collapsed && item.label}
           </button>
         )
       })}

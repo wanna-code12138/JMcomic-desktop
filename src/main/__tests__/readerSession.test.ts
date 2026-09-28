@@ -19,12 +19,12 @@ test('reader preferences survive storage strings and reject invalid dimensions',
   assert.equal(invalid.readerMode, 'scroll')
 })
 
-test('changing chapters inside the reader preserves the original return destination', () => {
+test('changing chapters inside the reader preserves the central browsing destination', async () => {
   useAppStore.setState({ currentPage: 'detail' })
   const reader = { mangaId: '1', mangaTitle: 'Book', mangaCoverUrl: '', chapterIndex: 0, chapterTitle: 'One', chapterUrl: 'one' }
-  useAppStore.getState().openReader(reader)
-  useAppStore.getState().openReader({ ...reader, chapterIndex: 1, chapterUrl: 'two' })
-  useAppStore.getState().closeReader()
+  await useAppStore.getState().openReader(reader)
+  await useAppStore.getState().openReader({ ...reader, chapterIndex: 1, chapterUrl: 'two' })
+  await useAppStore.getState().closeReader()
   assert.equal(useAppStore.getState().currentPage, 'detail')
 })
 

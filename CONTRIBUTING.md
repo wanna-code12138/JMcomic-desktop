@@ -57,9 +57,11 @@ Remove-Item Env:JM_QA_RESUME
 
 完整旅程包含可见页和页内位置、模式与键盘、单页失败重试、真实下载、删除合成缺页后修复、CBZ、正常关闭落盘；第二次启动核对第 36 页、离线来源、缩放和章节目录。另可在新的运行 ID 下单独设置 `JM_QA_SAVE_RETRY=1` 或 `JM_QA_HISTORY_RETRY=1` 验证存储故障恢复，完成后清除该环境变量。`JM_QA_LAYOUT=1` 与 `JM_QA_SCALE=1.25` 等值组合用于显示缩放与深浅主题检查；这是应用强制缩放，不能替代物理多屏切换验收。
 
+三栏回归使用 `JM_QA_WORKSPACE=1`，覆盖中间浏览独立性、两本书的标签和锚点、相同章节去重、活动会话卸载及图片/Canvas 释放、切换保存失败、快速连续切换、关闭焦点、铺满/还原/全屏和 Esc。`JM_QA_CLOSE_RETRY=1` 注入偏好及最终保存失败，验证窗口保留、取消关闭通知、恢复阅读和再次关窗的磁盘末值。这些模式各用独立运行 ID，完成后移除对应环境变量；不要混用 `RESUME`、`WORKSPACE`、`CLOSE_RETRY`、`LAYOUT`、`GOLDEN` 模式。
+
 [scripts/descramble-smoke.cjs](scripts/descramble-smoke.cjs) 验证生产 Canvas 的逐像素金样。`reader-smoke.cjs` 的 `JM_QA_GOLDEN=1` 模式则经过完整下载 IPC、文件写入、本地协议和 CBZ；可用 `JM_QA_PACKAGE` 指向本地打包的 `resources/app.asar` 核对包内依赖。
 
-性能实验入口是 [scripts/ablation.ts](scripts/ablation.ts) 和 [scripts/reader-benchmark.cjs](scripts/reader-benchmark.cjs)。控制方式、统计口径和现有实验记录见 [实施与验收报告](outputs/2026-09-29-implementation-results.md)。这些 Electron 和性能脚本不属于 `npm test` 的单元测试发现范围，应按修改范围单独运行。
+性能实验入口是 [scripts/ablation.ts](scripts/ablation.ts) 和 [scripts/reader-benchmark.cjs](scripts/reader-benchmark.cjs)。控制方式、统计口径和历史基线见 [实施与验收报告](outputs/2026-09-29-implementation-results.md)，三栏当前测量见 [工作区验收](outputs/2026-09-29-three-pane-results.md)。这些 Electron 和性能脚本不属于 `npm test` 的单元测试发现范围，应按修改范围单独运行。
 
 ## 分支与提交规范
 
@@ -86,12 +88,12 @@ docs: 更新架构文档
 - 主进程逻辑尽量拆成纯函数（便于单测），UI 组件尽量无状态化
 - 内容请求复用 `contentGateway` 的 API / 直接网页 / 浏览器回退；不要在页面中另建抓取链路
 - 在线图片与下载复用 `imageNetwork` 调度和 `shared/imageDescrambleCore`；本地图片通过 `jmlocal://` 的路径校验
-- 阅读会话、图片和工具栏分别位于 `src/renderer/src/reader/`，偏好与进度类型统一使用 `src/shared/readerContracts.ts`
+- 标签与过渡入口由 `appStore` 负责，`ReaderWorkspace` 只挂载活动会话；阅读会话、图片和工具栏位于 `src/renderer/src/reader/`，偏好与进度类型统一使用 `src/shared/readerContracts.ts`
 - 下载目录通过 `downloadCore.ts` 的 `resolveTaskDirectory()` 解析；新记录保存 `storage_relpath`，旧记录保留标题目录兼容，不按展示标题重建新任务的目录
 - 恢复下载、离线阅读和导出复用 `inspectChapterFiles()`；它检查原页号和图片头，不应被描述为完整图片解码验证
 - CBZ 入口位于 `downloadExport.ts`，归档写入位于 `cbzExport.ts`；复用导出目录占用检查、临时文件与取消处理
 - 数据写入使用 `database.ts` 的异步持久化接口；需要确认落盘的操作必须等待 Promise 并处理错误
-- 关窗保存通过 `onBeforeClose()` 注册渲染端任务，再由 `shutdownController.ts` 按保存、停止下载与导出、关闭数据库的顺序处理；新增后台写入必须接入对应停止阶段
+- 关窗保存由 `App` 通过 `onBeforeClose()` 注册工作区任务，准备关闭时冻结新入口，再由 `shutdownController.ts` 按保存、停止下载与导出、关闭数据库的顺序处理；`onCloseCancelled()` 恢复被保留的窗口，新增后台写入必须接入对应停止阶段
 - 不改无关文件，不留下注释掉的旧代码
 - 新增图片 / 网络来源时检查域名校验与 CSP（`src/renderer/index.html`），只扩大实际需要的范围
 

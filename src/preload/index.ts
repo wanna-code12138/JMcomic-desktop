@@ -17,6 +17,10 @@ const api = {
     closeHandlers.add(handler)
     return () => { closeHandlers.delete(handler) }
   },
+  onCloseCancelled: (handler: () => void) => {
+    ipcRenderer.on('window:close-cancelled', handler)
+    return () => { ipcRenderer.removeListener('window:close-cancelled', handler) }
+  },
   // Window controls
   windowMinimize: () => ipcRenderer.invoke('window:minimize'),
   windowMaximize: () => ipcRenderer.invoke('window:maximize'),

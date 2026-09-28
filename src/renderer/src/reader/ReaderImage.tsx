@@ -12,6 +12,7 @@ export default function ReaderImage({ imageUrl, index, scrambleId, priority, onR
   const [status, setStatus] = React.useState<'loading' | 'ready' | 'error'>('loading')
   const [scrambled, setScrambled] = React.useState(false)
   const canvas = React.useRef<HTMLCanvasElement>(null)
+  const image = React.useRef<HTMLImageElement>(null)
   const notify = React.useRef(onReady)
   notify.current = onReady
   // Priority is selected at mount; changing the current page must not reload a decoded image.
@@ -22,10 +23,12 @@ export default function ReaderImage({ imageUrl, index, scrambleId, priority, onR
     setStatus('loading')
     perf.current = recordRendererSpan('reader.image', { source: imageUrl.startsWith('jmlocal:') ? 'local' : 'online' })
     const element = canvas.current
+    const request = image.current
     return () => {
       perf.current?.finish('cancelled')
       if (frame.current !== undefined) cancelAnimationFrame(frame.current)
       if (element) { element.width = 0; element.height = 0 }
+      request?.removeAttribute('src')
     }
   }, [imageUrl, attempt])
   const fail = (): void => { setStatus('error'); perf.current?.finish('error') }
@@ -45,7 +48,7 @@ export default function ReaderImage({ imageUrl, index, scrambleId, priority, onR
   }
   const src = attempt === 0 ? source : `${source}${source.includes('?') ? '&' : '?'}retry=${attempt}`
   return <div className="reader-image" data-reader-image-status={status}>
-    <img key={attempt} src={src} alt={`第 ${index + 1} 页`} onLoad={loaded} onError={fail}
+    <img ref={image} key={attempt} src={src} alt={`第 ${index + 1} 页`} onLoad={loaded} onError={fail}
       crossOrigin="anonymous" draggable={false} decoding="async"
       style={{ visibility: status === 'ready' && !scrambled ? 'visible' : 'hidden' }} />
     <canvas ref={canvas} role="img" aria-label={`第 ${index + 1} 页`} style={{ display: status === 'ready' && scrambled ? 'block' : 'none' }} />

@@ -2,7 +2,7 @@ import React from 'react'
 import { DEFAULT_READER_PREFERENCES, normalizeReaderPreferences, type ReaderChapter, type ReaderPageData, type ReaderPosition, type ReaderPreferences, type ReaderState } from '../../../shared/readerContracts'
 import { recordRendererSpan } from '../performance/rendererMetrics'
 
-export function useReaderSession(reader: ReaderState) {
+export function useReaderSession(reader: ReaderState, closing = false) {
   const [pages, setPages] = React.useState<ReaderPageData[]>([])
   const [scrambleId, setScrambleId] = React.useState(0)
   const [loading, setLoading] = React.useState(true)
@@ -20,7 +20,7 @@ export function useReaderSession(reader: ReaderState) {
   const historyReady = React.useRef<Promise<void>>()
   const retryHistory = React.useRef<() => Promise<void>>()
   const visibleSpan = React.useRef<ReturnType<typeof recordRendererSpan>>()
-  const preparedToClose = React.useRef(false)
+  const preparedToClose = React.useRef(closing)
 
   React.useEffect(() => {
     let cancelled = false
@@ -28,6 +28,7 @@ export function useReaderSession(reader: ReaderState) {
     setError('')
     visibleSpan.current = recordRendererSpan('reader.chapter-visible', { source: reader.local ? 'local' : 'online' })
     async function load(): Promise<void> {
+      if (preparedToClose.current) return
       try {
         const api = window.electronAPI
         if (!api) throw new Error('阅读服务尚未就绪')
@@ -35,7 +36,7 @@ export function useReaderSession(reader: ReaderState) {
           reader.local ? api.downloadChapterPages(reader.mangaId, reader.chapterIndex) : api.contentPages(reader.chapterUrl),
           api.settingsGet(), api.historyGetLocal(reader.mangaId)
         ])
-        if (cancelled) return
+        if (cancelled || preparedToClose.current) return
         if (!result.ok || !result.data?.length) throw new Error(result.error || '本章没有可显示的图片')
         const resume = history?.chapter_index === reader.chapterIndex ? history : null
         const initial = {
@@ -65,7 +66,7 @@ export function useReaderSession(reader: ReaderState) {
         setPages(result.data)
         setLoading(false)
       } catch (error) {
-        if (!cancelled) { setError(error instanceof Error ? error.message : String(error)); setLoading(false) }
+        if (!cancelled && !preparedToClose.current) { setError(error instanceof Error ? error.message : String(error)); setLoading(false) }
         visibleSpan.current?.finish('error')
       }
     }
@@ -115,6 +116,19 @@ export function useReaderSession(reader: ReaderState) {
       if (pendingPreferences.current === value) pendingPreferences.current = undefined
     }
   }, [])
+  const resumeAfterClose = React.useCallback((): void => {
+    const suspended = preparedToClose.current
+    preparedToClose.current = false
+    if (suspended && loading) setAttempt(value => value + 1)
+  }, [loading])
+  const prepareToLeave = React.useCallback(async (leaving = true): Promise<ReaderPosition | undefined> => {
+    if (leaving) preparedToClose.current = true
+    try {
+      await Promise.all([flush(), savePreferences()])
+      setSaveError('')
+      return pages.length ? { ...position.current } : undefined
+    } catch (error) { resumeAfterClose(); throw error }
+  }, [flush, savePreferences, pages.length, resumeAfterClose])
   const changePreferences = (patch: Partial<ReaderPreferences>): void => {
     preparedToClose.current = false
     setPreferences((current) => {
@@ -127,12 +141,10 @@ export function useReaderSession(reader: ReaderState) {
   }
   React.useEffect(() => {
     const save = (): void => { if (!preparedToClose.current) void Promise.all([flush(), savePreferences()]).catch(() => setSaveError('阅读位置暂未保存')) }
-    const offClose = window.electronAPI?.onBeforeClose(() => Promise.all([flush(), savePreferences()]).then(() => { preparedToClose.current = true }))
     const visibility = (): void => { if (document.visibilityState === 'hidden') save() }
     window.addEventListener('pagehide', save)
     document.addEventListener('visibilitychange', visibility)
     return () => {
-      offClose?.()
       window.removeEventListener('pagehide', save)
       document.removeEventListener('visibilitychange', visibility)
       clearTimeout(timer.current)
@@ -141,7 +153,8 @@ export function useReaderSession(reader: ReaderState) {
     }
   }, [flush, savePreferences])
   return { pages, scrambleId, chapters, loading, error, saveError, preferences, startPosition, position,
-    updatePosition, changePreferences, flush, savePreferences,
+    updatePosition, changePreferences, flush, savePreferences, prepareToLeave, resumeAfterClose,
+    dismissSaveError: () => setSaveError(''),
     retry: () => setAttempt((value) => value + 1),
     markVisible: () => visibleSpan.current?.finish('ok') }
 }

@@ -146,6 +146,7 @@ app.on('before-quit', (event) => {
   shutdownRunning = true
   void shutdown.prepare().then(() => { shutdownComplete = true; app.quit() }).catch((error) => {
     shutdownRunning = false
+    mainWindow?.webContents.send('window:close-cancelled')
     void dialog.showMessageBox({ type: 'error', title: '尚未完成保存', message: String(error), detail: '窗口已保留，请检查磁盘空间后重新关闭。' })
   })
 })

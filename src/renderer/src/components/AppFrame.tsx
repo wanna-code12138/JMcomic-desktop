@@ -1,6 +1,7 @@
 import React from 'react'
 import { makeStyles } from '@fluentui/react-components'
 import { appSurface } from '../theme/surfaceStyles'
+import './workspace.css'
 
 const useStyles = makeStyles({
   root: {
@@ -36,28 +37,38 @@ export interface AppFrameProps {
   navigation: React.ReactNode
   page: React.ReactNode
   statusBar: React.ReactNode
+  reader?: React.ReactNode
+  readerExpanded?: boolean
+  closing?: boolean
 }
 
 export default function AppFrame({
   titleBar,
   navigation,
   page,
-  statusBar
+  statusBar,
+  reader,
+  readerExpanded = false,
+  closing = false
 }: AppFrameProps): JSX.Element {
   const styles = useStyles()
+  const body = React.useRef<HTMLDivElement>(null)
+  React.useLayoutEffect(() => { if (body.current) body.current.inert = closing }, [closing])
 
   return (
     <div className={styles.root}>
       {titleBar}
-      <div className={styles.body}>
-        {navigation}
-        <div className={styles.content}>
+      <div ref={body} className={`${styles.body} app-workspace-body`} data-reader-open={Boolean(reader)}>
+        <div className="app-navigation-slot" hidden={readerExpanded}>{navigation}</div>
+        <div className={`${styles.content} browse-pane`} data-browse-pane hidden={readerExpanded} tabIndex={-1}>
           <div className={styles.pageArea}>
             {page}
           </div>
           {statusBar}
         </div>
+        {reader && <div className="reading-pane" data-expanded={readerExpanded}>{reader}</div>}
       </div>
+      {closing && <div className="app-close-pending" data-app-closing role="status">正在保存并关闭…</div>}
     </div>
   )
 }

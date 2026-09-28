@@ -23,11 +23,6 @@ test('visited primary pages stay mounted while detail is open', () => {
   assert.doesNotMatch(appSource, /key=\{currentPage\}[\s\S]*?<ActivePage\s*\/>/)
 })
 
-test('reader keeps its detail source mounted until returning', () => {
-  assert.match(appSource, /readerSourcePage === 'detail'/)
-  assert.match(appSource, /currentPage === 'reader'/)
-})
-
 test('inactive preserved pages remain isolated from the visible page', () => {
   assert.match(hostSource, /height: '100%'[\s\S]*?minHeight: 0[\s\S]*?overflow: 'hidden'/)
   assert.match(hostSource, /display: isCurrent \? 'block' : 'none'/)
