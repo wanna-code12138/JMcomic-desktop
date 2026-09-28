@@ -29,12 +29,13 @@ export function startRendererMetrics(sink: RendererMetricSink): () => void {
   }
 
   let frameId: number | null = null
-  let lastTime = typeof performance !== 'undefined' ? performance.now() : Date.now()
+  let lastTime: number | undefined
 
   const sampleFrame = (now: number): void => {
-    const delta = now - lastTime
-    lastTime = now
-    if (delta > 50) {
+    const visible = typeof document === 'undefined' || document.visibilityState === 'visible'
+    const delta = lastTime === undefined ? 0 : now - lastTime
+    lastTime = visible ? now : undefined
+    if (visible && delta > 0) {
       sink({
         name: 'renderer.frame-interval',
         phase: 'finish',

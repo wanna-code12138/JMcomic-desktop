@@ -1,798 +1,253 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import ZoomableImage from '../components/ZoomableImage'
-import { makeStyles, Button, Tooltip, Text, Spinner } from '@fluentui/react-components'
-import {
-  ArrowLeft20Regular, ArrowRight20Regular, Dismiss20Regular,
-  ArrowDownload20Regular, SlideText20Regular
-} from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
-import { toProxyUrl, toJmImg } from '../utils/image'
-import {
-  formatPerfEvent,
-  startPerfSpan,
-  type PerfSpan
-} from '../../../shared/performanceTraceCore'
-import { buildDescrambleSlices, getDescrambleStripCount } from '../../../shared/imageDescrambleCore'
+import type { ReaderPosition, ReaderState } from '../../../shared/readerContracts'
+import type { DownloadProgress, DownloadTaskRow } from '../../../shared/downloadContracts'
+import ReaderToolbar from '../reader/ReaderToolbar'
+import ReaderImage from '../reader/ReaderImage'
+import { useReaderSession } from '../reader/useReaderSession'
+import { isReaderShortcutTarget, pageSize, positionAtOffset, READER_TOP_INSET, READER_BOTTOM_INSET, type PageDimensions } from '../reader/readerLayout'
+import '../reader/reader.css'
 
-const TOOLBAR_HEIGHT = 48
+const READING_INSET = READER_TOP_INSET
+const PAGE_GAP = 12
 
-const useStyles = makeStyles({
-  root: {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%',
-    backgroundColor: 'var(--ac-reader-bg)',
-    color: 'var(--ac-reader-text-1)',
-    position: 'relative',
-    userSelect: 'none'
-  },
-  toolbar: {
-    display: 'flex',
-    alignItems: 'center',
-    height: `${TOOLBAR_HEIGHT}px`,
-    padding: '0 12px',
-    gap: '8px',
-    backgroundColor: '#151515',
-    zIndex: 10,
-    flexShrink: 0,
-    borderBottom: '1px solid var(--ac-reader-glass-border)'
-  },
-  toolbarTitle: {
-    fontSize: '14px',
-    fontWeight: 500,
-    color: 'var(--ac-reader-text-2)',
-    flex: 1,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap'
-  },
-  toolbarInfo: {
-    fontSize: '12px',
-    color: 'var(--ac-reader-text-3)'
-  },
-  viewerArea: {
-    flex: 1,
-    overflow: 'auto',
-    position: 'relative',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center'
-  },
-  singlePageMode: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100%',
-    width: '100%'
-  },
-  imageWrap: {
-    width: '100%',
-    display: 'flex',
-    justifyContent: 'center'
-  },
-  mangaImage: {
-    display: 'block',
-    width: '100%',
-    maxWidth: '100%',
-    height: 'auto',
-    aspectRatio: 'auto 2 / 3',
-    objectFit: 'contain'
-  },
-  navBtn: {
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    zIndex: 5,
-    width: '48px',
-    height: '80px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(32, 32, 32, 0.96)',
-    border: '1px solid var(--ac-reader-glass-border)',
-    borderRadius: 'var(--ui-radius-lg)',
-    cursor: 'pointer',
-    color: 'var(--ac-reader-text-2)',
-    opacity: 0.4,
-    transition: 'opacity 0.2s',
-    ':hover': {
-      opacity: 1,
-      backgroundColor: 'rgba(56, 56, 56, 0.98)'
+function ReadingSession({ reader }: { reader: ReaderState }): JSX.Element {
+  const root = React.useRef<HTMLDivElement>(null)
+  const viewport = React.useRef<HTMLDivElement>(null)
+  const session = useReaderSession(reader)
+  const { pages, preferences, position } = session
+  const closeReader = useAppStore((state) => state.closeReader)
+  const openReader = useAppStore((state) => state.openReader)
+  const collapsed = useAppStore((state) => state.readerSidebarCollapsed)
+  const setCollapsed = useAppStore((state) => state.setReaderSidebarCollapsed)
+  const [dimensions, setDimensions] = React.useState<Record<number, PageDimensions>>({})
+  const [viewportSize, setViewportSize] = React.useState({ width: 960, height: 800 })
+  const [currentPage, setCurrentPage] = React.useState(0)
+  const [jumpValue, setJumpValue] = React.useState('1')
+  const [directory, setDirectory] = React.useState(false)
+  const [chrome, setChrome] = React.useState(true)
+  const [fullscreen, setFullscreen] = React.useState(false)
+  const [downloadLabel, setDownloadLabel] = React.useState('下载本章')
+  const [actionError, setActionError] = React.useState('')
+  const restoreFrame = React.useRef(0)
+  const restoring = React.useRef(false)
+  const restoreTop = React.useRef(0)
+  const hideTimer = React.useRef<ReturnType<typeof setTimeout>>()
+  const drag = React.useRef<{ x: number; y: number; left: number; top: number }>()
+  const sizes = pages.map((_, index) => pageSize(dimensions[index], viewportSize, preferences))
+  const offsets: number[] = []
+  let total = READING_INSET
+  for (const size of sizes) { offsets.push(total); total += size.height + PAGE_GAP }
+  const virtualizer = useVirtualizer({
+    count: preferences.readerMode === 'scroll' ? pages.length : 0,
+    getScrollElement: () => viewport.current,
+    estimateSize: (index) => sizes[index]?.height + PAGE_GAP || 1080,
+    overscan: 2, paddingStart: READING_INSET, paddingEnd: READER_BOTTOM_INSET
+  })
+
+  const restore = (target: ReaderPosition): void => {
+    const element = viewport.current
+    if (!element || !pages.length) return
+    restoring.current = true
+    cancelAnimationFrame(restoreFrame.current)
+    const size = sizes[target.pageIndex]
+    const top = (preferences.readerMode === 'scroll' ? offsets[target.pageIndex] - READING_INSET : 0) + target.pageOffset * (size.height + PAGE_GAP)
+    element.scrollTop = top
+    restoreTop.current = element.scrollTop
+    restoreFrame.current = requestAnimationFrame(() => {
+      element.scrollTop = top
+      restoreFrame.current = requestAnimationFrame(() => { restoring.current = false })
+    })
+  }
+  React.useLayoutEffect(() => {
+    const element = viewport.current
+    if (!element) return
+    const observer = new ResizeObserver(() => setViewportSize({ width: element.clientWidth, height: element.clientHeight }))
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [session.loading])
+  React.useLayoutEffect(() => {
+    if (session.loading || !pages.length) return
+    virtualizer.measure()
+    setCurrentPage(position.current.pageIndex)
+    restore(position.current)
+  }, [session.loading, pages.length, dimensions, viewportSize.width, viewportSize.height,
+    preferences.readerMode, preferences.readerFit, preferences.readerZoom, preferences.readerMaxWidth])
+  React.useEffect(() => { setJumpValue(String(currentPage + 1)) }, [currentPage])
+  React.useEffect(() => () => { cancelAnimationFrame(restoreFrame.current); clearTimeout(hideTimer.current) }, [])
+
+  const showChrome = (): void => {
+    setChrome(true)
+    clearTimeout(hideTimer.current)
+    if (preferences.readerAutoHide && !directory) hideTimer.current = setTimeout(() => {
+      if (!root.current?.querySelector('header:focus-within,footer:focus-within')) setChrome(false)
+    }, 2400)
+  }
+  React.useEffect(showChrome, [preferences.readerAutoHide, directory])
+  const toggleFullscreen = (): void => {
+    const action = document.fullscreenElement ? document.exitFullscreen() : root.current?.requestFullscreen()
+    void action?.catch(() => setActionError('暂时无法切换全屏'))
+  }
+  React.useEffect(() => {
+    const changed = (): void => setFullscreen(Boolean(document.fullscreenElement))
+    document.addEventListener('fullscreenchange', changed)
+    return () => document.removeEventListener('fullscreenchange', changed)
+  }, [])
+
+  const jump = (pageIndex: number): void => {
+    if (!pages.length) return
+    const target = { pageIndex: Math.max(0, Math.min(pages.length - 1, pageIndex)), pageOffset: 0 }
+    session.updatePosition(target)
+    setCurrentPage(target.pageIndex)
+    restore(target)
+  }
+  const scroll = (): void => {
+    if (!viewport.current) return
+    if (restoring.current) {
+      if (Math.abs(viewport.current.scrollTop - restoreTop.current) < 2) return
+      restoring.current = false
+      cancelAnimationFrame(restoreFrame.current)
     }
-  },
-  navLeft: { left: '16px' },
-  navRight: { right: '16px' },
-  pageIndicator: {
-    position: 'absolute',
-    bottom: '16px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    backgroundColor: 'rgba(32, 32, 32, 0.96)',
-    border: '1px solid var(--ac-reader-glass-border)',
-    color: 'var(--ac-reader-text-2)',
-    padding: '5px 14px',
-    borderRadius: 'var(--ui-radius-lg)',
-    fontSize: '12px',
-    zIndex: 5
-  },
-  loading: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100%',
-    gap: '16px',
-    color: 'var(--ac-reader-text-3)'
+    const next = preferences.readerMode === 'scroll'
+      ? positionAtOffset(sizes.map((size, index) => ({ index, start: offsets[index], size: size.height + PAGE_GAP })), viewport.current.scrollTop + READING_INSET)
+      : { pageIndex: position.current.pageIndex, pageOffset: Math.min(0.99, viewport.current.scrollTop / (sizes[position.current.pageIndex].height + PAGE_GAP)) }
+    if (next) { session.updatePosition(next); setCurrentPage(next.pageIndex) }
   }
-})
-
-interface PageData {
-  index: number
-  imageUrl: string
-}
-
-type ViewMode = 'scroll' | 'single'
-
-// ─── 图片反打乱（从禁漫天堂 jquery.photo-0.6.js 逆向）─────────────
-// 禁漫天堂把图片分成若干条横向条带并按特定算法重排。
-// 我们需要将条带还原到正确位置。
-//
-// 算法步骤（从 get_num + scramble_image_for_new 逆向）：
-// 1. 用 md5(scrambleId + photoId) 的最后一个字符的 charCode 计算 c（条带数）
-// 2. 源图片被分成 c 条横向条带，每条高度 h = floor(height / c)
-// 3. 打乱方式：条带 g 的源 y = s - h*(g+1) - f，目标 y = h*g + f (g>0)
-//    即条带 0（底部）放到顶部，条带 1 放到位置 1，... — 倒序排列
-// 4. 还原：条带 g（源 y = s-h*(g+1)-f）→ 目标 y = h*g (+f if g>0)
-
-// md5 哈希（使用 Web Crypto API 不支持同步，这里用纯 JS 实现 md5）
-// 实际上我们只需要 md5 字符串的最后一个字符，可以用一个简单的 md5 实现。
-
-// ── 纯 JS MD5 实现 ────────────────────────────────────────────────
-function md5(str: string): string {
-  // 简化版 md5：使用 Node.js crypto 不行（渲染进程），
-  // 这里用纯 JS 实现。代码来自 blueimp-md5 的精简版。
-  function safeAdd(x: number, y: number): number {
-    const lsw = (x & 0xffff) + (y & 0xffff)
-    const msw = (x >> 16) + (y >> 16) + (lsw >> 16)
-    return (msw << 16) | (lsw & 0xffff)
+  const leave = async (action: () => void): Promise<void> => {
+    try { await Promise.all([session.flush(), session.savePreferences()]); action() }
+    catch { setActionError('保存失败，请检查磁盘空间后重试') }
   }
-  function bitRol(num: number, cnt: number): number {
-    return (num << cnt) | (num >>> (32 - cnt))
+  const changeChapter = (index: number): void => {
+    const chapter = session.chapters.find((chapter) => chapter.index === index)
+    if (!chapter || chapter.available === false) return
+    void leave(() => openReader({ ...reader, chapterIndex: chapter.index, chapterTitle: chapter.title,
+      chapterUrl: chapter.url, resumePageIndex: 0, resumePageOffset: 0, chapters: session.chapters }))
   }
-  function cmn(q: number, a: number, b: number, x: number, s: number, t: number): number {
-    return safeAdd(bitRol(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b)
-  }
-  function ff(a: number, b: number, c: number, d: number, x: number, s: number, t: number): number {
-    return cmn((b & c) | (~b & d), a, b, x, s, t)
-  }
-  function gg(a: number, b: number, c: number, d: number, x: number, s: number, t: number): number {
-    return cmn((b & d) | (c & ~d), a, b, x, s, t)
-  }
-  function hh(a: number, b: number, c: number, d: number, x: number, s: number, t: number): number {
-    return cmn(b ^ c ^ d, a, b, x, s, t)
-  }
-  function ii(a: number, b: number, c: number, d: number, x: number, s: number, t: number): number {
-    return cmn(c ^ (b | ~d), a, b, x, s, t)
-  }
-  function binlMD5(x: number[], len: number): number[] {
-    x[len >> 5] |= 0x80 << (len % 32)
-    x[(((len + 64) >>> 9) << 4) + 14] = len
-
-    let a = 1732584193, b = -271733879, c = -1732584194, d = 271733878
-
-    for (let i = 0; i < x.length; i += 16) {
-      const olda = a, oldb = b, oldc = c, oldd = d
-
-      a = ff(a, b, c, d, x[i], 7, -680876936)
-      d = ff(d, a, b, c, x[i + 1], 12, -389564586)
-      c = ff(c, d, a, b, x[i + 2], 17, 606105819)
-      b = ff(b, c, d, a, x[i + 3], 22, -1044525330)
-      a = ff(a, b, c, d, x[i + 4], 7, -176418897)
-      d = ff(d, a, b, c, x[i + 5], 12, 1200080426)
-      c = ff(c, d, a, b, x[i + 6], 17, -1473231341)
-      b = ff(b, c, d, a, x[i + 7], 22, -45705983)
-      a = ff(a, b, c, d, x[i + 8], 7, 1770035416)
-      d = ff(d, a, b, c, x[i + 9], 12, -1958414417)
-      c = ff(c, d, a, b, x[i + 10], 17, -42063)
-      b = ff(b, c, d, a, x[i + 11], 22, -1990404162)
-      a = ff(a, b, c, d, x[i + 12], 7, 1804603682)
-      d = ff(d, a, b, c, x[i + 13], 12, -40341101)
-      c = ff(c, d, a, b, x[i + 14], 17, -1502002290)
-      b = ff(b, c, d, a, x[i + 15], 22, 1236535329)
-
-      a = gg(a, b, c, d, x[i + 1], 5, -165796510)
-      d = gg(d, a, b, c, x[i + 6], 9, -1069501632)
-      c = gg(c, d, a, b, x[i + 11], 14, 643717713)
-      b = gg(b, c, d, a, x[i], 20, -373897302)
-      a = gg(a, b, c, d, x[i + 5], 5, -701558691)
-      d = gg(d, a, b, c, x[i + 10], 9, 38016083)
-      c = gg(c, d, a, b, x[i + 15], 14, -660478335)
-      b = gg(b, c, d, a, x[i + 4], 20, -405537848)
-      a = gg(a, b, c, d, x[i + 9], 5, 568446438)
-      d = gg(d, a, b, c, x[i + 14], 9, -1019803690)
-      c = gg(c, d, a, b, x[i + 3], 14, -187363961)
-      b = gg(b, c, d, a, x[i + 8], 20, 1163531501)
-      a = gg(a, b, c, d, x[i + 13], 5, -1444681467)
-      d = gg(d, a, b, c, x[i + 2], 9, -51403784)
-      c = gg(c, d, a, b, x[i + 7], 14, 1735328473)
-      b = gg(b, c, d, a, x[i + 12], 20, -1926607734)
-
-      a = hh(a, b, c, d, x[i + 5], 4, -378558)
-      d = hh(d, a, b, c, x[i + 8], 11, -2022574463)
-      c = hh(c, d, a, b, x[i + 11], 16, 1839030562)
-      b = hh(b, c, d, a, x[i + 14], 23, -35309556)
-      a = hh(a, b, c, d, x[i + 1], 4, -1530992060)
-      d = hh(d, a, b, c, x[i + 4], 11, 1272893353)
-      c = hh(c, d, a, b, x[i + 7], 16, -155497632)
-      b = hh(b, c, d, a, x[i + 10], 23, -1094730640)
-      a = hh(a, b, c, d, x[i + 13], 4, 681279174)
-      d = hh(d, a, b, c, x[i], 11, -358537222)
-      c = hh(c, d, a, b, x[i + 3], 16, -722521979)
-      b = hh(b, c, d, a, x[i + 6], 23, 76029189)
-      a = hh(a, b, c, d, x[i + 9], 4, -640364487)
-      d = hh(d, a, b, c, x[i + 12], 11, -421815835)
-      c = hh(c, d, a, b, x[i + 15], 16, 530742520)
-      b = hh(b, c, d, a, x[i + 2], 23, -995338651)
-
-      a = ii(a, b, c, d, x[i], 6, -198630844)
-      d = ii(d, a, b, c, x[i + 7], 10, 1126891415)
-      c = ii(c, d, a, b, x[i + 14], 15, -1416354905)
-      b = ii(b, c, d, a, x[i + 5], 21, -57434055)
-      a = ii(a, b, c, d, x[i + 12], 6, 1700485571)
-      d = ii(d, a, b, c, x[i + 3], 10, -1894986606)
-      c = ii(c, d, a, b, x[i + 10], 15, -1051523)
-      b = ii(b, c, d, a, x[i + 1], 21, -2054922799)
-      a = ii(a, b, c, d, x[i + 8], 6, 1873313359)
-      d = ii(d, a, b, c, x[i + 15], 10, -30611744)
-      c = ii(c, d, a, b, x[i + 6], 15, -1560198380)
-      b = ii(b, c, d, a, x[i + 13], 21, 1309151649)
-      a = ii(a, b, c, d, x[i + 4], 6, -145523070)
-      d = ii(d, a, b, c, x[i + 11], 10, -1120210379)
-      c = ii(c, d, a, b, x[i + 2], 15, 718787259)
-      b = ii(b, c, d, a, x[i + 9], 21, -343485551)
-
-      a = safeAdd(a, olda)
-      b = safeAdd(b, oldb)
-      c = safeAdd(c, oldc)
-      d = safeAdd(d, oldd)
+  const chapterPosition = session.chapters.findIndex((chapter) => chapter.index === reader.chapterIndex)
+  const previous = session.chapters[chapterPosition - 1]
+  const next = session.chapters[chapterPosition + 1]
+  React.useEffect(() => {
+    const key = (event: KeyboardEvent): void => {
+      if (isReaderShortcutTarget(event.target) || event.ctrlKey || event.metaKey || event.altKey) return
+      const forward = preferences.readerDirection === 'ltr' ? 'ArrowRight' : 'ArrowLeft'
+      const backward = preferences.readerDirection === 'ltr' ? 'ArrowLeft' : 'ArrowRight'
+      if (event.key === forward) { event.preventDefault(); jump(position.current.pageIndex + 1) }
+      else if (event.key === backward) { event.preventDefault(); jump(position.current.pageIndex - 1) }
+      else if (event.key === 'Home') { event.preventDefault(); jump(0) }
+      else if (event.key === 'End') { event.preventDefault(); jump(pages.length - 1) }
+      else if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFullscreen() }
+      else if (event.key === 'Escape') { setDirectory(false); showChrome() }
+      else if (event.key === ' ' || event.key === 'PageDown' || event.key === 'PageUp') {
+        event.preventDefault()
+        const element = viewport.current
+        if (!element) return
+        const direction = event.key === 'PageUp' || event.shiftKey ? -1 : 1
+        if (preferences.readerMode === 'single' && (direction > 0 ? element.scrollTop + element.clientHeight >= element.scrollHeight - 2 : element.scrollTop <= 0)) jump(position.current.pageIndex + direction)
+        else element.scrollBy({ top: direction * element.clientHeight * 0.8, behavior: 'instant' })
+      }
     }
-    return [a, b, c, d]
-  }
-  function binl2rstr(input: number[]): string {
-    let output = ''
-    for (let i = 0; i < input.length * 32; i += 8) {
-      output += String.fromCharCode((input[i >> 5] >>> (i % 32)) & 0xff)
+    window.addEventListener('keydown', key)
+    return () => window.removeEventListener('keydown', key)
+  })
+  React.useEffect(() => {
+    const element = viewport.current
+    if (!element) return
+    const wheel = (event: WheelEvent): void => {
+      if (!event.ctrlKey) return
+      event.preventDefault()
+      session.changePreferences({ readerZoom: preferences.readerZoom + (event.deltaY > 0 ? -0.1 : 0.1) })
     }
-    return output
-  }
-  function rstr2binl(input: string): number[] {
-    const output: number[] = []
-    for (let i = 0; i < input.length * 8; i += 8) {
-      output[i >> 5] |= (input.charCodeAt(i / 8) & 0xff) << (i % 32)
-    }
-    return output
-  }
-  function rstrMD5(s: string): string {
-    return binl2rstr(binlMD5(rstr2binl(s), s.length * 8))
-  }
-  function rstr2hex(input: string): string {
-    const hexTab = '0123456789abcdef'
-    let output = ''
-    for (let i = 0; i < input.length; i++) {
-      const x = input.charCodeAt(i)
-      output += hexTab.charAt((x >>> 4) & 0x0f) + hexTab.charAt(x & 0x0f)
-    }
-    return output
-  }
-  return rstr2hex(rstrMD5(str))
-}
-
-// get_num：对齐 JMComic-Crawler-Python 的 JmImageTool.get_num
-// 参数：
-//   scrambleId — 页面 var scramble_id（全章相同）
-//   aid        — photo_id（章节 id，从图片 URL /photos/{aid}/ 提取）
-//   filename   — 图片文件名（去扩展名，如 "00001"），从图片 URL 末段提取
-// 返回：条带分割数。0 表示该图未打乱，无需还原。
-//
-// 关键：每张图的条带数由 md5(aid + filename) 决定，因此同一章里每页条带数不同。
-function getNum(scrambleId: number, aid: number, filename: string): number {
-  // scramble_id 抓取失败（默认 0）或旧图无打乱：不做反打乱
-  if (scrambleId === 0) return 0
-  // aid < scramble_id：旧图，未打乱
-  if (aid < scrambleId) return 0
-  // 268850 之前：固定 10 条
-  if (aid < 268850) return 10
-  // 421926 之后取模 8，之前取模 10
-  const x = aid < 421926 ? 10 : 8
-  // md5(aid + filename) 的十六进制最后一位的 charCode
-  const s = md5(`${aid}${filename}`)
-  const num = s.charCodeAt(s.length - 1) % x
-  // num * 2 + 2 → 2,4,6,...,20（偶数条带数）
-  return num * 2 + 2
-}
-
-// DescrambledImage：加载图片后用 canvas 还原条带顺序
-function DescrambledImage(props: {
-  src: string
-  imageUrl: string
-  alt: string
-  className?: string
-  style?: React.CSSProperties
-  loading?: 'lazy' | 'eager'
-  scrambleId: number
-}): JSX.Element {
-  const { src, imageUrl, alt, className, style, loading, scrambleId } = props
-  const canvasRef = React.useRef<HTMLCanvasElement>(null)
-  const imgRef = React.useRef<HTMLImageElement>(null)
-  const perfRef = React.useRef<PerfSpan | null>(null)
-  const [loaded, setLoaded] = React.useState(false)
+    element.addEventListener('wheel', wheel, { passive: false })
+    return () => element.removeEventListener('wheel', wheel)
+  }, [session.loading, preferences.readerZoom])
 
   React.useEffect(() => {
-    setLoaded(false)
-    perfRef.current = startPerfSpan('reader.image',
-      { source: imageUrl.startsWith('jmlocal:') ? 'local' : 'online' },
-      undefined,
-      (event) => console.info(formatPerfEvent(event))
-    )
-    return () => { perfRef.current?.finish('cancelled') }
-  }, [src, imageUrl])
-
-  const handleLoad = (): void => {
-    const img = imgRef.current
-    const canvas = canvasRef.current
-    if (!img || !canvas) return
-
-    // 从原始 CDN URL 提取 aid（photo_id）和 filename
-    // URL 格式: https://cdn-msp3.18comic.vip/media/photos/{photoId}/{filename}.webp
-    const aidMatch = imageUrl.match(/\/(?:photos?|albums?)\/(\d+)\//)
-    const aid = aidMatch ? parseInt(aidMatch[1]) : 0
-    const filename = imageUrl.split('/').pop()?.replace(/\.[^.]+$/, '') ?? ''
-
-    const w = img.naturalWidth
-    const h = img.naturalHeight
-    perfRef.current?.mark('decoded', { width: w, height: h })
-
-    // 计算条带数量（每页可能不同）
-    const c = getNum(scrambleId, aid, filename)
-
-    // c === 0 表示不打乱，直接显示原图
-    if (c === 0) {
-      canvas.style.display = 'none'
-      img.style.display = 'block'
-      img.style.visibility = 'visible'
-      setLoaded(true)
-      perfRef.current?.finish('ok', { scrambled: false, width: w, height: h })
-      return
+    let cancelled = false
+    const update = (task: DownloadProgress | DownloadTaskRow): void => {
+      if (task.mangaId !== reader.mangaId || task.chapterIndex !== reader.chapterIndex) return
+      const labels: Record<string, string> = { completed: '已离线保存', pending: '等待下载', downloading: '正在下载', resolving: '准备下载' }
+      setDownloadLabel(labels[String(task.status)] ?? '下载本章')
     }
-
-    const canvasSpan = startPerfSpan(
-      'reader.canvas',
-      { width: w, height: h, stripCount: c },
-      undefined,
-      (event) => window.electronAPI?.performanceRecord(event)
-    )
-
-    canvas.width = w
-    canvas.height = h
-    const ctx = canvas.getContext('2d')
-    if (!ctx) {
-      canvasSpan.finish('error')
-      return
-    }
-
-    // 反打乱算法（与 Python JmImageTool.decode_and_save 等价）：
-    // 打乱时：条带 g 的源 y = s - h*(g+1) - f，目标 y = h*g (+f if g>0)
-    // 还原：把源 y 位置的条带画回目标 y 位置
-    const s = h
-    const r = w
-    const f = s % c
-
-    for (let g = 0; g < c; g++) {
-      let stripH = Math.floor(s / c)
-      let dstY = stripH * g
-      const srcY = s - stripH * (g + 1) - f
-      if (g === 0) {
-        stripH += f
-      } else {
-        dstY += f
-      }
-      // 从源图片 (0, srcY) 取 (r x stripH) 区域，画到 (0, dstY)
-      ctx.drawImage(img, 0, srcY, r, stripH, 0, dstY, r, stripH)
-    }
-
-    // DESCRAMBLE MATH END
-    canvasSpan.finish('ok')
-
-    // 隐藏原图，显示 canvas
-    img.style.display = 'none'
-    canvas.style.display = 'block'
-    setLoaded(true)
-    perfRef.current?.finish('ok', { scrambled: true, width: w, height: h })
+    void window.electronAPI?.downloadList().then((tasks) => { if (!cancelled) tasks.forEach(update) })
+    const off = window.electronAPI?.onDownloadProgress(update)
+    return () => { cancelled = true; off?.() }
+  }, [reader])
+  const download = async (): Promise<void> => {
+    setDownloadLabel('准备下载')
+    try {
+      const result = await window.electronAPI?.downloadAdd({ mangaId: reader.mangaId, mangaTitle: reader.mangaTitle,
+        chapterIndex: reader.chapterIndex, chapterTitle: reader.chapterTitle, chapterUrl: reader.chapterUrl,
+        coverUrl: reader.mangaCoverUrl, imageUrls: pages.map((page) => page.imageUrl), scrambleId: session.scrambleId })
+      if (result?.ok === false) throw new Error(result.error)
+      setDownloadLabel('等待下载')
+    } catch { setDownloadLabel('下载本章'); setActionError('下载任务创建失败，请重试') }
   }
+  const ready = (index: number, size: PageDimensions): void => {
+    setDimensions((current) => current[index]?.width === size.width && current[index]?.height === size.height ? current : { ...current, [index]: size })
+    if (index === position.current.pageIndex) requestAnimationFrame(() => session.markVisible())
+  }
+  const hidden = !chrome && !directory
+  const image = (index: number): JSX.Element => <ReaderImage key={pages[index].imageUrl} imageUrl={pages[index].imageUrl}
+    index={index} scrambleId={session.scrambleId} priority={index === currentPage ? 'critical' : 'near'} onReady={(size) => ready(index, size)} />
 
-  return (
-    <>
-      <img
-        ref={imgRef}
-        src={src}
-        alt={alt}
-        className={className}
-        style={{ ...style, display: 'block', visibility: scrambleId === 0 ? 'visible' : 'hidden', opacity: loaded ? 1 : 0, transition: 'opacity 0.25s ease' }}
-        loading={loading}
-        onLoad={handleLoad}
-        crossOrigin="anonymous"
-      />
-      <canvas
-        ref={canvasRef}
-        className={className}
-        style={{ ...style, display: 'none', maxWidth: '100%', height: 'auto', opacity: loaded ? 1 : 0, transition: 'opacity 0.25s ease' }}
-      />
-    </>
-  )
+  return <div ref={root} className="reader-root" style={{ '--reader-top-inset': `${READING_INSET}px`, '--reader-bottom-inset': `${READER_BOTTOM_INSET}px` } as React.CSSProperties} onPointerMove={showChrome} onFocusCapture={showChrome}>
+    <ReaderToolbar reader={reader} preferences={preferences} hidden={hidden} collapsed={collapsed}
+      fullscreen={fullscreen} downloadLabel={downloadLabel} change={session.changePreferences}
+      close={() => { void leave(closeReader) }} toggleDirectory={() => setDirectory(!directory)}
+      toggleSidebar={() => setCollapsed(!collapsed)} toggleFullscreen={toggleFullscreen} download={() => { void download() }} />
+    {session.loading ? <div className="reader-message" role="status"><span className="reader-loading-dot" />正在打开章节…</div>
+      : session.error ? <div className="reader-message" role="alert"><h2>暂时无法打开这一章</h2>
+        <button onClick={session.retry}>重新加载章节</button><details><summary>查看原因</summary>{session.error}</details></div>
+      : <div className="reader-viewport" data-reader-viewport data-reading-inset={READING_INSET} ref={viewport}
+        tabIndex={0} aria-label="漫画阅读区域" onScroll={scroll}
+        onPointerDown={(event) => {
+          if (event.pointerType !== 'mouse' || event.button !== 0 || isReaderShortcutTarget(event.target)) return
+          drag.current = { x: event.clientX, y: event.clientY, left: event.currentTarget.scrollLeft, top: event.currentTarget.scrollTop }
+          event.currentTarget.setPointerCapture(event.pointerId)
+        }}
+        onPointerMove={(event) => {
+          if (!drag.current) return
+          event.currentTarget.scrollLeft = drag.current.left + drag.current.x - event.clientX
+          event.currentTarget.scrollTop = drag.current.top + drag.current.y - event.clientY
+        }}
+        onPointerUp={() => { drag.current = undefined }} onPointerCancel={() => { drag.current = undefined }}>
+        {preferences.readerMode === 'scroll' ? <div className="reader-scroll-content"
+          style={{ height: virtualizer.getTotalSize(), width: Math.max(viewportSize.width, ...sizes.map((size) => size.width + 48)) }}>
+          {virtualizer.getVirtualItems().map((item) => <div key={pages[item.index].imageUrl}
+            data-index={item.index} className="reader-page" style={{ transform: `translateY(${item.start}px)`, height: sizes[item.index].height }}>
+            <div className="reader-sheet" style={sizes[item.index]}>{image(item.index)}</div>
+          </div>)}
+        </div> : <div className="reader-single-content" style={{ width: Math.max(viewportSize.width, sizes[currentPage]?.width + 48) }}>
+          {pages[currentPage] && <div className="reader-sheet" data-index={currentPage} style={sizes[currentPage]}>{image(currentPage)}</div>}
+        </div>}
+      </div>}
+    {pages.length > 0 && <><footer className={`reader-footer ${hidden ? 'reader-chrome-hidden' : ''}`} aria-label="阅读进度">
+      <div className="reader-progress-track"><span style={{ width: `${(currentPage + 1) / pages.length * 100}%` }} /></div>
+      <button disabled={!previous || previous.available === false} onClick={() => changeChapter(previous.index)}>上一章</button>
+      <button aria-label="上一页" disabled={currentPage === 0} onClick={() => jump(currentPage - 1)}>‹</button>
+      <label className="reader-page-control"><input aria-label="跳转页码" inputMode="numeric" type="number" min={1} max={pages.length} value={jumpValue}
+        onChange={(event) => setJumpValue(event.target.value)} onKeyDown={(event) => {
+          if (event.key === 'Enter') { jump(Number(jumpValue) - 1); event.currentTarget.blur(); viewport.current?.focus() }
+        }} onBlur={() => { if (Number(jumpValue) > 0 && Number(jumpValue) !== currentPage + 1) jump(Number(jumpValue) - 1) }} /><span>/ {pages.length} 页</span></label>
+      <button aria-label="下一页" disabled={currentPage === pages.length - 1} onClick={() => jump(currentPage + 1)}>›</button>
+      <button disabled={!next || next.available === false} onClick={() => changeChapter(next.index)}>下一章</button>
+    </footer><div className="reader-quiet-progress" aria-hidden={!hidden}>{currentPage + 1} / {pages.length}</div></>}
+    {directory && <aside className="reader-drawer" aria-label="章节目录"><div className="reader-drawer-header">章节与附近页面<button aria-label="关闭目录" onClick={() => setDirectory(false)}>×</button></div>
+      <div className="reader-chapters">{session.chapters.map((chapter) => <button key={chapter.index} disabled={chapter.available === false}
+        aria-pressed={chapter.index === reader.chapterIndex} onClick={() => changeChapter(chapter.index)}>{chapter.title}</button>)}</div>
+      <div className="reader-thumbnails">{pages.slice(Math.max(0, currentPage - 2), currentPage + 3).map((page) => <button key={page.index}
+        aria-current={page.index === currentPage ? 'page' : undefined}
+        aria-label={`跳转到第 ${page.index + 1} 页`} onClick={() => { jump(page.index); setDirectory(false) }}>
+        <ReaderImage imageUrl={page.imageUrl} index={page.index} scrambleId={session.scrambleId} priority="near" onReady={() => {}} /><span>{page.index + 1}</span>
+      </button>)}</div>
+    </aside>}
+    {(actionError || session.saveError) && <div className="reader-save-error" role="alert">{actionError || session.saveError}<button aria-label="关闭提示" onClick={() => setActionError('')}>×</button></div>}
+  </div>
 }
 
 export default function ReaderPage(): JSX.Element {
-  const styles = useStyles()
-  const readerState = useAppStore((s) => s.readerState)
-  const closeReader = useAppStore((s) => s.closeReader)
-
-  const [viewMode, setViewMode] = useState<ViewMode>('scroll')
-  const [currentPage, setCurrentPage] = useState(0)
-  const currentPageRef = React.useRef(currentPage)
-  currentPageRef.current = currentPage
-  const viewerRef = React.useRef<HTMLDivElement>(null)
-  const [pages, setPages] = useState<PageData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [debugInfo, setDebugInfo] = useState('')
-  const [scrambleId, setScrambleId] = useState(0)
-  const [zoomDisplay, setZoomDisplay] = useState(1)
-
-  const virtualizer = useVirtualizer({
-    count: pages.length,
-    getScrollElement: () => viewerRef.current,
-    estimateSize: () => (viewerRef.current?.clientWidth ?? 800) * 1.5 + 4,
-    overscan: 3,
-    paddingStart: 16,
-    scrollPaddingEnd: 16
-  })
-
-  useEffect(() => {
-    if (!readerState) return
-    let cancelled = false
-    let historyDone = false
-    let streamOffRef: (() => void) | null = null
-
-    setLoading(true)
-    setError('')
-
-    // ── 本地模式：直接读取下载目录，不触发任何网页抓取 ──
-    if (readerState.local) {
-      const rs = readerState
-      window.electronAPI?.downloadChapterPages(rs.mangaId, rs.chapterIndex).then((result) => {
-        if (cancelled) return
-        const r = result as { ok: boolean; data?: PageData[]; chapterUrl?: string; error?: string } | undefined
-        if (!r?.ok) {
-          setError(r?.error ?? '本地章节加载失败')
-          setLoading(false)
-          return
-        }
-        const pageList = r.data ?? []
-        setScrambleId(0)
-        setPages(pageList)
-        setLoading(false)
-
-        if (!historyDone) {
-          historyDone = true
-          const resume = rs.resumePageIndex
-          if (typeof resume === 'number' && resume > 0 && resume < pageList.length) {
-            setCurrentPage(resume)
-          }
-          window.electronAPI?.historyUpsert({
-            manga_id: rs.mangaId,
-            manga_title: rs.mangaTitle,
-            chapter_index: rs.chapterIndex,
-            chapter_title: rs.chapterTitle,
-            chapter_url: r.chapterUrl ?? '',
-            cover_url: rs.mangaCoverUrl,
-            page_index: rs.resumePageIndex ?? 0,
-            total_pages: pageList.length
-          })
-        }
-      }).catch((err) => {
-        if (!cancelled) {
-          setError(String(err))
-          setLoading(false)
-        }
-      })
-      return () => { cancelled = true }
-    }
-
-    const off = window.electronAPI?.onPagesBatch((payload) => {
-      if (cancelled) {
-        streamOffRef?.()
-        return
-      }
-      if (payload.chapterUrl !== readerState.chapterUrl) return
-
-      if (payload.error) {
-        setError(payload.error)
-        setLoading(false)
-        streamOffRef?.()
-        return
-      }
-
-      const pageList = payload.pages as unknown as PageData[]
-      setScrambleId(payload.scrambleId)
-
-      if (pageList.length > 0) {
-        setPages(pageList)
-        setLoading(false)
-        setDebugInfo(payload.debug ?? '')
-
-        if (!historyDone) {
-          historyDone = true
-          const resume = readerState.resumePageIndex
-          if (typeof resume === 'number' && resume > 0 && resume < pageList.length) {
-            setCurrentPage(resume)
-          }
-          const rs = readerState
-          window.electronAPI?.historyUpsert({
-            manga_id: rs.mangaId,
-            manga_title: rs.mangaTitle,
-            chapter_index: rs.chapterIndex,
-            chapter_title: rs.chapterTitle,
-            chapter_url: rs.chapterUrl,
-            cover_url: rs.mangaCoverUrl,
-            page_index: rs.resumePageIndex ?? 0,
-            total_pages: pageList.length
-          })
-        }
-      }
-
-      if (payload.done) {
-        streamOffRef?.()
-        if (pageList.length === 0) {
-          setError('未找到任何图片')
-          setLoading(false)
-        }
-      }
-    })
-
-    if (off) streamOffRef = off
-
-    window.electronAPI?.contentPagesStream(readerState.chapterUrl)
-
-    return () => {
-      cancelled = true
-      streamOffRef?.()
-      streamOffRef = null
-      if (readerState) {
-        window.electronAPI?.contentPagesCancel(readerState.chapterUrl)
-      }
-    }
-  }, [readerState])
-
-  const goNext = useCallback(() => {
-    if (currentPage < pages.length - 1) setCurrentPage((p) => p + 1)
-  }, [currentPage, pages.length])
-
-  const goPrev = useCallback(() => {
-    if (currentPage > 0) setCurrentPage((p) => p - 1)
-  }, [currentPage])
-
-  // 滚动模式下根据首个可见虚拟行推算当前页码（单页模式由 goNext/goPrev 控制）
-  const handleScroll = (): void => {
-    if (viewMode !== 'scroll') return
-    const items = virtualizer.getVirtualItems()
-    if (items.length === 0) return
-    const first = items[0].index
-    if (first !== currentPageRef.current) {
-      setCurrentPage(first)
-    }
-  }
-
-  // 翻页时防抖写历史（2s 内连续翻页只写一次）
-  const historyTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
-  const flushHistory = React.useCallback((pageIndex: number): void => {
-    if (historyTimer.current) clearTimeout(historyTimer.current)
-    historyTimer.current = setTimeout(() => {
-      if (readerState?.mangaId) {
-        window.electronAPI?.historyUpsertPage(readerState.mangaId, pageIndex)
-      }
-    }, 2000)
-  }, [readerState?.mangaId])
-
-  useEffect(() => {
-    if (pages.length > 0) flushHistory(currentPage)
-  }, [currentPage, pages.length, flushHistory])
-
-  // 卸载时清除防抖定时器并立即 flush 最终页码（覆盖通过导航栏离开阅读器的场景）
-  useEffect(() => {
-    return () => {
-      if (historyTimer.current) {
-        clearTimeout(historyTimer.current)
-        if (readerState?.mangaId) {
-          window.electronAPI?.historyUpsertPage(readerState.mangaId, currentPage)
-        }
-      }
-    }
-  }, [readerState?.mangaId, currentPage])
-
-  // 续读时自动滚动到上次阅读位置（滚动模式，由虚拟列表按索引定位）
-  React.useEffect(() => {
-    if (viewMode !== 'scroll') return
-    const resume = readerState?.resumePageIndex
-    if (!resume || resume <= 0 || pages.length <= 1) return
-    virtualizer.scrollToIndex(resume, { align: 'start' })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [viewMode, pages.length, readerState?.resumePageIndex])
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent): void => {
-      if (viewMode !== 'single') return
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
-        e.preventDefault(); goNext()
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        e.preventDefault(); goPrev()
-      }
-    }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [viewMode, goNext, goPrev])
-
-  if (!readerState) {
-    return (
-      <div className={styles.root}>
-        <div className={styles.loading}><Text>未选择章节</Text></div>
-      </div>
-    )
-  }
-
-  // 图片 URL 通过 jmimg:// 协议代理（主进程附加 Referer + Cookie + UA 并带视口优先级）
-  const imgSrc = (page: PageData, pageIndex?: number): string => {
-    const isCurrent = pageIndex !== undefined && pageIndex === currentPage
-    const isNear = pageIndex !== undefined && Math.abs(pageIndex - currentPage) <= 1
-    const priority = isCurrent ? 'critical' : isNear ? 'near' : 'background'
-    return toProxyUrl(page.imageUrl, priority)
-  }
-
-  return (
-    <div className={styles.root}>
-      {/* Toolbar */}
-      <div className={styles.toolbar}>
-        <Button appearance="subtle" size="small" icon={<Dismiss20Regular />}
-          style={{ color: 'var(--ac-reader-text-2)' }} onClick={() => {
-            if (historyTimer.current) {
-              clearTimeout(historyTimer.current)
-              if (readerState?.mangaId) {
-                window.electronAPI?.historyUpsertPage(readerState.mangaId, currentPage)
-              }
-            }
-            closeReader()
-          }}
-        >返回</Button>
-        <div className={styles.toolbarTitle}>{readerState.mangaTitle} - {readerState.chapterTitle}</div>
-        <div className={styles.toolbarInfo}>
-          {loading ? '加载中...' : viewMode === 'single' ? `${currentPage + 1} / ${pages.length}` : `${pages.length} 页`}
-        </div>
-        {pages.length > 0 && (
-          <Tooltip content={viewMode === 'scroll' ? '单页模式' : '滚动模式'} relationship="label">
-            <Button appearance="subtle" size="small" icon={<SlideText20Regular />}
-              style={{ color: viewMode === 'scroll' ? 'var(--ui-brand)' : 'var(--ac-reader-text-2)' }}
-              onClick={() => setViewMode(viewMode === 'scroll' ? 'single' : 'scroll')}
-            />
-          </Tooltip>
-        )}
-        {!readerState.local && (
-          <Tooltip content="下载本章" relationship="label">
-            <Button appearance="subtle" size="small" icon={<ArrowDownload20Regular />}
-              style={{ color: 'var(--ac-reader-text-2)' }}
-              onClick={async () => {
-                if (!window.electronAPI) return
-                await window.electronAPI.downloadAdd({
-                  mangaId: readerState.mangaId,
-                  mangaTitle: readerState.mangaTitle,
-                  chapterIndex: readerState.chapterIndex,
-                  chapterTitle: readerState.chapterTitle,
-                  chapterUrl: readerState.chapterUrl,
-                  coverUrl: readerState.mangaCoverUrl,
-                  imageUrls: pages.map((p) => p.imageUrl),
-                  scrambleId
-                })
-              }}
-            />
-          </Tooltip>
-        )}
-      </div>
-
-      {/* Viewer */}
-      {loading ? (
-        <div className={styles.loading}>
-          <Spinner size="large" />
-          <Text>正在加载章节图片...</Text>
-          {debugInfo ? (
-            <pre style={{ maxWidth: '500px', fontSize: '11px', color: 'var(--ac-reader-text-3)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{debugInfo}</pre>
-          ) : null}
-        </div>
-      ) : error ? (
-        <div className={styles.loading}>
-          <Text size={500}>⚠️ 加载失败</Text>
-          <pre style={{ maxWidth: '500px', fontSize: '11px', color: 'var(--ac-reader-text-3)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{error}</pre>
-        </div>
-      ) : viewMode === 'scroll' ? (
-        <div className={styles.viewerArea} ref={viewerRef} onScroll={handleScroll}>
-          <div
-            style={{
-              height: `${virtualizer.getTotalSize()}px`,
-              width: '100%',
-              position: 'relative'
-            }}
-          >
-            {virtualizer.getVirtualItems().map((vi) => {
-              const page = pages[vi.index]
-              return (
-                <div
-                  key={vi.key}
-                  data-index={vi.index}
-                  ref={virtualizer.measureElement}
-                  className={styles.imageWrap}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    transform: `translateY(${vi.start}px)`,
-                    paddingBottom: '4px'
-                  }}
-                >
-                  <DescrambledImage
-                    className={styles.mangaImage}
-                    src={imgSrc(page, vi.index)}
-                    imageUrl={page.imageUrl}
-                    alt={`第 ${vi.index + 1} 页`}
-                    scrambleId={scrambleId}
-                  />
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      ) : (
-        <div className={styles.viewerArea}>
-          <div className={styles.singlePageMode}>
-            <div className={`${styles.navBtn} ${styles.navLeft}`}
-              onClick={goPrev} style={{ visibility: currentPage > 0 ? 'visible' : 'hidden' }}
-            ><ArrowLeft20Regular color="#ffffff" /></div>
-
-            <ZoomableImage resetKey={currentPage} onZoomChange={setZoomDisplay}>
-              {pages[currentPage] && (
-                <DescrambledImage
-                  className={styles.mangaImage}
-                  src={imgSrc(pages[currentPage], currentPage)}
-                  imageUrl={pages[currentPage].imageUrl}
-                  alt={`第 ${currentPage + 1} 页`}
-                  style={{ maxHeight: '100%' }}
-                  scrambleId={scrambleId}
-                />
-              )}
-            </ZoomableImage>
-
-            <div className={`${styles.navBtn} ${styles.navRight}`}
-              onClick={goNext} style={{ visibility: currentPage < pages.length - 1 ? 'visible' : 'hidden' }}
-            ><ArrowRight20Regular color="#ffffff" /></div>
-
-            <div className={styles.pageIndicator}>
-              {currentPage + 1} / {pages.length}
-              {zoomDisplay !== 1 && (
-                <span style={{ marginLeft: '4px', opacity: 0.8 }}>
-                  · {Math.round(zoomDisplay * 100)}%
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
+  const reader = useAppStore((state) => state.readerState)
+  return reader ? <ReadingSession key={`${reader.mangaId}:${reader.chapterIndex}:${Boolean(reader.local)}`} reader={reader} />
+    : <div className="reader-root"><div className="reader-message">未选择章节</div></div>
 }

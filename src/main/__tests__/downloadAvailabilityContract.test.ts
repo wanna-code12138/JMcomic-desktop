@@ -25,7 +25,8 @@ test('renderer types expose downloaded-file availability without replacing exist
   assert.match(env, /interface DownloadedFileAvailability/)
   assert.match(env, /available\?: boolean/)
   assert.match(env, /availabilityReason\?: 'missing-root' \| 'missing-chapter' \| 'missing-pages'/)
-  assert.match(downloads, /interface DownloadRow extends DownloadedFileAvailability/)
+  assert.match(downloads, /MangaDownloadGroup/)
+  assert.match(source('src/shared/downloadContracts.ts'), /availabilityReason\?: DownloadAvailabilityReason/)
   assert.match(detail, /DownloadedFileAvailability/)
 })
 

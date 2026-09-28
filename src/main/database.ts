@@ -19,6 +19,9 @@ import {
 let db: SqlJsDatabase | null = null
 let initializing: Promise<SqlJsDatabase> | null = null
 const DB_PATH = getDatabasePath()
+let recoveryNotice = ''
+
+export function getDatabaseRecoveryNotice(): string { return recoveryNotice }
 
 export async function getDatabase(): Promise<SqlJsDatabase> {
   if (db) return db
@@ -28,11 +31,7 @@ export async function getDatabase(): Promise<SqlJsDatabase> {
 
 async function initializeDatabase(): Promise<SqlJsDatabase> {
   const SQL = await initSqlJs()
-
-  if (existsSync(DB_PATH)) {
-    const buffer = readFileSync(DB_PATH)
-    db = new SQL.Database(buffer)
-  } else {
+  if (!existsSync(DB_PATH) && !existsSync(`${DB_PATH}.bak`)) {
     // 便携版首次升级：把旧版 userData 里的数据库复制到 exe 旁边
     migrateLegacyDatabase({
       legacyPath: getLegacyDatabasePath(app.getPath('userData')),
@@ -40,16 +39,45 @@ async function initializeDatabase(): Promise<SqlJsDatabase> {
     })
     const dir = getAppDataDir()
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
-    db = existsSync(DB_PATH)
-      ? new SQL.Database(readFileSync(DB_PATH))
-      : new SQL.Database()
   }
-
-  db.run('PRAGMA journal_mode = WAL')
-  db.run('PRAGMA foreign_keys = ON')
-
-  initTables(db)
-  return db
+  const loadVerified = (path: string): SqlJsDatabase => {
+    const bytes = readFileSync(path)
+    if (bytes.length < 100 || bytes.subarray(0, 16).toString() !== 'SQLite format 3\u0000') throw new Error('数据库文件头损坏')
+    const candidate = new SQL.Database(bytes)
+    try {
+      if (candidate.exec('PRAGMA quick_check')[0]?.values[0]?.[0] !== 'ok') throw new Error('数据库完整性检查失败')
+      return candidate
+    } catch (error) { candidate.close(); throw error }
+  }
+  let candidate: SqlJsDatabase
+  let recovered = false
+  if (existsSync(DB_PATH) || existsSync(`${DB_PATH}.bak`)) {
+    try { candidate = loadVerified(DB_PATH) }
+    catch {
+      try { candidate = loadVerified(`${DB_PATH}.bak`); recovered = true }
+      catch { throw new Error(`数据库与备份无法读取，原文件已保留。请从个人数据备份恢复：${DB_PATH}`) }
+    }
+  } else candidate = new SQL.Database()
+  try {
+    candidate.run('PRAGMA foreign_keys = ON')
+    candidate.run('BEGIN')
+    initTables(candidate)
+    candidate.run('COMMIT')
+    if (recovered) {
+      const preserved = `${DB_PATH}.corrupt-${Date.now()}`
+      if (existsSync(DB_PATH)) await copyFile(DB_PATH, preserved)
+      const temporary = `${DB_PATH}.recovery.tmp`
+      try {
+        const file = await open(temporary, 'w')
+        try { await file.writeFile(Buffer.from(candidate.export())); await file.sync() }
+        finally { await file.close() }
+        await rename(temporary, DB_PATH)
+      } finally { await unlink(temporary).catch(() => {}) }
+      recoveryNotice = `已从上一次完整备份恢复数据库。损坏的原文件已保留在 ${preserved}`
+    }
+    db = candidate
+    return candidate
+  } catch (error) { candidate.close(); throw error }
 }
 
 function initTables(d: SqlJsDatabase): void {
@@ -157,7 +185,10 @@ function initTables(d: SqlJsDatabase): void {
     ['chapter_title', 'TEXT'],
     ['chapter_url', 'TEXT'],
     ['cover_url', 'TEXT'],
-    ['total_pages', 'INTEGER DEFAULT 0']
+    ['total_pages', 'INTEGER DEFAULT 0'],
+    ['page_offset', 'REAL DEFAULT 0'],
+    ['is_local', 'INTEGER DEFAULT 0'],
+    ['reader_session', 'TEXT']
   ]
   for (const [col, type] of newCols) {
     if (!existingCols.has(col)) {
@@ -172,6 +203,7 @@ function initTables(d: SqlJsDatabase): void {
     downloadCols.length > 0 ? downloadCols[0].values.map((r) => String(r[1])) : []
   )
   const newDownloadCols: Array<[string, string]> = [
+    ['storage_relpath', 'TEXT'],
     ['chapter_url', 'TEXT'],
     ['cover_url', 'TEXT'],
     ['error', 'TEXT']

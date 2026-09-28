@@ -1,8 +1,9 @@
 import { normalizeRecommendationTags } from '../shared/recommendationCore'
+import { DEFAULT_READER_PREFERENCES, normalizeReaderPreferences, type ReaderPreferences } from '../shared/readerContracts'
 
 export type ThemeMode = 'system' | 'light' | 'dark'
 
-export interface AppSettings {
+export interface AppSettings extends ReaderPreferences {
   themeMode: ThemeMode
   micaEnabled: boolean
   solidWindow: boolean
@@ -22,6 +23,7 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
+  ...DEFAULT_READER_PREFERENCES,
   themeMode: 'system',
   micaEnabled: true,
   solidWindow: false,
@@ -79,6 +81,7 @@ export function normalizeSettings(raw: Record<string, unknown>): AppSettings {
     Math.max(0, toNumber(raw.downloadRetries, DEFAULT_SETTINGS.downloadRetries))
   )
   return {
+    ...normalizeReaderPreferences(raw),
     themeMode,
     micaEnabled: toBoolean(raw.micaEnabled, DEFAULT_SETTINGS.micaEnabled),
     solidWindow: toBoolean(raw.solidWindow, DEFAULT_SETTINGS.solidWindow),

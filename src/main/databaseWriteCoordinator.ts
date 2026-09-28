@@ -27,10 +27,9 @@ export function createDatabaseWriteCoordinator(
 
     if (activeFlush !== null) {
       await activeFlush
-      if (isDirty) {
-        return executeFlush()
-      }
-      return
+      // The preceding waiter may already have started the next writer and cleared dirty.
+      // Recheck both in-flight and dirty state before reporting that all writes drained.
+      return executeFlush()
     }
 
     if (!isDirty) return

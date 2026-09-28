@@ -38,43 +38,6 @@ export interface ChapterPagesResult {
   scrambleId: number
 }
 
-// Site adapter interface — pluggable parsers
-export interface SiteAdapter {
-  name: string
-  baseUrls: string[]
-
-  // Probes if the site is reachable
-  probe(): Promise<boolean>
-
-  // Fetch homepage sections
-  getHomepage(): Promise<{
-    recommended: MangaListItem[]
-    latest: MangaListItem[]
-    popular: MangaListItem[]
-  }>
-
-  // Search
-  search(query: string, page?: number): Promise<{
-    results: MangaListItem[]
-    totalPages: number
-    currentPage: number
-  }>
-
-  // Category listing
-  getCategory(categoryId: string, page?: number): Promise<{
-    results: MangaListItem[]
-    totalPages: number
-    currentPage: number
-  }>
-
-  // Manga detail
-  getMangaDetail(mangaId: string): Promise<MangaDetail>
-
-  // Chapter pages (image URLs)
-  getChapterPages(chapterUrl: string): Promise<ChapterPagesResult>
-
-}
-
 // Network status
 export type NetworkStatus = 'online' | 'degraded' | 'offline'
 

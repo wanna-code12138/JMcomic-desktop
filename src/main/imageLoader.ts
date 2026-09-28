@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron'
-import { existsSync, mkdirSync } from 'fs'
+import { existsSync } from 'fs'
 import { mkdir, readFile, readdir, rename, stat, unlink, writeFile } from 'fs/promises'
 import { join } from 'path'
 import * as crypto from 'crypto'
@@ -34,17 +34,8 @@ const DEFAULT_OPTIONS = {
   cacheDir: join(getAppDataDir(), 'jmcomic-images')
 }
 
-// In-memory URL → local path cache
-const urlToPathCache = new Map<string, string>()
 let imageCacheLimitBytes = 1000 * 1024 * 1024
 
-function getCacheDir(): string {
-  const dir = DEFAULT_OPTIONS.cacheDir
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true })
-  }
-  return dir
-}
 
 function urlToFilename(url: string): string {
   const hash = crypto.createHash('md5').update(url).digest('hex')
@@ -53,18 +44,6 @@ function urlToFilename(url: string): string {
   return `${hash}.${ext}`
 }
 
-function getCachedPath(url: string): string | null {
-  const filename = urlToFilename(url)
-  const fullPath = join(getCacheDir(), filename)
-  if (existsSync(fullPath)) {
-    return fullPath
-  }
-  return null
-}
-
-export function getCachedImagePath(url: string): string | null {
-  return getCachedPath(url)
-}
 
 export interface CachedImage {
   buffer: Buffer
@@ -109,7 +88,6 @@ export async function storeImage(
     await unlink(temporaryPath).catch(() => {})
     throw error
   }
-  urlToPathCache.set(url, filepath)
   void scheduleCacheMaintenance()
   return filepath
 }
@@ -118,9 +96,6 @@ export function setImageCacheLimit(bytes: number): void {
   imageCacheLimitBytes = Math.max(1, Math.floor(bytes))
 }
 
-export function getImageCacheLimitBytes(): number {
-  return imageCacheLimitBytes
-}
 
 async function enforceCacheLimitAsync(cacheDir: string): Promise<void> {
   if (imageCacheLimitBytes <= 0) return
@@ -134,7 +109,7 @@ async function enforceCacheLimitAsync(cacheDir: string): Promise<void> {
   }
 
   const entries = await Promise.all(
-    names.map(async (name) => {
+    names.filter(name => !name.endsWith('.tmp')).map(async (name) => {
       try {
         const fileStat = await stat(join(cacheDir, name))
         return fileStat.isFile()
@@ -225,40 +200,18 @@ export async function loadImages(urls: string[], options: ImageLoaderOptions = {
   return results
 }
 
-/**
- * Convert image URL to a file:// protocol URL for use in <img> tags.
- */
-export function imageUrlToFileProtocol(localPath: string): string {
-  // On Windows, convert to proper file:// URL
-  return `file:///${localPath.replace(/\\/g, '/')}`
-}
-
-/**
- * Preload a single image and return its local path (or null).
- */
-export async function preloadImage(url: string): Promise<string | null> {
-  // Check cache first
-  const cached = getCachedPath(url)
-  if (cached) {
-    urlToPathCache.set(url, cached)
-    return cached
-  }
-
-  const results = await loadImages([url])
-  return results[0]?.localPath ?? null
-}
 
 /**
  * Clear all cached images asynchronously.
  */
 export async function clearImageCacheAsync(): Promise<number> {
-  const dir = getCacheDir()
+  const dir = DEFAULT_OPTIONS.cacheDir
   let count = 0
   if (existsSync(dir)) {
     try {
       const files = await readdir(dir)
       await Promise.all(
-        files.map(async (file) => {
+        files.filter(file => !file.endsWith('.tmp')).map(async (file) => {
           try {
             await unlink(join(dir, file))
             count++
@@ -271,28 +224,11 @@ export async function clearImageCacheAsync(): Promise<number> {
       /* skip */
     }
   }
-  urlToPathCache.clear()
+  cachedSizeValue = 0
+  lastSizeCheckTime = 0
   return count
 }
 
-/**
- * Clear all cached images (synchronous fallback).
- */
-export function clearImageCache(): number {
-  const dir = getCacheDir()
-  let count = 0
-  if (existsSync(dir)) {
-    const files = require('fs').readdirSync(dir)
-    for (const file of files) {
-      try {
-        require('fs').unlinkSync(join(dir, file))
-        count++
-      } catch { /* skip */ }
-    }
-  }
-  urlToPathCache.clear()
-  return count
-}
 
 let cachedSizeValue = 0
 let lastSizeCheckTime = 0
@@ -305,7 +241,7 @@ export async function getImageCacheSizeAsync(): Promise<number> {
   if (now - lastSizeCheckTime < 5000 && cachedSizeValue > 0) {
     return cachedSizeValue
   }
-  const dir = getCacheDir()
+  const dir = DEFAULT_OPTIONS.cacheDir
   let size = 0
   if (existsSync(dir)) {
     try {
@@ -330,32 +266,6 @@ export async function getImageCacheSizeAsync(): Promise<number> {
   return size
 }
 
-/**
- * Get cache size in bytes (synchronous fallback).
- */
-export function getImageCacheSize(): number {
-  const dir = getCacheDir()
-  let size = 0
-  if (existsSync(dir)) {
-    const files = require('fs').readdirSync(dir)
-    for (const file of files) {
-      try {
-        size += require('fs').statSync(join(dir, file)).size
-      } catch { /* skip */ }
-    }
-  }
-  return size
-}
-
-// ─── IPC Handlers ─────────────────────────────────────────────
-
-ipcMain.handle('image:load', async (_event, urls: string[], options?: ImageLoaderOptions) => {
-  return loadImages(urls, options)
-})
-
-ipcMain.handle('image:preload', async (_event, url: string) => {
-  return preloadImage(url)
-})
 
 ipcMain.handle('image:clearCache', async () => {
   return clearImageCacheAsync()

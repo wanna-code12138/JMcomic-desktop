@@ -257,9 +257,10 @@ export default function PerformanceDiagnosticsPage(): JSX.Element {
       {/* 性能事件聚合 */}
       <div className={styles.section}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <Text size={400} weight="semibold">指标聚合（缓冲条数: {snapshot?.counts?.buffered ?? 0}）</Text>
+          <Text size={400} weight="semibold">近期完成事件（缓冲条数: {snapshot?.counts?.buffered ?? 0}）</Text>
         </div>
         <Card className={styles.card} style={{ overflowX: 'auto' }}>
+          <Text size={200}>仅保留最近 1000 条事件；耗时包含成功、错误、超时与取消。帧间隔采集所有可见帧，不代表整个会话。</Text>
           <table className={styles.table}>
             <thead>
               <tr>

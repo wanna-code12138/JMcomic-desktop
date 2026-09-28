@@ -1,4 +1,5 @@
 import { app, dialog, ipcMain } from 'electron'
+import type { ReadingHistory, HistoryPositionContext } from '../shared/readerContracts'
 import { writeFileSync, readFileSync } from 'fs'
 import { getDatabase, saveDatabase, scheduleDatabaseSave } from './database'
 import { clearScraperCache } from './scraperWindow'
@@ -75,16 +76,13 @@ export function registerIpcHandlers(): void {
   })
 
   // History (local reading history — one row per manga, UPSERT semantics)
-  ipcMain.handle('history:upsert', async (_event, data: {
-    manga_id: string; manga_title?: string; chapter_index: number
-    chapter_title?: string; chapter_url?: string; cover_url?: string
-    page_index: number; total_pages?: number
-  }) => {
+  ipcMain.handle('history:upsert', async (_event, data: ReadingHistory) => {
+    if (!data.manga_id || !Number.isInteger(data.chapter_index) || !Number.isInteger(data.page_index)) throw new Error('阅读记录无效')
     const db = await getDatabase()
     db.run(
       `INSERT INTO reading_history
-         (manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, read_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%s','now'))
+         (manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, page_offset, is_local, reader_session, read_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%s','now'))
        ON CONFLICT(manga_id) DO UPDATE SET
          manga_title = excluded.manga_title,
          chapter_index = excluded.chapter_index,
@@ -93,28 +91,35 @@ export function registerIpcHandlers(): void {
          cover_url = excluded.cover_url,
          page_index = excluded.page_index,
          total_pages = excluded.total_pages,
+         page_offset = excluded.page_offset,
+         is_local = excluded.is_local,
+         reader_session = excluded.reader_session,
          read_at = strftime('%s','now')`,
       [data.manga_id, data.manga_title ?? null, data.chapter_index,
        data.chapter_title ?? null, data.chapter_url ?? null, data.cover_url ?? null,
-       data.page_index, data.total_pages ?? 0]
+       Math.max(0, data.page_index), data.total_pages ?? 0,
+       Math.max(0, Math.min(1, Number(data.page_offset) || 0)), data.is_local ? 1 : 0, data.reader_session ?? null]
     )
     await saveDatabase()
   })
 
-  ipcMain.handle('history:upsertPage', async (_event, mangaId: string, pageIndex: number) => {
+  ipcMain.handle('history:upsertPage', async (_event, mangaId: string, pageIndex: number, context?: HistoryPositionContext) => {
+    if (!Number.isInteger(pageIndex) || !context || !Number.isInteger(context.chapterIndex) || !context.session) return
     const db = await getDatabase()
     db.run(
-      `UPDATE reading_history SET page_index = ?, read_at = strftime('%s','now')
-       WHERE manga_id = ?`,
-      [pageIndex, mangaId]
+      `UPDATE reading_history SET page_index = MIN(MAX(0, ?), MAX(total_pages - 1, 0)), page_offset = ?, read_at = strftime('%s','now')
+       WHERE manga_id = ? AND chapter_index = ? AND reader_session = ?`,
+      [pageIndex, Math.max(0, Math.min(1, Number(context.pageOffset) || 0)), mangaId, context.chapterIndex, context.session]
     )
-    await saveDatabase()
+    if (db.getRowsModified() === 0) return
+    if (context.flush) await saveDatabase()
+    else scheduleDatabaseSave('history')
   })
 
   ipcMain.handle('history:listLocal', async () => {
     const db = await getDatabase()
     const results = db.exec(
-      'SELECT manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, read_at FROM reading_history ORDER BY read_at DESC'
+      'SELECT * FROM reading_history ORDER BY read_at DESC'
     )
     if (results.length === 0) return []
     const cols = results[0].columns
@@ -128,7 +133,7 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('history:getLocal', async (_event, mangaId: string) => {
     const db = await getDatabase()
     const stmt = db.prepare(
-      'SELECT manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, read_at FROM reading_history WHERE manga_id = ?'
+      'SELECT * FROM reading_history WHERE manga_id = ?'
     )
     stmt.bind([mangaId])
     let row: Record<string, unknown> | null = null
@@ -208,6 +213,7 @@ export function registerIpcHandlers(): void {
     try {
       const result = importPersonalData(db, payload)
       await saveDatabase()
+      invalidateLocalImageAllowedRoots()
       return { canceled: false, ...result, path: filePaths[0] }
     } catch (err) {
       return { canceled: false, error: err instanceof Error ? err.message : String(err) }
@@ -218,6 +224,7 @@ export function registerIpcHandlers(): void {
     const db = await getDatabase()
     const counts = clearPersonalData(db)
     await saveDatabase()
+    invalidateLocalImageAllowedRoots()
     return counts
   })
 }

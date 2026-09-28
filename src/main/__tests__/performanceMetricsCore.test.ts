@@ -59,4 +59,14 @@ assert.equal(safe.elapsedMs, 1)
 const emptySummary = summarizePerfEvents([])
 assert.deepEqual(emptySummary, {})
 
+const stages = summarizePerfEvents([
+  { name: 'reader.image', phase: 'decoded', elapsedMs: 40, metadata: {} },
+  { name: 'reader.image', phase: 'finish', elapsedMs: 50, outcome: 'ok', metadata: {} }
+])
+assert.equal(stages['reader.image'].count, 1, 'milestones must not count as additional completed requests')
+assert.equal(stages['reader.image'].p50Ms, 50)
+assert.deepEqual(sanitizePerfEvent({ name: 'image.online', phase: 'finish', elapsedMs: 1,
+  metadata: { cache: true, source: 'local', scrambled: false, count: 3, url: 'private' } }).metadata,
+  { cache: true, source: 'local', scrambled: false, count: 3 })
+
 console.log('All performanceMetricsCore tests passed!')

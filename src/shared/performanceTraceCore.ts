@@ -105,7 +105,8 @@ export type PerfSummary = Record<string, PerfMetricSummary>
 
 const SAFE_METADATA = new Set([
   'page', 'provider', 'cacheState', 'fallback', 'priority', 'outcome',
-  'width', 'height', 'stripCount', 'bytes', 'batchSize', 'inputType'
+  'width', 'height', 'stripCount', 'bytes', 'batchSize', 'inputType',
+  'cache', 'source', 'scrambled', 'count', 'itemCount'
 ])
 
 export function sanitizePerfEvent(event: PerfEvent): PerfEvent {
@@ -143,6 +144,7 @@ export function summarizePerfEvents(events: readonly PerfEvent[]): PerfSummary {
   }>()
 
   for (const event of events) {
+    if (event.phase !== 'finish') continue
     let group = groups.get(event.name)
     if (!group) {
       group = { count: 0, ok: 0, error: 0, cancelled: 0, timeout: 0, elapsed: [] }

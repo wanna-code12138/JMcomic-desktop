@@ -3,6 +3,7 @@ import { normalizeSettings, type AppSettings } from './settingsCore'
 import { getDefaultDownloadDir } from './dataPaths'
 
 let cached: AppSettings | null = null
+let pendingUpdate: Promise<unknown> = Promise.resolve()
 
 function serialize(value: unknown): string {
   if (Array.isArray(value)) return JSON.stringify(value)
@@ -28,7 +29,13 @@ export async function getSettings(): Promise<AppSettings> {
   return cached
 }
 
-export async function updateSettings(patch: Record<string, unknown>): Promise<AppSettings> {
+export function updateSettings(patch: Record<string, unknown>): Promise<AppSettings> {
+  const result = pendingUpdate.then(() => persistSettings(patch))
+  pendingUpdate = result.catch(() => {})
+  return result
+}
+
+async function persistSettings(patch: Record<string, unknown>): Promise<AppSettings> {
   const current = await getSettings()
   const merged = normalizeSettings({ ...current, ...patch })
   const db = await getDatabase()

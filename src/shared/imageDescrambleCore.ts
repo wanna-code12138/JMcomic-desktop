@@ -128,3 +128,19 @@ export function buildDescrambleSlices(
   }
   return Object.freeze(slices)
 }
+
+export function drawDescrambledImage(canvas: HTMLCanvasElement, image: HTMLImageElement, scrambleId: number, imageUrl: string): boolean {
+  const path = imageUrl.split('?')[0]
+  const aid = Number(path.match(/\/(?:photos?|albums?)\/(\d+)\//)?.[1] ?? 0)
+  const filename = path.split('/').pop()?.replace(/\.[^.]+$/, '') ?? ''
+  const strips = getDescrambleStripCount(scrambleId, aid, filename)
+  if (strips === 0) return false
+  canvas.width = image.naturalWidth
+  canvas.height = image.naturalHeight
+  const context = canvas.getContext('2d')
+  if (!context) throw new Error('无法创建图片画布')
+  for (const slice of buildDescrambleSlices(canvas.width, canvas.height, strips)) {
+    if (slice.height > 0) context.drawImage(image, 0, slice.srcY, canvas.width, slice.height, 0, slice.dstY, canvas.width, slice.height)
+  }
+  return true
+}

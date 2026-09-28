@@ -9,7 +9,7 @@ interface LoadOptions { signal?: AbortSignal; onImage?: (image: ImageResult, ind
 async function fixture(run: (f: {
   root: string; raw: string; task: any; progress: any[]; handlers: Map<string, Function>
   download: () => Promise<void>; cancel: () => void
-}) => Promise<void>, load: (urls: string[], options: LoadOptions, raw: string) => Promise<ImageResult[]>, descramble?: () => Promise<Buffer>): Promise<void> {
+}) => Promise<void>, load: (urls: string[], options: LoadOptions, raw: string) => Promise<ImageResult[]>, descramble?: () => Promise<Buffer>, content: Record<string, unknown> = {}): Promise<void> {
   await mkdir(resolve('work'), { recursive: true })
   const root = await mkdtemp(resolve('work/download-regression-'))
   const raw = join(root, 'source.png')
@@ -21,7 +21,8 @@ async function fixture(run: (f: {
     './database': { getDatabase: async () => ({ run() {} }), saveDatabase() {}, scheduleDatabaseSave() {} },
     './ioMetrics': { beginIoPerfSpan: () => ({ finish() {} }) },
     './settingsStore': { getSettings: async () => ({ downloadRetries: 0 }) },
-    './contentApi': {},
+    './contentApi': content,
+    './localImageProtocol': { invalidateLocalImageAllowedRoots() {} },
     './imageDescrambler': { descrambleImage: descramble ?? (async (b: Buffer) => b) },
     './imageLoader': { loadImages: (urls: string[], options: LoadOptions) => load(urls, options, raw) }
   }
@@ -78,4 +79,22 @@ test('cancellation reaches image network before it finishes and prevents late ou
     assert.equal(task.downloadedPages, 0)
     assert.equal((await readdir(root, { recursive: true })).some((name) => /000[12]\./.test(name)), false)
   }, async (urls, options, raw) => { seenSignal = options.signal; started(); await gate; return deliver(urls, options, raw) })
+})
+
+test('cancellation detaches a task waiting for shared chapter metadata immediately', async () => {
+  let begin!: () => void; let release!: () => void
+  const started = new Promise<void>(resolve => { begin = resolve })
+  const gate = new Promise<void>(resolve => { release = resolve })
+  await fixture(async ({ task, download, cancel }) => {
+    task.imageUrls = []; task.chapterUrl = 'https://18comic.vip/photo/202'
+    const pending = download()
+    await started; cancel()
+    const completed = await Promise.race([pending.then(() => true), new Promise<boolean>(resolve => setTimeout(() => resolve(false), 80))])
+    release(); await pending
+    assert.equal(completed, true, 'cancel cannot wait for the shared metadata request')
+    assert.equal(task.status, 'cancelled')
+    assert.equal(task.imageUrls.length, 0, 'late metadata cannot mutate a cancelled task')
+  }, (urls, options, raw) => deliver(urls, options, raw), undefined, {
+    getPublicChapterPages: async () => { begin(); await gate; return { pages: [{ index: 0, imageUrl: 'https://cdn-msp.jmapiproxy1.cc/1.png' }], scrambleId: 0 } }
+  })
 })

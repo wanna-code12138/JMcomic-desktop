@@ -30,9 +30,9 @@ for (const [path, marker] of required) {
   })
 }
 
-test('ReaderPage records reader.image', () => {
-  const text = read('src/renderer/src/pages/ReaderPage.tsx')
-  assert.ok(text.includes("startPerfSpan('reader.image'"))
+test('ReaderImage records reader.image', () => {
+  const text = read('src/renderer/src/reader/ReaderImage.tsx')
+  assert.ok(text.includes("recordRendererSpan('reader.image'"))
 })
 
 test('content provider metrics contain only provider and fallback routing state', () => {

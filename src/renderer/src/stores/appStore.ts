@@ -1,16 +1,5 @@
 import { create } from 'zustand'
-
-interface ReaderState {
-  mangaId: string
-  mangaTitle: string
-  mangaCoverUrl: string
-  chapterIndex: number
-  chapterTitle: string
-  chapterUrl: string
-  resumePageIndex?: number
-  /** true 表示从本地下载目录读取，不触发网页抓取 */
-  local?: boolean
-}
+import type { ReaderState } from '../../../shared/readerContracts'
 
 interface PendingSearch {
   query: string
@@ -34,6 +23,8 @@ interface AppState {
   solidWindow: boolean
   pendingSearch: PendingSearch | null
   recommendationRevision: number
+  readerSidebarCollapsed: boolean
+  setReaderSidebarCollapsed: (collapsed: boolean) => void
   setThemeMode: (mode: ThemeMode) => void
   setDarkMode: (dark: boolean) => void
   toggleDarkMode: () => void
@@ -70,6 +61,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   solidWindow: false,
   pendingSearch: null,
   recommendationRevision: 0,
+  readerSidebarCollapsed: true,
+  setReaderSidebarCollapsed: (collapsed) => set({ readerSidebarCollapsed: collapsed }),
   setThemeMode: (mode) => {
     const dark =
       mode === 'system'
@@ -108,7 +101,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((s) => ({
       readerState: state,
       currentPage: 'reader',
-      readerSourcePage: s.currentPage
+      readerSourcePage: s.currentPage === 'reader' ? s.readerSourcePage : s.currentPage
     })),
   closeReader: () =>
     set((s) => ({

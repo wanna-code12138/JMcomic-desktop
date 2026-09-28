@@ -36,12 +36,11 @@ async function ensureReady(): Promise<void> {
   }
 }
 
-const directAdapter = new JmWebAdapter([])
+const directAdapter = new JmWebAdapter()
 
 const directProvider: ContentProvider = {
   async homepage() {
-    // The adapter currently splits homepage sections heuristically. Until its
-    // section semantics are proven equivalent, retain the browser extractor.
+    // Homepage sections require the canonical browser extractor in the web fallback.
     throw new Error('direct-homepage-unverified')
   },
   async search(request) {
@@ -261,63 +260,16 @@ ipcMain.handle('content:detail', async (_event, mangaId: string) => {
 })
 
 ipcMain.handle('content:pages', async (_event, chapterUrl: string) => {
+  const perf = beginMainPerfSpan('content.pages')
   try {
     const result = await contentGateway.pages(chapterUrl)
+    perf.finish('ok', { count: result.data.pages.length, scramble: result.data.scrambleId > 0, provider: result.provider, fallback: result.fallback })
     return { ok: true, data: result.data.pages, scrambleId: result.data.scrambleId }
   } catch (err) {
+    perf.finish('error')
     console.error('[content:pages] error:', err)
     return { ok: false, error: String(err) }
   }
-})
-
-const pageStreams = new Map<string, { signal: { aborted: boolean } }>()
-
-ipcMain.on('content:pages:stream', async (event, chapterUrl?: string) => {
-  const perf = beginMainPerfSpan('content.pages')
-  const url = chapterUrl ?? ''
-  const prev = pageStreams.get(url)
-  if (prev) prev.signal.aborted = true
-  const signal = { aborted: false }
-  pageStreams.set(url, { signal })
-  const send = (payload: { chapterUrl: string; pages?: unknown[]; scrambleId?: number; done: boolean; error?: string }): void => {
-    if (!event.sender.isDestroyed()) event.sender.send('content:pages:batch', payload)
-  }
-  try {
-    const result = await contentGateway.pages(url)
-    if (signal.aborted) {
-      perf.finish('cancelled')
-      return
-    }
-    if (result.data.pages.length > 0) {
-      perf.mark('first-batch', { count: result.data.pages.length })
-    }
-    send({
-      chapterUrl: url,
-      pages: result.data.pages,
-      scrambleId: result.data.scrambleId,
-      done: true
-    })
-    perf.finish('ok', {
-      count: result.data.pages.length,
-      scramble: result.data.scrambleId > 0,
-      provider: result.provider,
-      fallback: result.fallback
-    })
-  } catch (err) {
-    perf.finish(signal.aborted ? 'cancelled' : 'error', {
-      count: 0,
-      scramble: false
-    })
-    if (!signal.aborted) send({ chapterUrl: url, error: String(err), done: true })
-  } finally {
-    if (pageStreams.get(url)?.signal === signal) pageStreams.delete(url)
-  }
-})
-
-ipcMain.on('content:pages:cancel', (_event, chapterUrl?: string) => {
-  const url = chapterUrl ?? ''
-  const entry = pageStreams.get(url)
-  if (entry) entry.signal.aborted = true
 })
 
 ipcMain.handle('content:warmupStatus', () => {

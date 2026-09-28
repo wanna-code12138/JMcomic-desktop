@@ -78,16 +78,6 @@ export function takeSnapshot(
 
 let globalPageCache = createPageCacheState('home')
 
-export function getGlobalPageCache(): PageCacheState {
-  return globalPageCache
-}
-
-export function updateGlobalPageCache(
-  updater: (prev: PageCacheState) => PageCacheState
-): PageCacheState {
-  globalPageCache = updater(globalPageCache)
-  return globalPageCache
-}
 
 import React from 'react'
 

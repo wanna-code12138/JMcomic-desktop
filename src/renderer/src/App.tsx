@@ -7,16 +7,6 @@ import AppNavigation from './components/AppNavigation'
 import AppStatusBar from './components/AppStatusBar'
 import PageHost, { type PageId } from './components/PageHost'
 
-// WinUI 导航宽度与指示条规范（供外部契约与布局参考）
-export const NAV_WIDTH = 208
-// active indicator: width: '2px'
-
-// 页面隔离与挂载契约规范（供静态契约测试与布局参考）
-// pageViewport: { height: '100%', minHeight: 0, overflow: 'hidden' }
-// display: page === currentPage ? 'block' : 'none'
-// mountedPages.map
-
-
 import { touchPage, createPageCacheState, type PrimaryPageId } from './navigation/pageStateCache'
 
 type PrimaryNavPageId = 'home' | 'categories' | 'search' | 'favorites' | 'downloads' | 'settings'
@@ -42,6 +32,7 @@ interface AppProps {
 
 export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Element {
   const currentPage = useAppStore((state) => state.currentPage)
+  const readerSidebarCollapsed = useAppStore((state) => state.readerSidebarCollapsed)
   const readerSourcePage = useAppStore((state) => state.readerSourcePage)
   const [pageCache, setPageCache] = React.useState(() => createPageCacheState('home'))
   const visitedPrimaryPages = pageCache.mounted as readonly PrimaryNavPageId[]
@@ -72,9 +63,9 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
   return (
     <AppFrame
       titleBar={<TitleBar darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />}
-      navigation={<AppNavigation />}
+      navigation={currentPage === 'reader' && readerSidebarCollapsed ? null : <AppNavigation />}
       page={<PageHost currentPage={currentPage as PageId} mountedPages={mountedPages} />}
-      statusBar={<AppStatusBar />}
+      statusBar={currentPage === 'reader' ? null : <AppStatusBar />}
     />
   )
 }

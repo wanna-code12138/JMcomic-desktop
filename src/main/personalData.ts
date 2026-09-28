@@ -62,7 +62,7 @@ export function exportPersonalData(db: SqlJsDatabase): PersonalExport {
     exportedAt: new Date().toISOString(),
     data: {
       favorites: queryAll(db, 'SELECT * FROM favorites ORDER BY added_at DESC'),
-      readingHistory: queryAll(db, 'SELECT * FROM reading_history ORDER BY read_at DESC'),
+      readingHistory: queryAll(db, 'SELECT * FROM reading_history ORDER BY read_at DESC').map(({ reader_session: _session, ...row }) => row),
       searchHistory: queryAll(db, 'SELECT * FROM search_history ORDER BY searched_at DESC'),
       downloads: queryAll(db, 'SELECT * FROM downloads ORDER BY created_at DESC')
     }
@@ -107,10 +107,11 @@ export function importPersonalData(db: SqlJsDatabase, payload: unknown): ImportS
     if (!mangaId || chapterIndex === null || pageIndex === null) { skipped++; continue }
     db.run(
       `INSERT OR IGNORE INTO reading_history
-         (manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, read_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, read_at, page_offset, is_local)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [mangaId, asString(raw.manga_title), chapterIndex, asString(raw.chapter_title),
-       asString(raw.chapter_url), asString(raw.cover_url), pageIndex, asNumber(raw.total_pages), asNumber(raw.read_at)]
+       asString(raw.chapter_url), asString(raw.cover_url), pageIndex, asNumber(raw.total_pages), asNumber(raw.read_at),
+       Math.max(0, Math.min(1, asNumber(raw.page_offset) ?? 0)), raw.is_local === 1 ? 1 : 0]
     )
     imported.readingHistory += db.getRowsModified()
   }
@@ -133,18 +134,21 @@ export function importPersonalData(db: SqlJsDatabase, payload: unknown): ImportS
     const id = asNumber(raw.id)
     const mangaId = asString(raw.manga_id)
     if (id === null || !mangaId) { skipped++; continue }
+    const chapterIndex = asNumber(raw.chapter_index) ?? 0
+    const existing = db.exec('SELECT id FROM downloads WHERE manga_id = ? AND chapter_index = ?', [mangaId, chapterIndex])
+    if (existing[0]?.values.length) continue
     // 待下载/下载中的任务在另一台机器上没有意义，导入后标记为失败，
     // 避免应用启动时按旧路径自动续传。
     const status = asString(raw.status) ?? 'failed'
     const safeStatus = status === 'pending' || status === 'downloading' ? 'failed' : status
     db.run(
       `INSERT OR IGNORE INTO downloads
-         (id, manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url,
-          status, total_pages, downloaded_pages, save_path, created_at)
+         (manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url,
+          status, total_pages, downloaded_pages, save_path, created_at, storage_relpath)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, mangaId, asString(raw.manga_title), asNumber(raw.chapter_index), asString(raw.chapter_title),
+      [mangaId, asString(raw.manga_title), chapterIndex, asString(raw.chapter_title),
        asString(raw.chapter_url), asString(raw.cover_url),
-       safeStatus, asNumber(raw.total_pages), asNumber(raw.downloaded_pages), asString(raw.save_path), asNumber(raw.created_at)]
+       safeStatus, asNumber(raw.total_pages), asNumber(raw.downloaded_pages), asString(raw.save_path), asNumber(raw.created_at), asString(raw.storage_relpath)]
     )
     imported.downloads += db.getRowsModified()
   }

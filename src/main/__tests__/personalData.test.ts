@@ -41,6 +41,8 @@ async function createDb(): Promise<SqlJsDatabase> {
       cover_url TEXT,
       page_index INTEGER NOT NULL,
       total_pages INTEGER DEFAULT 0,
+      page_offset REAL DEFAULT 0,
+      is_local INTEGER DEFAULT 0,
       read_at INTEGER DEFAULT (strftime('%s','now'))
     )
   `)
@@ -57,6 +59,7 @@ async function createDb(): Promise<SqlJsDatabase> {
       total_pages INTEGER DEFAULT 0,
       downloaded_pages INTEGER DEFAULT 0,
       save_path TEXT,
+      storage_relpath TEXT,
       created_at INTEGER DEFAULT (strftime('%s','now'))
     )
   `)
@@ -111,6 +114,23 @@ function emptyPayload(): Record<string, unknown> {
 }
 
 async function run(): Promise<void> {
+  await test('cross-device task ids do not collide and reading offset/local source survive import', async () => {
+    const db = await createDb()
+    seedPersonalData(db)
+    const payload = emptyPayload()
+    payload.data = {
+      favorites: [], searchHistory: [],
+      readingHistory: [{ manga_id: 'm2', chapter_index: 1, page_index: 2, page_offset: 0.45, is_local: 1 }],
+      downloads: [{ id: 1, manga_id: 'm2', chapter_index: 1, chapter_url: '/photo/203', status: 'completed', storage_relpath: 'manga-m2/chapter-203' }]
+    }
+    importPersonalData(db, payload)
+    assert.equal(countRows(db, 'downloads'), 2)
+    assert.deepStrictEqual(db.exec("SELECT page_offset, is_local FROM reading_history WHERE manga_id='m2'")[0].values[0], [0.45, 1])
+    assert.equal(db.exec("SELECT storage_relpath FROM downloads WHERE manga_id='m2'")[0].values[0][0], 'manga-m2/chapter-203')
+    importPersonalData(db, payload)
+    assert.equal(countRows(db, 'downloads'), 2, 'reimport is idempotent')
+    db.close()
+  })
   // ─── exportPersonalData ──────────────────────────────────────────
 
   await test('exportPersonalData returns format marker and version', async () => {

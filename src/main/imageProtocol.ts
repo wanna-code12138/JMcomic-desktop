@@ -3,6 +3,7 @@ import { readCachedImage, storeImage } from './imageLoader'
 import { beginMainPerfSpan } from './performanceTrace'
 import { requestImage } from './imageNetwork'
 import { validateTrustedImageUrl } from '../shared/imageUrlCore'
+import { imageMimeType } from '../shared/imageFormat'
 import { type ImagePriority } from './imageRequestPolicy'
 
 // ─── base64url 编解码工具 ───────────────────────────────────────
@@ -94,7 +95,7 @@ export function registerImageProtocol(): void {
         return new Response(new Uint8Array(cached.buffer), {
           status: 200,
           headers: {
-            'Content-Type': contentTypeForFile(cached.filepath),
+            'Content-Type': imageMimeType(cached.buffer) ?? contentTypeForFile(cached.filepath),
             'Cache-Control': 'public, max-age=86400',
             'Access-Control-Allow-Origin': '*'
           }

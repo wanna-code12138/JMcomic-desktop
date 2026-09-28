@@ -48,11 +48,10 @@ test('unverified direct detail metadata remains on the browser fallback', () => 
   assert.match(source, /throw new Error\('direct-detail-unverified'\)/)
 })
 
-test('IPC responses keep existing fields and page stream preserves pages and scrambleId', () => {
+test('active IPC responses preserve pages and scrambleId', () => {
   assert.match(source, /return \{ ok: true, data: result\.data \}/)
   assert.match(source, /data: result\.data\.results, totalPages: result\.data\.totalPages/)
   assert.match(source, /data: result\.data\.pages, scrambleId: result\.data\.scrambleId/)
-  assert.match(source, /pages: result\.data\.pages/)
   assert.match(source, /scrambleId: result\.data\.scrambleId/)
 })
 

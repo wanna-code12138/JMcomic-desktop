@@ -1,3 +1,4 @@
+import type { MangaDownloadGroup } from '../../../shared/downloadContracts'
 import React from 'react'
 import {
   makeStyles, Text, Button, Badge, Skeleton, SkeletonItem,
@@ -145,20 +146,6 @@ interface DetailChapter extends DownloadedFileAvailability {
   error?: string
 }
 
-interface MangaDownloadGroup {
-  mangaId: string
-  mangaTitle: string
-  coverUrl: string
-  tasks: Array<DownloadedFileAvailability & {
-    id: number
-    chapterIndex: number
-    chapterTitle: string
-    chapterUrl: string
-    status: string
-    error?: string
-  }>
-}
-
 export default function MangaDetailPage(): JSX.Element {
   const styles = useStyles()
   const currentMangaId = useAppStore((s) => s.currentMangaId)
@@ -213,10 +200,10 @@ export default function MangaDetailPage(): JSX.Element {
           } else {
             setError('本地没有该漫画的下载记录')
           }
-        } else if (result?.ok) {
+        } else if (result && 'ok' in result && result.ok) {
           setManga(result.data as DetailData)
         } else {
-          setError(result?.error || '加载失败')
+          setError((result && 'error' in result && result.error) || '加载失败')
         }
       } catch (err) {
         if (!cancelled) setError(String(err))
@@ -319,7 +306,8 @@ export default function MangaDetailPage(): JSX.Element {
       chapterIndex: ch.index,
       chapterTitle: ch.title,
       chapterUrl: ch.url,
-      local: true
+      local: true,
+      chapters: manga.chapters
     })
   }
 

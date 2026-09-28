@@ -86,6 +86,7 @@ interface LocalHistoryRow {
   manga_id: string; manga_title: string; chapter_index: number
   chapter_title: string; chapter_url: string; cover_url: string
   page_index: number; total_pages: number; read_at: number
+  page_offset?: number; is_local?: number
 }
 
 export default function FavoritesPage(): JSX.Element {
@@ -132,7 +133,9 @@ export default function FavoritesPage(): JSX.Element {
       chapterIndex: row.chapter_index,
       chapterTitle: row.chapter_title,
       chapterUrl: row.chapter_url,
-      resumePageIndex: row.page_index
+      resumePageIndex: row.page_index,
+      resumePageOffset: row.page_offset ?? 0,
+      local: Boolean(row.is_local)
     })
   }
 

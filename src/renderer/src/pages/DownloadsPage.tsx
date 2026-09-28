@@ -9,34 +9,7 @@ import {
 } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
 import { toJmImg } from '../utils/image'
-
-interface DownloadRow extends DownloadedFileAvailability {
-  id: number
-  mangaId: string
-  mangaTitle: string
-  chapterIndex: number
-  chapterTitle: string
-  chapterUrl?: string
-  coverUrl?: string
-  error?: string
-  status: string
-  totalPages: number
-  downloadedPages: number
-  savePath: string
-  createdAt: number
-}
-
-interface MangaGroup {
-  mangaId: string
-  mangaTitle: string
-  coverUrl: string
-  createdAt: number
-  tasks: DownloadRow[]
-  totalChapters: number
-  completedChapters: number
-  activeTasks: number
-  failedTasks: number
-}
+import { groupTasksByManga, type MangaDownloadGroup, type DownloadTaskRow, type DownloadProgress } from '../../../shared/downloadContracts'
 
 type MainTab = 'manga' | 'tasks'
 
@@ -168,11 +141,25 @@ export default function DownloadsPage(): JSX.Element {
   const styles = useStyles()
   const setCurrentLocalMangaId = useAppStore((s) => s.setCurrentLocalMangaId)
   const [mainTab, setMainTab] = React.useState<MainTab>('manga')
-  const [groups, setGroups] = React.useState<MangaGroup[]>([])
+  const [groups, setGroups] = React.useState<MangaDownloadGroup[]>([])
+  const groupsRef = React.useRef(groups)
+  const loadingRequest = React.useRef<Promise<void>>()
+  const progressDuringLoad = React.useRef(new Map<number, DownloadProgress>())
+  const reloadRequested = React.useRef(false)
   const [loading, setLoading] = React.useState(true)
   const [actionError, setActionError] = React.useState('')
   const [actionMsg, setActionMsg] = React.useState('')
   const [retrying, setRetrying] = React.useState(false)
+  const [exporting, setExporting] = React.useState(false)
+  const exportCbz = async (selection: { mangaId?: string; taskId?: number }): Promise<void> => {
+    setExporting(true); setActionError(''); setActionMsg('正在准备导出…')
+    try {
+      const result = await window.electronAPI?.downloadExportCbz(selection)
+      if (result?.ok) setActionMsg(`已导出 ${result.pages} 页：${result.path}`)
+      else { setActionMsg(''); if (!result?.canceled) setActionError(result?.error ?? '导出失败') }
+    } catch (error) { setActionMsg(''); setActionError(String(error)) }
+    finally { setExporting(false) }
+  }
   const [confirm, setConfirm] = React.useState<{
     title: string
     body: string
@@ -180,19 +167,39 @@ export default function DownloadsPage(): JSX.Element {
   } | null>(null)
 
   const load = React.useCallback(async (): Promise<void> => {
-    setActionError('')
-    setActionMsg('')
-    const list = (await window.electronAPI?.downloadSummary()) as MangaGroup[] | undefined
-    setGroups(list ?? [])
-    setLoading(false)
+    if (loadingRequest.current) { reloadRequested.current = true; return loadingRequest.current }
+    loadingRequest.current = (async () => {
+      do {
+        reloadRequested.current = false
+        progressDuringLoad.current.clear()
+        const list = await window.electronAPI?.downloadSummary()
+        groupsRef.current = groupTasksByManga((list ?? []).flatMap(group => group.tasks.map(task => {
+          const progress = progressDuringLoad.current.get(task.id)
+          return progress ? { ...task, status: progress.status, downloadedPages: progress.downloadedPages, totalPages: progress.totalPages } : task
+        })))
+        progressDuringLoad.current.clear()
+        setGroups(groupsRef.current)
+      } while (reloadRequested.current)
+    })().catch(error => setActionError(String(error))).finally(() => {
+      setLoading(false); loadingRequest.current = undefined; progressDuringLoad.current.clear()
+    })
+    return loadingRequest.current
   }, [])
 
   React.useEffect(() => {
     void load()
-    const off = window.electronAPI?.onDownloadProgress(() => {
-      void load()
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const off = window.electronAPI?.onDownloadProgress((progress) => {
+      if (loadingRequest.current) progressDuringLoad.current.set(progress.taskId, progress)
+      const known = groupsRef.current.some(group => group.tasks.some(task => task.id === progress.taskId))
+      if (known) {
+        groupsRef.current = groupTasksByManga(groupsRef.current.flatMap(group => group.tasks.map(task => task.id === progress.taskId
+          ? { ...task, status: progress.status, downloadedPages: progress.downloadedPages, totalPages: progress.totalPages } : task)))
+        setGroups(groupsRef.current)
+      }
+      if ((!known || progress.status !== 'downloading') && !timer) timer = setTimeout(() => { timer = undefined; void load() }, 300)
     })
-    return () => off?.()
+    return () => { off?.(); clearTimeout(timer) }
   }, [load])
 
   const allTasks = React.useMemo(
@@ -229,7 +236,7 @@ export default function DownloadsPage(): JSX.Element {
     }
   }
 
-  const askRemoveManga = (group: MangaGroup, deleteFiles: boolean): void => {
+  const askRemoveManga = (group: MangaDownloadGroup, deleteFiles: boolean): void => {
     setConfirm({
       title: deleteFiles ? '删除记录和本地文件' : '删除下载记录',
       body: deleteFiles
@@ -244,7 +251,7 @@ export default function DownloadsPage(): JSX.Element {
     })
   }
 
-  const askRemoveTask = (task: DownloadRow, deleteFiles: boolean): void => {
+  const askRemoveTask = (task: DownloadTaskRow, deleteFiles: boolean): void => {
     setConfirm({
       title: deleteFiles ? '删除记录和本地文件' : '删除下载记录',
       body: deleteFiles
@@ -307,6 +314,7 @@ export default function DownloadsPage(): JSX.Element {
                     className={styles.mangaActions}
                     onClick={(e) => e.stopPropagation()}
                   >
+                    <Button size="small" appearance="secondary" disabled={exporting} onClick={() => void exportCbz({ mangaId: g.mangaId })}>CBZ</Button>
                     <Tooltip content="打开文件夹" relationship="label">
                       <Button size="small" appearance="secondary" icon={<FolderOpen20Regular />}
                         onClick={() => void window.electronAPI?.downloadOpenMangaFolder(g.mangaId).then((r) => {
@@ -360,7 +368,7 @@ export default function DownloadsPage(): JSX.Element {
               ? Math.min(1, task.downloadedPages / task.totalPages)
               : 0
             const active = task.status === 'pending' || task.status === 'downloading'
-            const retryable = task.status === 'failed' || task.status === 'cancelled'
+            const retryable = task.status === 'failed' || task.status === 'cancelled' || (task.status === 'completed' && task.available === false)
             return (
               <div key={task.id} className={styles.taskItem}>
                 <div className={styles.taskInfo}>
@@ -388,6 +396,7 @@ export default function DownloadsPage(): JSX.Element {
                   )}
                 </div>
                 <div className={styles.taskActions}>
+                  {task.status === 'completed' && task.available !== false && <Button size="small" appearance="subtle" disabled={exporting} onClick={() => void exportCbz({ taskId: task.id })}>导出 CBZ</Button>}
                   {active && (
                     <Tooltip content="取消" relationship="label">
                       <Button size="small" appearance="subtle" icon={<Dismiss20Regular />}
@@ -395,9 +404,9 @@ export default function DownloadsPage(): JSX.Element {
                     </Tooltip>
                   )}
                   {retryable && (
-                    <Tooltip content="重试" relationship="label">
+                    <Tooltip content={task.status === 'completed' ? '修复缺失页' : '重试'} relationship="label">
                       <Button size="small" appearance="subtle" icon={<ArrowClockwise20Regular />}
-                        onClick={() => void window.electronAPI?.downloadRetry(task.id)} />
+                        onClick={() => void window.electronAPI?.downloadRetry(task.id).then(result => { if (!result.ok) setActionError(result.error ?? '重试失败'); void load() })}>{task.status === 'completed' ? '修复缺失页' : null}</Button>
                     </Tooltip>
                   )}
                   <Tooltip content="打开文件夹" relationship="label">

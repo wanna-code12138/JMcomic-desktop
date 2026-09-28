@@ -5,6 +5,7 @@ import { getDefaultDownloadDir } from './dataPaths'
 import { contentTypeForFile } from './imageProtocol'
 import { beginMainPerfSpan } from './performanceTrace'
 import { createAllowedRootsCache, openLocalImage } from './localImageAccess'
+import { imageMimeType } from '../shared/imageFormat'
 
 /**
  * 自定义 jmlocal:// 协议：从下载目录直读已下载图片，不经过网络。
@@ -69,18 +70,19 @@ export function registerLocalImageProtocol(): void {
       }
 
       const filepath = base64UrlDecode(match[1])
-      if (!isLocalImagePathSafe(filepath, await allowedRootsCache.get())) {
+      const roots = await allowedRootsCache.get()
+      if (!isLocalImagePathSafe(filepath, roots)) {
         console.warn('[jmlocal] blocked path:', filepath.slice(0, 120))
         perf.finish('error', { reason: 'blocked-path' })
         return new Response('Blocked: not a downloaded image', { status: 403 })
       }
 
-      const buf = await openLocalImage(filepath)
+      const buf = await openLocalImage(filepath, roots)
       perf.finish('ok', { bytes: buf.length })
       return new Response(new Uint8Array(buf), {
         status: 200,
         headers: {
-          'Content-Type': contentTypeForFile(filepath),
+          'Content-Type': imageMimeType(buf) ?? contentTypeForFile(filepath),
           'Cache-Control': 'public, max-age=86400',
           'Access-Control-Allow-Origin': '*'
         }

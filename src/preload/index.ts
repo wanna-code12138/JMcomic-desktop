@@ -1,6 +1,22 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import type { AppSettings } from '../main/settingsCore'
+import type { MangaDetail } from '../main/types'
+import type { ReadingHistory, HistoryPositionContext, ReaderPagesReply } from '../shared/readerContracts'
+import type { DownloadTaskRow, MangaDownloadGroup, DownloadProgress } from '../shared/downloadContracts'
+
+const closeHandlers = new Set<() => Promise<void>>()
+ipcRenderer.on('window:prepare-close', async (_event, id: string) => {
+  try {
+    await Promise.all([...closeHandlers].map((handler) => handler()))
+    ipcRenderer.send('window:ready-close', id)
+  } catch (error) { ipcRenderer.send('window:ready-close', id, String(error)) }
+})
 
 const api = {
+  onBeforeClose: (handler: () => Promise<void>) => {
+    closeHandlers.add(handler)
+    return () => { closeHandlers.delete(handler) }
+  },
   // Window controls
   windowMinimize: () => ipcRenderer.invoke('window:minimize'),
   windowMaximize: () => ipcRenderer.invoke('window:maximize'),
@@ -36,13 +52,10 @@ const api = {
     ipcRenderer.invoke('network:applyProxy', enabled, url),
 
   // Settings
-  settingsGet: () => ipcRenderer.invoke('settings:get'),
-  settingsSet: (patch: Record<string, unknown>) => ipcRenderer.invoke('settings:set', patch),
+  settingsGet: (): Promise<AppSettings> => ipcRenderer.invoke('settings:get'),
+  settingsSet: (patch: Record<string, unknown>): Promise<AppSettings> => ipcRenderer.invoke('settings:set', patch),
 
   // Image loading
-  imageLoad: (urls: string[], options?: Record<string, unknown>) =>
-    ipcRenderer.invoke('image:load', urls, options),
-  imagePreload: (url: string) => ipcRenderer.invoke('image:preload', url),
   imageClearCache: () => ipcRenderer.invoke('image:clearCache'),
   imageCacheSize: () => ipcRenderer.invoke('image:cacheSize'),
   cacheClearAll: () => ipcRenderer.invoke('cache:clearAll'),
@@ -51,9 +64,10 @@ const api = {
   downloadAdd: (data: Record<string, unknown>) => ipcRenderer.invoke('download:add', data),
   downloadAddChapters: (data: Record<string, unknown>) =>
     ipcRenderer.invoke('download:addChapters', data),
-  downloadList: () => ipcRenderer.invoke('download:list'),
-  downloadSummary: () => ipcRenderer.invoke('download:summary'),
-  downloadMangaDetail: (mangaId: string) => ipcRenderer.invoke('download:mangaDetail', mangaId),
+  downloadList: (): Promise<DownloadTaskRow[]> => ipcRenderer.invoke('download:list'),
+  downloadSummary: (): Promise<MangaDownloadGroup[]> => ipcRenderer.invoke('download:summary'),
+  downloadExportCbz: (selection: { mangaId?: string; taskId?: number }): Promise<{ ok?: boolean; canceled?: boolean; path?: string; pages?: number; error?: string }> => ipcRenderer.invoke('download:exportCbz', selection),
+  downloadMangaDetail: (mangaId: string): Promise<MangaDownloadGroup | null> => ipcRenderer.invoke('download:mangaDetail', mangaId),
   downloadCancel: (taskId: number) => ipcRenderer.invoke('download:cancel', taskId),
   downloadRetry: (taskId: number) => ipcRenderer.invoke('download:retry', taskId),
   downloadRetryFailed: () => ipcRenderer.invoke('download:retryFailed'),
@@ -65,13 +79,13 @@ const api = {
     ipcRenderer.invoke('download:openTaskFolder', taskId),
   downloadOpenMangaFolder: (mangaId: string) =>
     ipcRenderer.invoke('download:openMangaFolder', mangaId),
-  downloadChapterPages: (mangaId: string, chapterIndex: number) =>
+  downloadChapterPages: (mangaId: string, chapterIndex: number): Promise<ReaderPagesReply> =>
     ipcRenderer.invoke('download:chapterPages', mangaId, chapterIndex),
   downloadChooseDir: () => ipcRenderer.invoke('download:chooseDir'),
   downloadSetConcurrency: (n: number) => ipcRenderer.invoke('download:setConcurrency', n),
 
-  onDownloadProgress: (callback: (progress: Record<string, unknown>) => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, progress: Record<string, unknown>): void => callback(progress)
+  onDownloadProgress: (callback: (progress: DownloadProgress) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, progress: DownloadProgress): void => callback(progress)
     ipcRenderer.on('download:progress', handler)
     return () => {
       ipcRenderer.removeListener('download:progress', handler)
@@ -112,18 +126,8 @@ const api = {
     ipcRenderer.invoke('content:search', query, page, mainTag, category, order, time),
   contentCategory: (params: Record<string, unknown>) =>
     ipcRenderer.invoke('content:category', params),
-  contentDetail: (mangaId: string) => ipcRenderer.invoke('content:detail', mangaId),
-  contentPages: (chapterUrl: string) => ipcRenderer.invoke('content:pages', chapterUrl),
-  contentPagesStream: (chapterUrl: string) => ipcRenderer.send('content:pages:stream', chapterUrl),
-  contentPagesCancel: (chapterUrl: string) => ipcRenderer.send('content:pages:cancel', chapterUrl),
-  onPagesBatch: (callback: (payload: { chapterUrl: string; pages: Record<string, unknown>[]; scrambleId: number; done: boolean; debug?: string; error?: string }) => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, payload: { chapterUrl: string; pages: Record<string, unknown>[]; scrambleId: number; done: boolean; debug?: string; error?: string }): void =>
-      callback(payload)
-    ipcRenderer.on('content:pages:batch', handler)
-    return () => {
-      ipcRenderer.removeListener('content:pages:batch', handler)
-    }
-  },
+  contentDetail: (mangaId: string): Promise<{ ok: boolean; data?: MangaDetail; error?: string }> => ipcRenderer.invoke('content:detail', mangaId),
+  contentPages: (chapterUrl: string): Promise<ReaderPagesReply> => ipcRenderer.invoke('content:pages', chapterUrl),
   contentWarmupStatus: () => ipcRenderer.invoke('session:warmupStatus'),
   contentWarmupRetry: () => ipcRenderer.invoke('session:warmupRetry'),
   onWarmupStateChanged: (callback: (state: unknown) => void) => {
@@ -135,10 +139,10 @@ const api = {
   },
 
   // Local history
-  historyUpsert: (data: Record<string, unknown>) => ipcRenderer.invoke('history:upsert', data),
-  historyUpsertPage: (mangaId: string, pageIndex: number) => ipcRenderer.invoke('history:upsertPage', mangaId, pageIndex),
-  historyListLocal: () => ipcRenderer.invoke('history:listLocal'),
-  historyGetLocal: (mangaId: string) => ipcRenderer.invoke('history:getLocal', mangaId),
+  historyUpsert: (data: ReadingHistory): Promise<void> => ipcRenderer.invoke('history:upsert', data),
+  historyUpsertPage: (mangaId: string, pageIndex: number, context?: HistoryPositionContext): Promise<void> => ipcRenderer.invoke('history:upsertPage', mangaId, pageIndex, context),
+  historyListLocal: (): Promise<ReadingHistory[]> => ipcRenderer.invoke('history:listLocal'),
+  historyGetLocal: (mangaId: string): Promise<ReadingHistory | null> => ipcRenderer.invoke('history:getLocal', mangaId),
   historyRemoveLocal: (mangaId: string) => ipcRenderer.invoke('history:removeLocal', mangaId),
   historyClearLocal: () => ipcRenderer.invoke('history:clearLocal'),
 

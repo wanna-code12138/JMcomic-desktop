@@ -31,10 +31,9 @@ test('imageLoader clearCache and cacheSize IPC handlers do not call synchronous 
 
 test('downloadManager uses asynchronous page resolution and directory inspection', () => {
   const code = readFile('src/main/downloadManager.ts')
-  // existingPagesAsync 替代 existingPages 在 downloadTask 中使用
-  assert.match(code, /existingPagesAsync\(/)
-  // download:localPages IPC 委托给 resolveLocalChapterPagesAsync
-  assert.match(code, /resolveLocalChapterPagesAsync\(/)
+  assert.match(code, /await inspectChapterFiles\(/)
+  const core = readFile('src/main/downloadCore.ts')
+  assert.doesNotMatch(core, /readdirSync|statSync|readFileSync/)
 })
 
 if (process.exitCode) console.log('Some tests failed.')
