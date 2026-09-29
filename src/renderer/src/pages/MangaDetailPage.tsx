@@ -161,6 +161,7 @@ export default function MangaDetailPage(): JSX.Element {
   const [coverLoaded, setCoverLoaded] = React.useState(false)
   const [manga, setManga] = React.useState<DetailData | null>(null)
   const [error, setError] = React.useState('')
+  const [loadAttempt, setLoadAttempt] = React.useState(0)
   const [selectOpen, setSelectOpen] = React.useState(false)
   const [forceDownloadFormat, setForceDownloadFormat] = React.useState(false)
   const [addStatus, setAddStatus] = React.useState('')
@@ -215,7 +216,7 @@ export default function MangaDetailPage(): JSX.Element {
 
     load()
     return () => { cancelled = true }
-  }, [currentMangaId, detailSource])
+  }, [currentMangaId, detailSource, loadAttempt])
 
   React.useEffect(() => {
     if (!currentMangaId) return
@@ -253,6 +254,8 @@ export default function MangaDetailPage(): JSX.Element {
         <div className={styles.center}>
           <Text size={500} weight="semibold">⚠️ 加载失败</Text>
           <Text size={300}>{error || '未找到漫画数据'}</Text>
+          <Button appearance="primary" icon={<ArrowClockwise20Regular />}
+            onClick={() => setLoadAttempt(attempt => attempt + 1)}>重新加载</Button>
         </div>
       </div>
     )

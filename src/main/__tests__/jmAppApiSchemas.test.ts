@@ -84,8 +84,18 @@ test('parseAlbumPayload parses album fixture and passes detail validation', () =
   assert.equal(detailValidation.ok, true)
 })
 
-test('parseAlbumPayload rejects empty chapters or invalid fields', () => {
-  assert.throws(() => parseAlbumPayload({ id: '1', name: 't', series: [] }, imageOrigin), /JmApiSchemaError/)
+test('parseAlbumPayload maps an explicitly empty series to the single album chapter', () => {
+  for (const chapters of [{ series: [] }, { episodes: [] }]) {
+    const parsed = parseAlbumPayload({ id: 1477646, name: '单篇合成样本', ...chapters }, imageOrigin)
+    assert.deepEqual(parsed.chapters, [{ index: 0, title: '单篇合成样本', url: '/photo/1477646' }])
+    assert.equal(validateDetail(parsed).ok, true)
+  }
+})
+
+test('parseAlbumPayload still rejects missing or malformed chapter data and invalid fields', () => {
+  for (const chapters of [{}, { series: null }, { series: {} }, { series: [null] }]) {
+    assert.throws(() => parseAlbumPayload({ id: '1', name: 't', ...chapters }, imageOrigin), /JmApiSchemaError/)
+  }
   assert.throws(() => parseAlbumPayload({ id: '', name: 't', series: [{ name: '1' }] }, imageOrigin), /JmApiSchemaError/)
 })
 

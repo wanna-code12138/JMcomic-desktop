@@ -23,6 +23,8 @@ export function installPackageFixture(exportPath) {
     if(url.pathname.includes('/media/photos/267000/golden.png')) return new Response(png, { headers: { 'Content-Type': 'image/png' } })
     let data
     if(url.pathname==='/setting')data={jm3_version:'2.1.7',img_host:'cdn-msp.18comic.vip'}
+    else if(url.pathname==='/album')data={id:url.searchParams.get('id'),name:'单篇打包验收',series:[]}
+    else if(url.pathname==='/categories/filter'||url.pathname==='/search')data={total:1,content:[{id:'1477646',name:'单篇打包验收'}]}
     else if(url.pathname==='/comic_read')data={id:'267000',scramble_id:200000,total_page:1,images:['golden.png']}
     else return new Response('Synthetic offline response',{status:503})
     const {createHash,createCipheriv}=process.mainModule.require('node:crypto')
@@ -42,6 +44,15 @@ export function installPackageFixture(exportPath) {
 
 export async function testPackageFixture({ js, main, waitFor, click, clickElement, report, downloadDir }) {
   await waitFor(() => js(`window.electronAPI.contentWarmupStatus().then(state=>state.phase==='verified')`), 'synthetic startup verification')
+  const standalone = await js(`window.electronAPI.contentDetail('1477646')`)
+  assert.equal(standalone.ok, true, standalone.error)
+  assert.deepEqual(standalone.data.chapters, [{index:0,title:'单篇打包验收',url:'/photo/1477646'}])
+  await click('分类')
+  const singleCard = `[...document.querySelectorAll('[data-page-id="categories"][data-current="true"] .manga-card')].find(node=>node.textContent.includes('单篇打包验收'))`
+  await waitFor(() => js(`Boolean(${singleCard})`), 'packaged category standalone card')
+  await clickElement(singleCard)
+  await waitFor(() => js(`document.querySelector('[data-page-id="detail"][data-current="true"]')?.textContent.includes('章节列表 (1)')`), 'packaged single-chapter detail')
+  report.assertions.push('actual EXE accepts empty-series standalone albums and opens their detail from the category card')
   await js(`window.electronAPI.settingsSet({downloadDir:${JSON.stringify(downloadDir)}})`)
   const added = await js(`window.electronAPI.downloadAdd({mangaId:'104',mangaTitle:'打包验收合成样章',chapterIndex:0,chapterTitle:'23行无损金样',chapterUrl:'/photo/267000',imageUrls:['https://cdn-msp.18comic.vip/media/photos/267000/golden.png'],scrambleId:200000})`)
   assert.equal(added.ok, true)

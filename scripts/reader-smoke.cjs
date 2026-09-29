@@ -30,6 +30,7 @@ delete process.env.PORTABLE_EXECUTABLE_FILE
 
 const visible = process.env.JM_QA_VISIBLE === '1'
 const benchmark = Boolean(process.env.JM_QA_BENCH)
+const detailEntries = process.env.JM_QA_DETAIL_ENTRIES ? require('./detail-entry-fixture.cjs') : null
 if(benchmark){const log=console.log;console.log=(...args)=>{if(!String(args[0]).startsWith('[perf]'))log(...args)}}
 const rendererEvents = []
 if (benchmark) ipcMain.on('performance:record', (_event,value) => rendererEvents.push({ ...value, receivedAt:performance.now() }))
@@ -63,10 +64,17 @@ function finish(code) {
   app.exit(code)
 }
 setTimeout(() => fail(new Error('Electron QA watchdog expired')), benchmark ? 1200000 : process.env.JM_QA_RESOURCE_MATRIX ? 300000 : 90000).unref()
-const blockSession = (target) => target.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
-  if (process.env.JM_QA_DEV_URL && new URL(details.url).origin === new URL(process.env.JM_QA_DEV_URL).origin) return callback({})
-  report.network.blocked++; callback({ cancel: true })
-})
+const blockedSessions = new WeakSet()
+const blockSession = (target) => {
+  if (blockedSessions.has(target)) return
+  blockedSessions.add(target)
+  if (detailEntries) target.protocol.handle('https', request => new Response(detailEntries.html(new URL(request.url)), { headers: { 'Content-Type': 'text/html; charset=utf-8' } }))
+  target.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
+    if (detailEntries && details.url.startsWith('https://')) return callback({})
+    if (process.env.JM_QA_DEV_URL && new URL(details.url).origin === new URL(process.env.JM_QA_DEV_URL).origin) return callback({})
+    report.network.blocked++; callback({ cancel: true })
+  })
+}
 app.on('session-created', blockSession)
 app.whenReady().then(() => blockSession(session.defaultSession))
 globalThis.fetch = async () => { throw new Error('External fetch disabled during QA') }
@@ -151,6 +159,7 @@ net.fetch = async (target, init = {}) => {
   if(benchmark){await sleep(80);init.signal?.throwIfAborted()}
   let data
   if (url.pathname === '/setting') data = { jm3_version: '2.1.7', img_host: 'https://cdn-msp.18comic.vip' }
+  else if (detailEntries) data = detailEntries.payload(url)
   else if (url.pathname === '/album') data = { id: url.searchParams.get('id') || '101', name: url.searchParams.get('id') === '102' ? '海边日记 · 合成阅读样章' : '山间来信 · 合成阅读样章', author: ['阅读体验实验室'], tags: ['风景', '旅途'], description: '用于测试长图、横图与章节切换的合成内容。', series: [{ id: url.searchParams.get('id') === '102' ? '204' : benchmark?'267000':'202', sort: '1', name: '第一章 · 出发' }, { id: '203', sort: '2', name: '第二章 · 抵达' }] }
   else if (url.pathname === '/comic_read') data = { id: url.searchParams.get('id') || '202', scramble_id: benchmark?200000:0, total_page: process.env.JM_QA_PDF?3:36, images: Array.from({ length: process.env.JM_QA_PDF?3:36 }, (_, i) => `${i}.png${benchmark?'?fixture='+fixtureEpoch:''}`) }
   else if (['/categories/filter', '/search', '/promote'].includes(url.pathname)) data = { total: 1, content: [{ id: '101', name: '山间来信 · 合成阅读样章', image: '/media/albums/101.png' }] }
@@ -204,6 +213,10 @@ async function run(win) {
     catch (error) { if (visible) throw error; report.assertions.push({ name: 'capture unavailable while hidden', details: String(error) }) }
   }
   await wait('Boolean(window.electronAPI)', 'preload')
+  if (detailEntries) {
+    await require('./detail-entry-smoke.cjs')({win,js,wait,clickSelector,clickText,screenshot,mark,report,detailEntries})
+    finish(0);return
+  }
   if(process.env.JM_QA_RESTORE_WORKSPACE) {
     await wait(`document.querySelectorAll('[data-reader-tab]').length===2 && Boolean(document.querySelector('[data-reader-start]'))`, 'workspace restored on a cold process start')
     const saved=await js('window.electronAPI.workspaceGet()'),gpu=await js('window.electronAPI.graphicsGet()')

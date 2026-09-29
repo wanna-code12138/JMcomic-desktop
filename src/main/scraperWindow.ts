@@ -5,6 +5,7 @@ import { getActiveDomain } from './networkProbe'
 import { buildHomepageUrl, buildHomepageCacheKey, type HomepageCategory } from './homepageLogic'
 import { beginMainPerfSpan } from './performanceTrace'
 import { buildDetailMetadataExtractionScript } from './mangaDetailMetadataCore'
+import { validateDetail } from './contentValidation'
 
 let scraperWin: BrowserWindow | null = null
 
@@ -495,7 +496,7 @@ export async function extractMangaDetail(mangaId: string): Promise<MangaDetailRe
       })()
     `)
 
-    cacheSet(cacheKey, result)
+    if (validateDetail(result).ok) cacheSet(cacheKey, result)
     return result
   })
 }

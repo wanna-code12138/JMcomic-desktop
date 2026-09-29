@@ -129,11 +129,14 @@ export function parseAlbumPayload(payload: unknown, imageOrigin: string): MangaD
   }
 
   const rawSeries = Array.isArray(obj.series) ? obj.series : Array.isArray(obj.episodes) ? obj.episodes : null
-  if (!rawSeries || rawSeries.length === 0) {
-    throw new JmApiSchemaError('Album chapters series is empty or missing')
+  if (!rawSeries) {
+    throw new JmApiSchemaError('Album chapters series is missing or malformed')
   }
 
-  const chapters: ChapterItem[] = []
+  // An explicit empty series is a standalone album: its photo ID is the album ID.
+  const chapters: ChapterItem[] = rawSeries.length === 0
+    ? [{ index: 0, title, url: `/photo/${id}` }]
+    : []
   for (let i = 0; i < rawSeries.length; i++) {
     const ep = rawSeries[i]
     if (!ep || typeof ep !== 'object') {
