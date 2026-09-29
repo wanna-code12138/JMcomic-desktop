@@ -39,6 +39,7 @@ export interface AppFrameProps {
   statusBar: React.ReactNode
   reader?: React.ReactNode
   readerExpanded?: boolean
+  readerVisible?: boolean
   closing?: boolean
 }
 
@@ -49,6 +50,7 @@ export default function AppFrame({
   statusBar,
   reader,
   readerExpanded = false,
+  readerVisible = true,
   closing = false
 }: AppFrameProps): JSX.Element {
   const styles = useStyles()
@@ -58,7 +60,7 @@ export default function AppFrame({
   return (
     <div className={styles.root}>
       {titleBar}
-      <div ref={body} className={`${styles.body} app-workspace-body`} data-reader-open={Boolean(reader)}>
+      <div ref={body} className={`${styles.body} app-workspace-body`} data-reader-open={Boolean(reader) && readerVisible}>
         <div className="app-navigation-slot" hidden={readerExpanded}>{navigation}</div>
         <div className={`${styles.content} browse-pane`} data-browse-pane hidden={readerExpanded} tabIndex={-1}>
           <div className={styles.pageArea}>
@@ -66,7 +68,7 @@ export default function AppFrame({
           </div>
           {statusBar}
         </div>
-        {reader && <div className="reading-pane" data-expanded={readerExpanded}>{reader}</div>}
+        {reader && <div className="reading-pane" data-expanded={readerExpanded} hidden={!readerVisible}>{reader}</div>}
       </div>
       {closing && <div className="app-close-pending" data-app-closing role="status">正在保存并关闭…</div>}
     </div>

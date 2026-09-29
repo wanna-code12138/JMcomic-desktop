@@ -1,6 +1,5 @@
 import {
   createPerfEventBuffer,
-  formatPerfEvent,
   sanitizePerfEvent,
   startPerfSpan,
   summarizePerfEvents,
@@ -19,7 +18,6 @@ export function beginMainPerfSpan(
   return startPerfSpan(name, metadata, undefined, (event) => {
     const safeEvent = sanitizePerfEvent(event)
     events.push(safeEvent)
-    console.info(formatPerfEvent(safeEvent))
   })
 }
 

@@ -35,6 +35,7 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
   const currentPage = useAppStore((state) => state.currentPage)
   const hasReader = useAppStore((state) => state.readerTabs.length > 0)
   const readerExpanded = useAppStore((state) => state.readerExpanded)
+  const readerVisible = useAppStore((state) => state.readerVisible)
   const readerClosing = useAppStore((state) => state.readerClosing)
   const [pageCache, setPageCache] = React.useState(() => createPageCacheState('home'))
   const visitedPrimaryPages = pageCache.mounted as readonly PrimaryNavPageId[]
@@ -70,9 +71,10 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
       titleBar={<TitleBar darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />}
       navigation={<AppNavigation />}
       page={<PageHost currentPage={currentPage as PageId} mountedPages={mountedPages} />}
-      statusBar={hasReader ? null : <AppStatusBar />}
+      statusBar={hasReader && readerVisible ? null : <AppStatusBar />}
       reader={hasReader ? <ReaderWorkspace /> : null}
       readerExpanded={readerExpanded}
+      readerVisible={readerVisible}
       closing={readerClosing}
     />
   )

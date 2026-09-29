@@ -11,6 +11,58 @@ const book = (mangaId: string, chapterIndex = 0, local = false): ReaderState => 
 })
 const reset = () => useAppStore.setState({ ...initial, currentPage: 'detail', currentMangaId: '1' })
 
+test('hiding the reader preserves tabs and the active session; opening the same book reveals it without reloading', async () => {
+  reset()
+  assert.equal(state().readerVisible, false)
+  await state().openReader(book('1'))
+  await state().openReader(book('2'))
+  const tabs = state().readerTabs, active = state().activeReaderId
+  let saves = 0
+  const off = state().registerReaderSession(active, async () => { saves++; return { pageIndex: 7, pageOffset: 0.4 } })
+  try {
+    state().setReaderExpanded(true)
+    state().setReaderVisible(false)
+    assert.equal(state().readerVisible, false)
+    assert.equal(state().readerExpanded, false, 'hiding the side pane restores browsing')
+    assert.equal(state().readerTabs, tabs, 'visibility must not replace book state or remount the session')
+    assert.equal(state().activeReaderId, active)
+    assert.equal(state().currentPage, 'detail')
+    assert.equal(saves, 0, 'hiding keeps the active session alive')
+    await state().openReader(book('2'))
+    assert.equal(state().readerVisible, true)
+    assert.equal(state().readerTabs, tabs)
+    assert.equal(saves, 0, 'showing the same chapter must not trigger a save-and-reload transition')
+    state().setReaderVisible(false)
+    await state().activateReader(active)
+    assert.equal(state().readerVisible, true)
+    state().setReaderVisible(false)
+    await state().closeReader('online:1')
+    assert.equal(state().readerVisible, false, 'closing a background tab must not reveal a hidden side pane')
+    assert.equal(state().activeReaderId, active)
+    assert.equal(state().readerTabs[0].reader, tabs[1].reader)
+    await state().closeReader(active)
+    assert.equal(state().readerVisible, false)
+    assert.equal(saves, 1, 'closing the final tab still saves reading progress')
+    state().setReaderVisible(true)
+    assert.equal(state().readerVisible, false, 'an empty side pane must not hide the browsing area')
+  } finally { off() }
+})
+
+test('manual tools keep the user choice across chapters, books and side-pane visibility', async () => {
+  reset()
+  assert.equal(state().readerToolsVisible, false, 'reading starts without an extra toolbar')
+  await state().openReader(book('1'))
+  state().setReaderToolsVisible(true)
+  await state().openReader(book('1', 1))
+  await state().openReader(book('2'))
+  state().setReaderVisible(false)
+  state().setReaderVisible(true)
+  assert.equal(state().readerToolsVisible, true)
+  state().setReaderToolsVisible(false)
+  await state().activateReader('online:1')
+  assert.equal(state().readerToolsVisible, false)
+})
+
 test('reading keeps browsing independent and reuses a book tab without resetting its chapter', async () => {
   reset()
   await state().openReader(book('1'))

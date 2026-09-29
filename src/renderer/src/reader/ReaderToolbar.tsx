@@ -1,20 +1,25 @@
 import React from 'react'
-import { ArrowLeft20Regular, ArrowDownload20Regular, BookOpen20Regular, FullScreenMaximize20Regular, FullScreenMinimize20Regular, MoreHorizontal20Regular } from '@fluentui/react-icons'
+import { ArrowDownload20Regular, BookOpen20Regular, FullScreenMaximize20Regular, FullScreenMinimize20Regular, MoreHorizontal20Regular } from '@fluentui/react-icons'
 import type { ReaderPreferences, ReaderState } from '../../../shared/readerContracts'
 
-export default function ReaderToolbar({ reader, preferences, hidden, fullscreen, downloadLabel,
-  change, close, toggleDirectory, toggleFullscreen, download }: {
-  reader: ReaderState; preferences: ReaderPreferences; hidden: boolean; fullscreen: boolean; downloadLabel: string
+export default function ReaderToolbar({ reader, preferences, fullscreen, downloadLabel,
+  change, toggleDirectory, toggleFullscreen, download }: {
+  reader: ReaderState; preferences: ReaderPreferences; fullscreen: boolean; downloadLabel: string
   change: (patch: Partial<ReaderPreferences>) => void
-  close: () => void; toggleDirectory: () => void; toggleFullscreen: () => void; download: () => void
+  toggleDirectory: () => void; toggleFullscreen: () => void; download: () => void
 }): JSX.Element {
-  return <header className={`reader-toolbar ${hidden ? 'reader-chrome-hidden' : ''}`} aria-label="阅读工具栏">
-    <div className="reader-toolbar-row">
-      <button onClick={close} aria-label="关闭当前阅读标签" title="关闭当前阅读标签"><ArrowLeft20Regular /></button>
-      <div className="reader-heading" title={`${reader.mangaTitle} · ${reader.chapterTitle}`}><strong>{reader.mangaTitle}</strong><span>{reader.chapterTitle}{reader.local ? ' · 离线阅读' : ''}</span></div>
+  return <header className="reader-toolbar" id="reader-tools" aria-label="阅读工具栏">
+      <select aria-label="阅读模式" value={preferences.readerMode} onChange={event => change({ readerMode: event.target.value as ReaderPreferences['readerMode'] })}>
+        <option value="scroll">连续滚动</option><option value="single">单页阅读</option>
+      </select>
+      <select aria-label="图片适配" value={preferences.readerFit} onChange={event => change({ readerFit: event.target.value as ReaderPreferences['readerFit'] })}>
+        <option value="width">适合宽度</option><option value="height">适合高度</option><option value="original">原始尺寸</option>
+      </select>
+      <div className="reader-zoom"><button aria-label="缩小" onClick={() => change({ readerZoom: preferences.readerZoom - 0.1 })}>−</button>
+        <button aria-label="重置缩放" onClick={() => change({ readerZoom: 1 })}>{Math.round(preferences.readerZoom * 100)}%</button>
+        <button aria-label="放大" onClick={() => change({ readerZoom: preferences.readerZoom + 0.1 })}>＋</button></div>
       <button onClick={toggleDirectory} aria-label="目录与缩略图" title="目录与缩略图"><BookOpen20Regular /></button>
       <button onClick={toggleFullscreen} aria-label={fullscreen ? '退出全屏' : '全屏阅读'} title="全屏 · F">{fullscreen ? <FullScreenMinimize20Regular /> : <FullScreenMaximize20Regular />}</button>
-      {!reader.local && <button onClick={download} disabled={downloadLabel !== '下载本章'} aria-label={downloadLabel} title={downloadLabel}><ArrowDownload20Regular /></button>}
       <details className="reader-more-settings"><summary aria-label="阅读设置" title="阅读设置"><MoreHorizontal20Regular /></summary>
         <div className="reader-settings-menu">
           <strong>阅读设置</strong>
@@ -24,22 +29,9 @@ export default function ReaderToolbar({ reader, preferences, hidden, fullscreen,
           <label>翻页方向<select aria-label="阅读方向" value={preferences.readerDirection} onChange={(event) => change({ readerDirection: event.target.value as 'ltr' | 'rtl' })}>
             <option value="ltr">从左向右</option><option value="rtl">从右向左</option>
           </select></label>
-          <button aria-pressed={preferences.readerAutoHide} title="阅读时自动隐藏工具栏，移动鼠标或按 Tab 显示" onClick={() => change({ readerAutoHide: !preferences.readerAutoHide })}>自动隐藏</button>
-          <small>方向键翻页 · F 全屏 · Ctrl + 滚轮缩放</small>
+          {!reader.local && <button onClick={download} disabled={downloadLabel !== '下载本章'} aria-label={downloadLabel}><ArrowDownload20Regular />{downloadLabel}</button>}
+          <small>方向键翻页 · H 工具栏 · F 全屏 · Ctrl + 滚轮缩放</small>
         </div>
       </details>
-    </div>
-    <div className="reader-toolbar-row reader-controls">
-      <div className="reader-segments" aria-label="阅读模式">
-        <button aria-pressed={preferences.readerMode === 'scroll'} onClick={() => change({ readerMode: 'scroll' })}>连续滚动</button>
-        <button aria-pressed={preferences.readerMode === 'single'} onClick={() => change({ readerMode: 'single' })}>单页阅读</button>
-      </div>
-      <label><select aria-label="图片适配" value={preferences.readerFit} onChange={(event) => change({ readerFit: event.target.value as ReaderPreferences['readerFit'] })}>
-        <option value="width">适合宽度</option><option value="height">适合高度</option><option value="original">原始尺寸</option>
-      </select></label>
-      <div className="reader-zoom"><button aria-label="缩小" onClick={() => change({ readerZoom: preferences.readerZoom - 0.1 })}>−</button>
-        <button aria-label="重置缩放" onClick={() => change({ readerZoom: 1 })}>{Math.round(preferences.readerZoom * 100)}%</button>
-        <button aria-label="放大" onClick={() => change({ readerZoom: preferences.readerZoom + 0.1 })}>＋</button></div>
-    </div>
   </header>
 }

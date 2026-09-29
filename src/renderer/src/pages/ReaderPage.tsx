@@ -1,22 +1,26 @@
 import React from 'react'
+import { createPortal } from 'react-dom'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useAppStore } from '../stores/appStore'
 import type { ReaderPosition, ReaderState } from '../../../shared/readerContracts'
 import type { DownloadProgress, DownloadTaskRow } from '../../../shared/downloadContracts'
 import ReaderToolbar from '../reader/ReaderToolbar'
+import ReaderPageNavigation from '../reader/ReaderPageNavigation'
 import ReaderImage from '../reader/ReaderImage'
 import { useReaderSession } from '../reader/useReaderSession'
-import { closeReaderTab, focusReaderContent } from '../reader/readerFocus'
+import { focusReaderContent } from '../reader/readerFocus'
 import { isReaderShortcutTarget, pageSize, positionAtOffset, READER_TOP_INSET, READER_BOTTOM_INSET, type PageDimensions } from '../reader/readerLayout'
 import '../reader/reader.css'
 
 const READING_INSET = READER_TOP_INSET
 const PAGE_GAP = 12
 
-function ReadingSession({ reader }: { reader: ReaderState }): JSX.Element {
+function ReadingSession({ reader, headerHost }: { reader: ReaderState; headerHost: HTMLDivElement | null }): JSX.Element {
   const root = React.useRef<HTMLDivElement>(null)
   const viewport = React.useRef<HTMLDivElement>(null)
   const closing = useAppStore(state => state.readerClosing)
+  const visible = useAppStore(state => state.readerVisible)
+  const toolsVisible = useAppStore(state => state.readerToolsVisible)
   const session = useReaderSession(reader, closing)
   const wasClosing = React.useRef(closing)
   React.useEffect(() => {
@@ -32,16 +36,13 @@ function ReadingSession({ reader }: { reader: ReaderState }): JSX.Element {
   const [dimensions, setDimensions] = React.useState<Record<number, PageDimensions>>({})
   const [viewportSize, setViewportSize] = React.useState({ width: 960, height: 800 })
   const [currentPage, setCurrentPage] = React.useState(0)
-  const [jumpValue, setJumpValue] = React.useState('1')
   const [directory, setDirectory] = React.useState(false)
-  const [chrome, setChrome] = React.useState(true)
   const [fullscreen, setFullscreen] = React.useState(() => Boolean(document.fullscreenElement))
   const [downloadLabel, setDownloadLabel] = React.useState('下载本章')
   const [actionError, setActionError] = React.useState('')
   const restoreFrame = React.useRef(0)
   const restoring = React.useRef(false)
   const restoreTop = React.useRef(0)
-  const hideTimer = React.useRef<ReturnType<typeof setTimeout>>()
   const drag = React.useRef<{ x: number; y: number; left: number; top: number }>()
   const sizes = pages.map((_, index) => pageSize(dimensions[index], viewportSize, preferences))
   const offsets: number[] = []
@@ -56,7 +57,7 @@ function ReadingSession({ reader }: { reader: ReaderState }): JSX.Element {
 
   const restore = (target: ReaderPosition): void => {
     const element = viewport.current
-    if (!element || !pages.length) return
+    if (!element || !element.clientWidth || !element.clientHeight || !pages.length) return
     restoring.current = true
     cancelAnimationFrame(restoreFrame.current)
     const size = sizes[target.pageIndex]
@@ -71,31 +72,24 @@ function ReadingSession({ reader }: { reader: ReaderState }): JSX.Element {
   React.useLayoutEffect(() => {
     const element = viewport.current
     if (!element) return
-    const observer = new ResizeObserver(() => setViewportSize({ width: element.clientWidth, height: element.clientHeight }))
+    const observer = new ResizeObserver(() => {
+      if (element.clientWidth && element.clientHeight) setViewportSize({ width: element.clientWidth, height: element.clientHeight })
+    })
     observer.observe(element)
     return () => observer.disconnect()
   }, [session.loading])
   React.useLayoutEffect(() => {
-    if (session.loading || !pages.length) return
+    if (session.loading || !pages.length || !visible) return
     virtualizer.measure()
     setCurrentPage(position.current.pageIndex)
     restore(position.current)
-  }, [session.loading, pages.length, dimensions, viewportSize.width, viewportSize.height,
+  }, [session.loading, pages.length, dimensions, viewportSize.width, viewportSize.height, visible,
     preferences.readerMode, preferences.readerFit, preferences.readerZoom, preferences.readerMaxWidth])
-  React.useEffect(() => { setJumpValue(String(currentPage + 1)) }, [currentPage])
   React.useEffect(() => {
     if (!session.loading && document.activeElement?.id === 'active-reader-panel') viewport.current?.focus()
   }, [session.loading])
-  React.useEffect(() => () => { cancelAnimationFrame(restoreFrame.current); clearTimeout(hideTimer.current) }, [])
-
-  const showChrome = (): void => {
-    setChrome(true)
-    clearTimeout(hideTimer.current)
-    if (preferences.readerAutoHide && !directory) hideTimer.current = setTimeout(() => {
-      if (!root.current?.querySelector('header:focus-within,footer:focus-within,details[open]')) setChrome(false)
-    }, 2400)
-  }
-  React.useEffect(showChrome, [preferences.readerAutoHide, directory])
+  React.useEffect(() => () => { cancelAnimationFrame(restoreFrame.current) }, [])
+  React.useEffect(() => { if (!toolsVisible || !visible) setDirectory(false) }, [toolsVisible, visible])
   const toggleFullscreen = (): void => {
     const action = document.fullscreenElement ? document.exitFullscreen() : root.current?.closest<HTMLElement>('[data-reader-workspace]')?.requestFullscreen()
     void action?.catch(() => setActionError('暂时无法切换全屏'))
@@ -114,7 +108,7 @@ function ReadingSession({ reader }: { reader: ReaderState }): JSX.Element {
     restore(target)
   }
   const scroll = (): void => {
-    if (!viewport.current) return
+    if (!viewport.current || !useAppStore.getState().readerVisible) return
     if (restoring.current) {
       if (Math.abs(viewport.current.scrollTop - restoreTop.current) < 2) return
       restoring.current = false
@@ -137,7 +131,7 @@ function ReadingSession({ reader }: { reader: ReaderState }): JSX.Element {
   const next = session.chapters[chapterPosition + 1]
   React.useEffect(() => {
     const key = (event: KeyboardEvent): void => {
-      if (!root.current?.contains(document.activeElement) || useAppStore.getState().readerTransitionPending ||
+      if (!useAppStore.getState().readerVisible || !root.current?.contains(document.activeElement) || useAppStore.getState().readerTransitionPending ||
         isReaderShortcutTarget(event.target) || isReaderShortcutTarget(document.activeElement) || event.ctrlKey || event.metaKey || event.altKey) return
       const forward = preferences.readerDirection === 'ltr' ? 'ArrowRight' : 'ArrowLeft'
       const backward = preferences.readerDirection === 'ltr' ? 'ArrowLeft' : 'ArrowRight'
@@ -146,6 +140,7 @@ function ReadingSession({ reader }: { reader: ReaderState }): JSX.Element {
       else if (event.key === 'Home') { event.preventDefault(); jump(0) }
       else if (event.key === 'End') { event.preventDefault(); jump(pages.length - 1) }
       else if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFullscreen() }
+      else if (event.key.toLowerCase() === 'h') { event.preventDefault(); useAppStore.getState().setReaderToolsVisible(!toolsVisible) }
       else if (event.key === ' ' || event.key === 'PageDown' || event.key === 'PageUp') {
         event.preventDefault()
         const element = viewport.current
@@ -195,23 +190,22 @@ function ReadingSession({ reader }: { reader: ReaderState }): JSX.Element {
     setDimensions((current) => current[index]?.width === size.width && current[index]?.height === size.height ? current : { ...current, [index]: size })
     if (index === position.current.pageIndex) requestAnimationFrame(() => session.markVisible())
   }
-  const hidden = !chrome && !directory
   const image = (index: number): JSX.Element => <ReaderImage key={pages[index].imageUrl} imageUrl={pages[index].imageUrl}
     index={index} scrambleId={session.scrambleId} priority={index === currentPage ? 'critical' : 'near'} onReady={(size) => ready(index, size)} />
 
-  return <div ref={root} className="reader-root" style={{ '--reader-top-inset': `${READING_INSET}px`, '--reader-bottom-inset': `${READER_BOTTOM_INSET}px` } as React.CSSProperties} onPointerMove={showChrome} onFocusCapture={showChrome}
+  return <div ref={root} className="reader-root" data-reader-chapter={reader.chapterTitle} data-reader-source={reader.local ? 'local' : 'online'} style={{ '--reader-top-inset': `${READING_INSET}px`, '--reader-bottom-inset': `${READER_BOTTOM_INSET}px` } as React.CSSProperties}
     onKeyDown={event => {
-      if (event.key !== 'Escape' || document.fullscreenElement) return
+      if (event.key !== 'Escape') return
       const menu = root.current?.querySelector<HTMLDetailsElement>('details[open]')
       if (menu) { menu.open = false; menu.querySelector('summary')?.focus() }
       else if (directory) { setDirectory(false); viewport.current?.focus() }
       else return
-      event.preventDefault(); event.stopPropagation(); showChrome()
+      event.preventDefault(); event.stopPropagation()
     }}>
-    <ReaderToolbar reader={reader} preferences={preferences} hidden={hidden}
+    {toolsVisible && <ReaderToolbar reader={reader} preferences={preferences}
       fullscreen={fullscreen} downloadLabel={downloadLabel} change={session.changePreferences}
-      close={() => { void closeReaderTab() }} toggleDirectory={() => setDirectory(!directory)}
-      toggleFullscreen={toggleFullscreen} download={() => { void download() }} />
+      toggleDirectory={() => setDirectory(!directory)}
+      toggleFullscreen={toggleFullscreen} download={() => { void download() }} />}
     {session.loading ? <div className="reader-message" role="status"><span className="reader-loading-dot" />正在打开章节…</div>
       : session.error ? <div className="reader-message" role="alert"><h2>暂时无法打开这一章</h2>
         <button onClick={session.retry}>重新加载章节</button><details><summary>查看原因</summary>{session.error}</details></div>
@@ -238,17 +232,8 @@ function ReadingSession({ reader }: { reader: ReaderState }): JSX.Element {
           {pages[currentPage] && <div className="reader-sheet" data-index={currentPage} style={sizes[currentPage]}>{image(currentPage)}</div>}
         </div>}
       </div>}
-    {pages.length > 0 && <><footer className={`reader-footer ${hidden ? 'reader-chrome-hidden' : ''}`} aria-label="阅读进度">
-      <div className="reader-progress-track"><span style={{ width: `${(currentPage + 1) / pages.length * 100}%` }} /></div>
-      <button disabled={!previous || previous.available === false} onClick={() => changeChapter(previous.index)}>上一章</button>
-      <button aria-label="上一页" disabled={currentPage === 0} onClick={() => jump(currentPage - 1)}>‹</button>
-      <label className="reader-page-control"><input aria-label="跳转页码" inputMode="numeric" type="number" min={1} max={pages.length} value={jumpValue}
-        onChange={(event) => setJumpValue(event.target.value)} onKeyDown={(event) => {
-          if (event.key === 'Enter') { jump(Number(jumpValue) - 1); event.currentTarget.blur(); viewport.current?.focus() }
-        }} onBlur={() => { if (Number(jumpValue) > 0 && Number(jumpValue) !== currentPage + 1) jump(Number(jumpValue) - 1) }} /><span>/ {pages.length} 页</span></label>
-      <button aria-label="下一页" disabled={currentPage === pages.length - 1} onClick={() => jump(currentPage + 1)}>›</button>
-      <button disabled={!next || next.available === false} onClick={() => changeChapter(next.index)}>下一章</button>
-    </footer><div className="reader-quiet-progress" aria-hidden={!hidden}>{currentPage + 1} / {pages.length}</div></>}
+    {headerHost && pages.length > 0 && createPortal(<ReaderPageNavigation currentPage={currentPage} totalPages={pages.length}
+      chapterTitle={reader.chapterTitle} previous={previous} next={next} jump={jump} changeChapter={changeChapter} />, headerHost)}
     {directory && <aside className="reader-drawer" aria-label="章节目录"><div className="reader-drawer-header">章节与附近页面<button aria-label="关闭目录" onClick={() => setDirectory(false)}>×</button></div>
       <div className="reader-chapters">{session.chapters.map((chapter) => <button key={chapter.index} disabled={chapter.available === false}
         aria-pressed={chapter.index === reader.chapterIndex} onClick={() => changeChapter(chapter.index)}>{chapter.title}</button>)}</div>
@@ -262,8 +247,8 @@ function ReadingSession({ reader }: { reader: ReaderState }): JSX.Element {
   </div>
 }
 
-export default function ReaderPage(): JSX.Element {
+export default function ReaderPage({ headerHost }: { headerHost: HTMLDivElement | null }): JSX.Element {
   const reader = useAppStore((state) => state.readerTabs.find(tab => tab.id === state.activeReaderId)?.reader)
-  return reader ? <ReadingSession key={`${reader.mangaId}:${reader.chapterIndex}:${Boolean(reader.local)}`} reader={reader} />
+  return reader ? <ReadingSession key={`${reader.mangaId}:${reader.chapterIndex}:${Boolean(reader.local)}`} reader={reader} headerHost={headerHost} />
     : <div className="reader-root"><div className="reader-message">未选择章节</div></div>
 }

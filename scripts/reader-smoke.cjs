@@ -165,15 +165,36 @@ async function run(win) {
     }
     throw new Error(`Timed out: ${label}\n${await js('document.body.innerText.slice(-3000)')}\n${await js(`JSON.stringify([...document.querySelectorAll('.reader-image img')].map(image=>({src:image.getAttribute('src'),complete:image.complete,width:image.naturalWidth,status:image.parentElement.dataset.readerImageStatus})))`)}`)
   }
+  const pointerClick = async query => {
+    const point = await js(`(()=>{const e=${query};if(!e)throw Error('missing click target');e.scrollIntoView({block:'nearest',inline:'nearest'});const r=e.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;return {x,y,hit:r.width>0&&r.height>0&&e.contains(document.elementFromPoint(x,y))}})()`)
+    assert.equal(point.hit, true, 'pointer target must be visible and unobscured')
+    await js(`window.__qaClickReceived=false;document.addEventListener('click',()=>{window.__qaClickReceived=true},{capture:true,once:true})`)
+    wc.sendInputEvent({type:'mouseDown',x:Math.round(point.x),y:Math.round(point.y),button:'left',clickCount:1})
+    wc.sendInputEvent({type:'mouseUp',x:Math.round(point.x),y:Math.round(point.y),button:'left',clickCount:1})
+    await wait('window.__qaClickReceived', 'pointer click delivered to the renderer')
+  }
+  const clickSelector = async selector => {
+    await wait(`Boolean(document.querySelector(${JSON.stringify(selector)}))`, `selector ${selector}`)
+    await pointerClick(`document.querySelector(${JSON.stringify(selector)})`)
+  }
+  const showTools = async () => {
+    if (!await js(`Boolean(document.querySelector('.reader-toolbar'))`)) await clickSelector('[data-reader-tools-toggle]')
+    await wait(`Boolean(document.querySelector('.reader-toolbar')?.getBoundingClientRect().height)`, 'visible reader tools')
+  }
   const clickText = async (text) => {
-    const query = `[...document.querySelectorAll('button,[role="button"],[role="tab"]')].find(e=>e.getBoundingClientRect().width>0 && (e.innerText.trim()===${JSON.stringify(text)} || e.getAttribute('aria-label')===${JSON.stringify(text)}))`
+    const query = `[...document.querySelectorAll('button,summary,[role="button"],[role="tab"]')].find(e=>e.getBoundingClientRect().width>0 && (e.innerText.trim()===${JSON.stringify(text)} || e.getAttribute('aria-label')===${JSON.stringify(text)}))`
     await wait(`Boolean(${query})`, `button ${text}`)
-    await js(`${query}.click()`)
+    await pointerClick(query)
   }
   const screenshot = async (name) => {
+    wc.sendInputEvent({ type:'mouseMove', x:10, y:10 })
+    wc.invalidate()
     await new Promise((resolve) => setTimeout(resolve, 350))
-    if (visible) await js('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))')
-    try { writeFileSync(join(evidence, `${name}.png`), (await wc.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG()) }
+    try {
+      if (!visible) await wc.capturePage(undefined, { stayHidden: true, stayAwake: true })
+      await js('new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))')
+      writeFileSync(join(evidence, `${name}.png`), (await wc.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG())
+    }
     catch (error) { if (visible) throw error; report.assertions.push({ name: 'capture unavailable while hidden', details: String(error) }) }
   }
   await wait('Boolean(window.electronAPI)', 'preload')
@@ -226,8 +247,9 @@ async function run(win) {
     await wait(`Boolean([...document.querySelectorAll('[role="button"]')].find(e=>e.textContent.includes('第 36/36 页') && e.getBoundingClientRect().width>0))`, 'persisted history row')
     await js(`[...document.querySelectorAll('[role="button"]')].find(e=>e.textContent.includes('第 36/36 页') && e.getBoundingClientRect().width>0).click()`)
     await wait(`Boolean(document.querySelector('.reader-single-content [data-reader-image-status="ready"]'))`, 'offline resume after restart')
-    assert.equal(await js(`document.querySelector('[aria-label="跳转页码"]').value`),'36')
-    assert.ok(await js(`document.querySelector('.reader-heading').textContent.includes('离线阅读')`))
+    assert.equal(await js(`document.querySelector('[data-reader-progress]').dataset.currentPage`),'36')
+    assert.equal(await js(`document.querySelector('.reader-root').dataset.readerSource`), 'local')
+    await showTools()
     await js(`document.querySelector('[aria-label="目录与缩略图"]').click()`)
     await wait(`document.querySelectorAll('.reader-chapters button').length>0`, 'local chapter directory after history resume')
     await screenshot('reader-restarted-offline')
@@ -246,6 +268,7 @@ async function run(win) {
   mark('real preload / IPC / encrypted API / jmimg / Chromium decode')
   await screenshot('reader-first')
   if (process.env.JM_QA_CLOSE_RETRY) {
+    await showTools()
     rejectPreferenceSaves = true
     await js(`document.querySelector('[aria-label="放大"]').click()`)
     await wait(`document.querySelector('.reader-save-error')?.textContent.includes('偏好暂未保存')`, 'preference write fault before closing')
@@ -266,7 +289,7 @@ async function run(win) {
     assert.equal(await js(`document.querySelector('.app-workspace-body').inert`), false)
     await js(`window.__qaOffClose();document.querySelector('[data-reader-viewport]').focus()`)
     wc.sendInputEvent({ type: 'keyDown', keyCode: 'Right' }); wc.sendInputEvent({ type: 'keyUp', keyCode: 'Right' })
-    await wait(`document.querySelector('[aria-label="跳转页码"]')?.value==='2'`, 'continued reading after close cancellation')
+    await wait(`document.querySelector('[data-reader-progress]')?.dataset.currentPage==='2'`, 'continued reading after close cancellation')
     mark('preference and final-save failures retain the window; IPC cancellation restores interaction; retry clears the error')
     app.once('will-quit', event => {
       event.preventDefault()
@@ -282,13 +305,13 @@ async function run(win) {
     win.close(); return
   }
   if(process.env.JM_QA_WORKSPACE) {
-    await require('./reader-workspace-smoke.cjs')({win,js,wait,clickText,screenshot,mark,rejectSaves:value=>{rejectPreferenceSaves=value}})
+    await require('./reader-workspace-smoke.cjs')({win,js,wait,clickText,clickSelector,showTools,screenshot,mark,rejectSaves:value=>{rejectPreferenceSaves=value}})
     assert.equal(report.errors.length,0,report.errors.join('\n'));finish(0);return
   }
   if(process.env.JM_QA_HISTORY_RETRY) {
     await wait(`document.querySelector('.reader-save-error')?.textContent.includes('阅读位置暂未保存')`,'history write failure feedback')
     rejectHistorySaves=false
-    await js(`document.querySelector('.reader-toolbar button').click()`)
+    await clickSelector('[data-close-reader="online:101"]')
     await wait(`!document.querySelector('.reader-root')`,'retry initial history write before leaving')
     assert.equal((await js(`window.electronAPI.historyGetLocal('101')`)).page_index,0)
     mark('initial history write failure can recover and save before leaving')
@@ -297,14 +320,14 @@ async function run(win) {
   if(process.env.JM_QA_LAYOUT) {
     const scale=await js('window.devicePixelRatio')
     assert.equal(scale,Number(process.env.JM_QA_SCALE))
-    await js(`(()=>{const button=[...document.querySelectorAll('.reader-toolbar button')].find(e=>e.textContent==='自动隐藏');if(button?.getAttribute('aria-pressed')==='true')button.click()})()`)
+    await showTools()
     const themes=[]
     for(let theme=0;theme<2;theme++) {
       themes.push(await js(`getComputedStyle(document.querySelector('.reader-root')).getPropertyValue('--ui-bg-pane')`))
       for(const [width,height] of [[960,640],[1280,860]]) {
         win.setSize(width,height)
         await screenshot(`layout-${theme}-${width}`)
-        const geometry=await js(`(()=>{const root=document.querySelector('.reader-root').getBoundingClientRect();return [...document.querySelectorAll('.reader-toolbar button,.reader-toolbar select,.reader-footer button,.reader-footer input')].filter(e=>e.getBoundingClientRect().width>0).map(e=>{const r=e.getBoundingClientRect();return {label:e.getAttribute('aria-label')||e.textContent.trim(),fits:r.left>=root.left-1&&r.right<=root.right+1&&r.top>=root.top&&r.bottom<=root.bottom+1}})})()`)
+        const geometry=await js(`(()=>{const root=document.querySelector('[data-reader-workspace]').getBoundingClientRect();return [...document.querySelectorAll('.reader-toolbar button,.reader-toolbar select,.reader-workspace-header button,.reader-workspace-header summary')].filter(e=>e.getBoundingClientRect().width>0).map(e=>{const r=e.getBoundingClientRect();return {label:e.getAttribute('aria-label')||e.textContent.trim(),fits:r.left>=root.left-1&&r.right<=root.right+1&&r.top>=root.top&&r.bottom<=root.bottom+1}})})()`)
         assert.ok(geometry.every(control=>control.fits),JSON.stringify(geometry.filter(control=>!control.fits)))
       }
       if(theme===0)await js(`document.querySelector('button').click()`)
@@ -314,11 +337,12 @@ async function run(win) {
     assert.equal(report.errors.length,0,report.errors.join('\n'));finish(0);return
   }
   if(process.env.JM_QA_SAVE_RETRY) {
+    await showTools()
     rejectPreferenceSaves=true
     await js(`document.querySelector('[aria-label="放大"]').click()`)
     await wait(`document.querySelector('.reader-save-error')?.textContent.includes('阅读偏好暂未保存')`,'preference save failure feedback')
     rejectPreferenceSaves=false
-    await js(`document.querySelector('.reader-toolbar button').click()`)
+    await clickSelector('[data-close-reader="online:101"]')
     await wait(`!document.querySelector('.reader-root')`,'leave after save recovery')
     assert.equal((await js('window.electronAPI.settingsGet()')).readerZoom,1.1,'leaving after a transient write failure must retry the unsaved zoom')
     mark('preference save failure preserves dirty state for retry before leaving')
@@ -334,40 +358,42 @@ async function run(win) {
   assert.equal(history.page_index, position.visible, `history must follow visible page; ${JSON.stringify(position)}`)
   mark('visible page persisted through the actual history IPC', position)
   assert.ok(history.page_offset > 0, 'within-page offset must be saved')
-  const pageNumber = () => js(`Number(document.querySelector('[aria-label="跳转页码"]').value)-1`)
+  const pageNumber = () => js(`Number(document.querySelector('[data-reader-progress]').dataset.currentPage)-1`)
   const select = (label, value) => js(`(() => { const e=document.querySelector('select[aria-label="${label}"]'); e.value=${JSON.stringify(value)}; e.dispatchEvent(new Event('change',{bubbles:true})); })()`)
-  await clickText('单页阅读')
+  await showTools()
+  await select('阅读模式', 'single')
   await wait(`Boolean(document.querySelector('.reader-single-content [data-index="${position.visible}"]'))`, 'same page in single mode')
   assert.equal(await pageNumber(), position.visible)
   await new Promise(resolve => setTimeout(resolve, 600))
   let saved = await js(`window.electronAPI.historyGetLocal('101')`)
   assert.ok(Math.abs(saved.page_offset-history.page_offset)<0.02, 'mode change preserves within-page offset')
-  await clickText('连续滚动')
+  await select('阅读模式', 'scroll')
   await new Promise(resolve => setTimeout(resolve, 600))
   assert.equal(await pageNumber(), position.visible)
   mark('scroll / single mode preserves page and within-page offset')
-  await clickText('单页阅读')
+  await select('阅读模式', 'single')
   await select('图片适配', 'height')
   await new Promise(resolve => setTimeout(resolve, 600))
-  assert.ok(await js(`document.querySelector('.reader-single-content .reader-sheet').getBoundingClientRect().height+176 <= document.querySelector('[data-reader-viewport]').clientHeight+1`), '100% fit-height includes toolbar and footer insets')
+  assert.ok(await js(`Math.abs(document.querySelector('.reader-single-content .reader-sheet').getBoundingClientRect().height+16-document.querySelector('[data-reader-viewport]').clientHeight)<2`), 'fit-height uses the viewport remaining below the docked toolbar with only page margins')
   await js(`document.querySelector('[aria-label="放大"]').click()`)
   await new Promise(resolve => setTimeout(resolve, 350))
   assert.equal((await js('window.electronAPI.settingsGet()')).readerZoom, 1.1)
+  await clickText('阅读进度')
   await js(`document.querySelector('[aria-label="跳转页码"]').focus()`)
   wc.sendInputEvent({ type: 'keyDown', keyCode: 'Right' }); wc.sendInputEvent({ type: 'keyUp', keyCode: 'Right' })
   await new Promise(resolve => setTimeout(resolve, 150))
   assert.equal(await pageNumber(), position.visible, 'input focus must suppress page shortcuts')
+  await clickText('阅读进度')
   await js(`document.querySelector('[data-reader-viewport]').focus()`)
   wc.sendInputEvent({ type: 'keyDown', keyCode: 'Right' }); wc.sendInputEvent({ type: 'keyUp', keyCode: 'Right' })
-  await wait(`Number(document.querySelector('[aria-label="跳转页码"]').value)===${position.visible+2}`, 'keyboard next page')
+  await wait(`Number(document.querySelector('[data-reader-progress]').dataset.currentPage)===${position.visible+2}`, 'keyboard next page')
   await js(`document.querySelector('[aria-label="阅读设置"]').click()`)
   await select('阅读方向', 'rtl')
   await js(`document.querySelector('[data-reader-viewport]').focus()`)
   wc.sendInputEvent({ type: 'keyDown', keyCode: 'Left' }); wc.sendInputEvent({ type: 'keyUp', keyCode: 'Left' })
-  await wait(`Number(document.querySelector('[aria-label="跳转页码"]').value)===${position.visible+3}`, 'RTL next page')
+  await wait(`Number(document.querySelector('[data-reader-progress]').dataset.currentPage)===${position.visible+3}`, 'RTL next page')
   mark('fit, persisted zoom, focus isolation and both keyboard directions')
   win.setSize(960, 640)
-  await clickText('自动隐藏')
   await js(`document.querySelector('[aria-label="阅读设置"]').click()`)
   await screenshot('reader-compact')
   assert.ok(await js(`document.querySelector('.reader-toolbar').scrollWidth<=document.querySelector('.reader-root').clientWidth`), 'toolbar must fit minimum window')
@@ -382,10 +408,11 @@ async function run(win) {
   await wait('Boolean(document.fullscreenElement)', 'fullscreen')
   await screenshot('reader-fullscreen')
   await js('document.exitFullscreen()')
+  await clickText('阅读进度')
   await clickText('下一章')
-  await wait(`document.querySelector('.reader-heading')?.textContent.includes('抵达')`, 'next chapter')
+  await wait(`document.querySelector('.reader-root')?.dataset.readerChapter.includes('抵达')`, 'next chapter')
   await wait(`Boolean(document.querySelector('[data-reader-viewport]'))`, 'next chapter viewport')
-  assert.ok(await js(`document.activeElement===document.querySelector('[data-reader-viewport]')`), 'chapter change returns focus to the new viewport for continued keyboard reading')
+  await wait(`document.activeElement===document.querySelector('[data-reader-viewport]')`, 'chapter change returns focus to the new viewport for continued keyboard reading')
   await wait(`Boolean(document.querySelector('.reader-image[data-reader-image-status="error"]'))`, 'individual failing page')
   await screenshot('reader-page-error')
   failingSecondChapter = false
@@ -393,7 +420,7 @@ async function run(win) {
   await wait(`Boolean(document.querySelector('.reader-image[data-reader-image-status="ready"]'))`, 'next chapter decoded')
   assert.ok(await js(`document.querySelector('.reader-image img').src.includes(btoa('https://cdn-msp.18comic.vip/media/photos/203/0.png').replaceAll('+','-').replaceAll('/','_').replaceAll('=',''))`), 'chapter changes the image source')
   mark('isolated page failure and manual retry with the new chapter image')
-  await js(`document.querySelector('.reader-toolbar button').click()`)
+  await clickSelector('[data-close-reader="online:101"]')
   await wait(`Boolean([...document.querySelectorAll('button')].find(e=>e.textContent==='开始阅读' && e.getBoundingClientRect().width>0))`, 'return to original detail')
   mark('minimum window, directory, fullscreen and chapter return')
   await clickText('下载')
@@ -435,10 +462,10 @@ async function run(win) {
   await wait(`Boolean([...document.querySelectorAll('[role="button"]')].find(e=>e.textContent.includes('第一章') && e.getBoundingClientRect().width>0))`, 'offline chapter')
   const networkBeforeOffline = { ...report.network }
   await js(`[...document.querySelectorAll('[role="button"]')].find(e=>e.textContent.includes('第一章') && e.getBoundingClientRect().width>0).click()`)
-  await wait(`document.querySelector('[data-reader-tab="local:101"]')?.getAttribute('aria-selected')==='true' && document.querySelector('.reader-heading')?.textContent.includes('离线阅读')`, 'local source becomes active')
+  await wait(`document.querySelector('[data-reader-tab="local:101"]')?.getAttribute('aria-selected')==='true' && document.querySelector('.reader-root')?.dataset.readerSource==='local'`, 'local source becomes active')
   await wait(`Boolean(document.querySelector('.reader-single-content'))`, 'persisted reader mode')
   await wait(`Boolean(document.querySelector('.reader-image[data-reader-image-status="ready"]'))`, 'offline image')
-  assert.ok(await js(`document.querySelector('.reader-heading').textContent.includes('离线阅读')`))
+  assert.equal(await js(`document.querySelector('.reader-root').dataset.readerSource`), 'local')
   assert.equal(report.network.image,networkBeforeOffline.image)
   assert.equal(report.network.api,networkBeforeOffline.api)
   mark('download library opens the full offline reader without a content or image network request')
@@ -448,7 +475,7 @@ async function run(win) {
   mark('online and offline tabs for the same book coexist with the local source selected')
   await js(`document.querySelector('[data-reader-viewport]').focus()`)
   wc.sendInputEvent({type:'keyDown',keyCode:'End'}); wc.sendInputEvent({type:'keyUp',keyCode:'End'})
-  await wait(`document.querySelector('[aria-label="跳转页码"]')?.value==='36'`, 'last page before closing')
+  await wait(`document.querySelector('[data-reader-progress]')?.dataset.currentPage==='36'`, 'last page before closing')
   assert.equal(report.errors.length, 0, report.errors.join('\n'))
   app.once('will-quit', (event) => {
     event.preventDefault()

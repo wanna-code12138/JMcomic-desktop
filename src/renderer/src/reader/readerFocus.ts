@@ -16,3 +16,16 @@ export function focusReaderContent(): void {
     target?.focus()
   })
 }
+
+export async function toggleReaderVisibility(): Promise<void> {
+  const state = useAppStore.getState()
+  if (!state.readerTabs.length) return
+  if (state.readerVisible) {
+    if (document.fullscreenElement) await document.exitFullscreen()
+    state.setReaderVisible(false)
+    requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-reader-visibility-toggle]')?.focus())
+  } else {
+    state.setReaderVisible(true)
+    focusReaderContent()
+  }
+}

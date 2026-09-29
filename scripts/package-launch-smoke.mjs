@@ -142,13 +142,13 @@ try {
     await click('开始阅读')
     await waitFor(()=>js(`(()=>{
       const viewport=document.querySelector('[data-reader-viewport]'),page=viewport?.querySelector('[data-index="0"]'),image=page?.querySelector('.reader-image');
-      if(document.querySelector('[aria-label="跳转页码"]')?.value!=='1'||image?.dataset.readerImageStatus!=='ready')return false;
+      if(document.querySelector('[data-reader-progress]')?.dataset.currentPage!=='1'||image?.dataset.readerImageStatus!=='ready')return false;
       const img=image.querySelector('img'),canvas=image.querySelector('canvas'),shown=getComputedStyle(canvas).display!=='none'?canvas:img;
       const r=shown.getBoundingClientRect(),v=viewport.getBoundingClientRect();
       return img.naturalWidth>0&&getComputedStyle(shown).visibility==='visible'&&r.width>0&&r.height>0&&r.top<v.bottom&&r.bottom>v.top&&r.left<v.right&&r.right>v.left;
     })()`),'visible first page from the real CDN',90000)
     report.firstImageMs=Math.round(performance.now()-firstImageStart)
-    report.reader=await js(`({images:[...document.querySelectorAll('.reader-image img')].map(image=>({hasSource:Boolean(image.getAttribute('src')),width:image.naturalWidth,height:image.naturalHeight,status:image.parentElement.dataset.readerImageStatus})),pageCount:document.querySelector('.reader-page-control')?.textContent})`)
+    report.reader=await js(`({images:[...document.querySelectorAll('.reader-image img')].map(image=>({hasSource:Boolean(image.getAttribute('src')),width:image.naturalWidth,height:image.naturalHeight,status:image.parentElement.dataset.readerImageStatus})),pageCount:document.querySelector('[data-reader-progress]')?.textContent})`)
     assert.ok(report.reader.images.some(image=>image.width>0&&image.status==='ready'))
     report.assertions.push('first page is decoded and visible in the reader viewport after the verification view is removed; no net.fetch override')
     const downloadStart=performance.now()

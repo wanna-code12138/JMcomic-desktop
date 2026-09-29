@@ -23,8 +23,11 @@ function transitionReader(action: ReaderAction): Promise<boolean> {
     const existing = state.readerTabs.find(tab => tab.id === id)
     const active = state.readerTabs.find(tab => tab.id === state.activeReaderId)
     if (action.type !== 'open' && action.type !== 'flush' && !existing) return true
-    if (action.type === 'activate' && id === state.activeReaderId) return true
-    if (action.type === 'open' && id === state.activeReaderId && existing?.reader.chapterIndex === action.reader.chapterIndex) return true
+    if ((action.type === 'activate' && id === state.activeReaderId) ||
+      (action.type === 'open' && id === state.activeReaderId && existing?.reader.chapterIndex === action.reader.chapterIndex)) {
+      useAppStore.setState({ readerVisible: true })
+      return true
+    }
     try {
       const backgroundClose = action.type === 'close' && id !== state.activeReaderId
       const anchor = active && !backgroundClose ? await readerSavers.get(active.id)?.(action.type !== 'flush' || state.readerClosing) : undefined
@@ -49,8 +52,9 @@ function transitionReader(action: ReaderAction): Promise<boolean> {
       }
       failedAction = undefined
       useAppStore.setState({ readerTabs: tabs, activeReaderId, readerTransitionError: '',
+        ...((action.type === 'open' || action.type === 'activate') ? { readerVisible: true } : {}),
         ...(!state.readerTabs.length && tabs.length ? { readerSidebarCollapsed: true } : {}),
-        ...(!tabs.length ? { readerExpanded: false, readerSidebarCollapsed: false } : {}) })
+        ...(!tabs.length ? { readerVisible: false, readerExpanded: false, readerSidebarCollapsed: false } : {}) })
       return true
     } catch {
       failedGeneration++
@@ -84,6 +88,8 @@ interface AppState {
   readerTabs: ReaderTab[]
   activeReaderId: string | null
   readerExpanded: boolean
+  readerVisible: boolean
+  readerToolsVisible: boolean
   readerTransitionPending: boolean
   readerTransitionError: string
   readerClosing: boolean
@@ -108,6 +114,8 @@ interface AppState {
   flushReaderWorkspace: () => Promise<void>
   cancelReaderClose: () => void
   setReaderExpanded: (expanded: boolean) => void
+  setReaderVisible: (visible: boolean) => void
+  setReaderToolsVisible: (visible: boolean) => void
   setFavoritesTab: (tab: string) => void
   setNetworkStatus: (status: 'online' | 'degraded' | 'offline') => void
   setMicaEnabled: (enabled: boolean) => void
@@ -132,6 +140,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   readerTabs: [],
   activeReaderId: null,
   readerExpanded: false,
+  readerVisible: false,
+  readerToolsVisible: false,
   readerTransitionPending: false,
   readerTransitionError: '',
   readerClosing: false,
@@ -179,7 +189,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   openReader: (reader) => transitionReader({ type: 'open', reader }),
   activateReader: (id) => transitionReader({ type: 'activate', id }),
   closeReader: (id) => transitionReader({ type: 'close', id: id ?? get().activeReaderId ?? '' }),
-  setReaderExpanded: (expanded) => set({ readerExpanded: expanded && get().readerTabs.length > 0 }),
+  setReaderExpanded: (expanded) => set({ readerExpanded: expanded && get().readerTabs.length > 0,
+    ...(expanded && get().readerTabs.length ? { readerVisible: true } : {}) }),
+  setReaderVisible: (visible) => set({ readerVisible: visible && get().readerTabs.length > 0,
+    ...(!visible ? { readerExpanded: false } : {}) }),
+  setReaderToolsVisible: (visible) => set({ readerToolsVisible: visible }),
   registerReaderSession: (id, save) => {
     readerSavers.set(id, save)
     return () => { if (readerSavers.get(id) === save) readerSavers.delete(id) }

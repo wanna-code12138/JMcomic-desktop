@@ -5,6 +5,12 @@ import { readFileSync } from 'node:fs'
 // No project module loader or production implementation is installed in the EXE.
 export function installPackageFixture(exportPath) {
   const { app, session, net, nativeImage, dialog } = process.mainModule.require('electron')
+  app.on('browser-window-created', (_event, win) => {
+    win.show = () => {}
+    win.showInactive = () => {}
+    win.setSkipTaskbar(true)
+    win.webContents.setBackgroundThrottling(false)
+  })
   const bitmap = Buffer.alloc(16 * 23 * 4)
   for (let y = 0; y < 23; y++) for (let x = 0; x < 16; x++) {
     const offset = (y * 16 + x) * 4
@@ -51,8 +57,24 @@ export async function testPackageFixture({ js, main, waitFor, click, clickElemen
   await waitFor(() => js(`Boolean(${card('23行无损金样')})`), 'packaged offline chapter')
   await clickElement(card('23行无损金样'))
   await waitFor(() => js(`Boolean(document.querySelector('[data-reader-viewport] [data-index="0"] .reader-image[data-reader-image-status="ready"]'))`), 'packaged offline reader first page')
-  assert.ok(await js(`document.querySelector('.reader-heading').textContent.includes('离线阅读')`))
+  assert.equal(await js(`document.querySelector('.reader-root').dataset.readerSource`), 'local')
   const imageState = await js(`(()=>{const image=document.querySelector('[data-reader-viewport] [data-index="0"] img'),r=image.getBoundingClientRect(),v=document.querySelector('[data-reader-viewport]').getBoundingClientRect();return {width:image.naturalWidth,height:image.naturalHeight,visible:getComputedStyle(image).visibility==='visible'&&r.width>0&&r.top<v.bottom&&r.bottom>v.top}})()`)
   assert.deepEqual(imageState, { width:16, height:23, visible:true })
   report.assertions.push('actual pointer input opens the downloaded chapter and its first page is visible in the production reader')
+  assert.equal(await js(`Boolean(document.querySelector('.reader-toolbar,.reader-footer,.reader-quiet-progress'))`), false)
+  await click('显示阅读工具')
+  await waitFor(() => js(`Boolean(document.querySelector('.reader-toolbar'))`), 'packaged manual tools')
+  assert.ok(await js(`document.querySelector('.reader-toolbar').getBoundingClientRect().bottom<=document.querySelector('[data-reader-viewport]').getBoundingClientRect().top+1`))
+  await click('隐藏阅读工具')
+  await waitFor(() => js(`!document.querySelector('.reader-toolbar')`), 'packaged collapsed tools')
+  await js(`void(window.__packageReader=document.querySelector('.reader-root'))`)
+  await click('收起阅读侧栏')
+  await waitFor(() => js(`document.querySelector('[data-reader-workspace]').getBoundingClientRect().width===0`), 'packaged side pane hidden')
+  assert.equal(await js(`document.querySelectorAll('[data-reader-tab]').length`), 1)
+  await click('显示阅读侧栏')
+  await waitFor(() => js(`document.querySelector('[data-reader-workspace]').getBoundingClientRect().width>0 && document.querySelector('[data-reader-progress]')?.dataset.currentPage==='1'`), 'packaged side pane restored')
+  assert.ok(await js(`window.__packageReader===document.querySelector('.reader-root')`))
+  await clickElement(`document.querySelector('[data-close-reader="local:104"]')`)
+  await waitFor(() => js(`!document.querySelector('[data-reader-workspace]')`), 'packaged tab X closes last book')
+  report.assertions.push('actual EXE has manual docked tools, preserves its book while hidden and closes its last tab with X')
 }

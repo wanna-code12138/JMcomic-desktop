@@ -8,9 +8,12 @@ import {
 import {
   WeatherMoon20Regular,
   WeatherSunny20Regular,
-  ArrowDownload20Regular
+  ArrowDownload20Regular,
+  PanelRightContract20Regular,
+  PanelRightExpand20Regular
 } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
+import { toggleReaderVisibility } from '../reader/readerFocus'
 
 const TITLE_BAR_HEIGHT = '36px'
 
@@ -121,6 +124,9 @@ interface TitleBarProps {
 export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps): JSX.Element {
   const styles = useStyles()
   const setCurrentPage = useAppStore((s) => s.setCurrentPage)
+  const readerCount = useAppStore((s) => s.readerTabs.length)
+  const readerVisible = useAppStore((s) => s.readerVisible)
+  const readerPending = useAppStore((s) => s.readerTransitionPending)
   const [addStatus, setAddStatus] = useState<{ current: number; total: number; stage: string; error?: string } | null>(null)
   const [activeTasks, setActiveTasks] = useState<Array<{
     taskId: number
@@ -272,6 +278,13 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
             onClick={handleToggleDarkMode}
           />
         </Tooltip>
+        {readerCount > 0 && <Tooltip content={`${readerVisible ? '隐藏' : '显示'}阅读侧栏 · ${readerCount} 本漫画`} relationship="description">
+          <Button appearance="subtle" size="small" data-reader-visibility-toggle
+            aria-label={readerVisible ? '隐藏阅读侧栏' : '显示阅读侧栏'} aria-expanded={readerVisible}
+            aria-controls="reader-workspace" disabled={readerPending}
+            icon={readerVisible ? <PanelRightContract20Regular /> : <PanelRightExpand20Regular />}
+            onClick={() => { void toggleReaderVisibility() }} />
+        </Tooltip>}
       </div>
     </div>
   )

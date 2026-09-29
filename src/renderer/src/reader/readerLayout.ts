@@ -1,8 +1,8 @@
 import type { ReaderPosition, ReaderPreferences } from '../../../shared/readerContracts'
 
 export interface PageDimensions { width: number; height: number }
-export const READER_TOP_INSET = 96
-export const READER_BOTTOM_INSET = 80
+export const READER_TOP_INSET = 8
+export const READER_BOTTOM_INSET = 8
 export function pageSize(dimensions: PageDimensions | undefined, viewport: PageDimensions, preferences: ReaderPreferences): PageDimensions {
   const natural = dimensions ?? { width: 720, height: 1080 }
   const ratio = natural.height / natural.width
@@ -15,6 +15,9 @@ export function pageSize(dimensions: PageDimensions | undefined, viewport: PageD
 }
 
 export function positionAtOffset(items: readonly { index: number; start: number; size: number }[], offset: number): ReaderPosition | null {
+  // scrollTop may round a restored fractional page start to the preceding pixel.
+  const boundary = items.find((item) => Math.abs(item.start - offset) <= 1)
+  if (boundary) return { pageIndex: boundary.index, pageOffset: 0 }
   const item = items.find((item) => item.start <= offset && item.start + item.size > offset)
     ?? items.find((item) => item.start > offset)
   if (!item) return null
