@@ -89,6 +89,10 @@ CDN URL → base64url 编码 → jmimg://img/<encoded>?p=<priority>
 
 [cbzExport.ts](../src/main/cbzExport.ts) 使用 ZIP 容器写入 `.cbz`，条目按 `章节序号/页号.实际格式` 命名，图片不重新压缩。先写相邻临时文件、等待归档结束并同步文件，再替换目标；失败或取消会清理临时文件，目标不允许放在来源章节目录内。导出期间通过 `downloadLeases.ts` 标记目录占用，下载队列、单项重试与删除会检查该状态；退出流程取消导出并等待它结束。涉及这些操作的并发行为仍应由对应回归与实际验收覆盖。
 
+## PDF 下载
+
+图片下载与 PDF 下载由独立任务管理。`pdfDownloadManager.ts` 负责 IPC、数据库记录和工作进程；`pdfDownloadService.ts` 处理任务恢复、取消、重试及阶段推进，`pdfWriter.ts` 在工作进程中逐页写入并添加章节书签。PDF 按所选章节顺序输出到下载根目录，同名文件安全编号；暂存页位于应用数据目录，已完成文件不因清除个人数据而删除。生成时逐页解码，超过安全像素上限的单张 PNG 会提示改用图片下载。
+
 ## 本地数据与持久化
 
 [dataPaths.ts](../src/main/dataPaths.ts) 统一解析路径：
@@ -96,6 +100,7 @@ CDN URL → base64url 编码 → jmimg://img/<encoded>?p=<priority>
 - 便携运行的数据目录为 exe 旁的 `JMComicData`；数据库是其中的 `jmcomic.db`。
 - 非便携运行使用 Electron `app.getPath('userData')`，不假定当前工作目录就是数据目录。
 - 漫画默认保存到系统“下载”目录的 `JMComic` 子目录，也可由设置指定。下载记录与图片文件分开保存。
+- 动画偏好保存在设置中；GPU 硬件加速偏好保存在数据目录的 `startup-preferences.json`，重启后由 Chromium 选择可用的渲染路径。
 
 sql.js 在内存中运行，数据库操作不等于已写入磁盘。[database.ts](../src/main/database.ts) 与 `databaseWriteCoordinator.ts` 提供统一的异步保存：
 

@@ -70,8 +70,10 @@ Remove-Item Env:JM_QA_RESUME
 ```powershell
 node scripts/verify-package.cjs dist-electron/win-unpacked/resources/app.asar
 node scripts/package-launch-smoke.mjs 'dist-electron/win-unpacked/JMComic Desktop.exe' unpacked-验收ID
-node scripts/package-launch-smoke.mjs 'dist-electron/JMComic Desktop Portable 1.0.6.exe' portable-验收ID
-node scripts/package-launch-smoke.mjs 'dist-electron/JMComic Desktop Portable 1.0.6.exe' portable-功能验收ID --fixture
+$version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+$portable = "dist-electron/JMComic Desktop Portable $version.exe"
+node scripts/package-launch-smoke.mjs $portable portable-验收ID
+node scripts/package-launch-smoke.mjs $portable portable-功能验收ID --fixture
 ```
 
 包校验按 ASAR 内 Node 的祖先目录查找规则检查运行依赖，不从宿主项目补齐。EXE 驱动直接启动成品，隔离 Chromium 数据与便携数据，记录 EXE / ASAR 哈希、版本、启动验证状态和正常退出。可追加一个合法漫画 ID 验证真实网络阅读；真实验证必须先完成，脚本不会代点成年确认，也不会把验证视图后面的图片或预取页记作“首图可见”。首图检查锁定视口中的第 1 页，随后三页下载属于流水线验收，可能命中阅读预取缓存，不能当作网络测速对照。
@@ -118,4 +120,4 @@ docs: 更新架构文档
 
 ## 发布流程
 
-维护者打 `v*` tag 后，GitHub Actions 会自动构建并发布便携版 .exe 到 Releases，无需手动打包上传。
+维护者打 `v*` tag 后，GitHub Actions 会自动构建并发布便携版 .exe 到 Releases，无需手动打包上传。仅更新 `main` 或 `package.json` 的版本号不会创建 Release；发布前须确认标签指向已验证的版本提交。
