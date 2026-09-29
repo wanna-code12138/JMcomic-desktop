@@ -21,7 +21,7 @@ npm run dev        # 开发模式：electron-vite + HMR
 | `npm run typecheck` | TypeScript 类型检查，不生成文件 |
 | `npm run check` | 依次运行全部测试、类型检查和生产构建 |
 | `npm run build` | 生产构建 |
-| `npm run package` | 打包便携版单文件 .exe |
+| `npm run package` | 打包便携版单文件 .exe，并由 postpackage 校验包内依赖 |
 | `npx tsx <测试文件>` | 运行单个单元测试 |
 
 ## 测试
@@ -59,7 +59,26 @@ Remove-Item Env:JM_QA_RESUME
 
 三栏回归使用 `JM_QA_WORKSPACE=1`，覆盖中间浏览独立性、两本书的标签和锚点、相同章节去重、活动会话卸载及图片/Canvas 释放、切换保存失败、快速连续切换、关闭焦点、铺满/还原/全屏和 Esc。`JM_QA_CLOSE_RETRY=1` 注入偏好及最终保存失败，验证窗口保留、取消关闭通知、恢复阅读和再次关窗的磁盘末值。这些模式各用独立运行 ID，完成后移除对应环境变量；不要混用 `RESUME`、`WORKSPACE`、`CLOSE_RETRY`、`LAYOUT`、`GOLDEN` 模式。
 
-[scripts/descramble-smoke.cjs](scripts/descramble-smoke.cjs) 验证生产 Canvas 的逐像素金样。`reader-smoke.cjs` 的 `JM_QA_GOLDEN=1` 模式则经过完整下载 IPC、文件写入、本地协议和 CBZ；可用 `JM_QA_PACKAGE` 指向本地打包的 `resources/app.asar` 核对包内依赖。
+[scripts/descramble-smoke.cjs](scripts/descramble-smoke.cjs) 验证生产 Canvas 的逐像素金样。`reader-smoke.cjs` 的 `JM_QA_GOLDEN=1` 模式则经过完整下载 IPC、文件写入、本地协议和 CBZ；`JM_QA_PACKAGE` 可以指定本地 `resources/app.asar`，但此模式仍借助项目的 Electron / tsx，不能证明 EXE 独立可用，也不能排除项目依赖兜底。
+
+开发态必须另外验证。先启动 Vite 开发服务器（`npm run dev` 的渲染地址也可使用），将 `JM_QA_DEV_URL` 设为实际地址，再运行 `reader-smoke.cjs` 的完整旅程与 `WORKSPACE` 模式。它加载带 React StrictMode 的开发页面，同时仅放行该本地开发源；其它网络仍为合成夹具。结束后移除 `JM_QA_DEV_URL`。只测生产构建不会触发 StrictMode 的 effect setup → cleanup → setup。
+
+启动验证使用 `electron.cmd scripts/session-startup-smoke.cjs`，在真实 WebContentsView 中检查成年按钮点击前不提前成功、点击后移除视图。`reader-smoke.cjs` 的独立 `JM_QA_STARTUP=1` 模式检查启动验证失败后的首页重试与工作区保留；完成后移除该变量。
+
+发布产物还需执行以下检查。运行 ID 使用新值，EXE 路径按实际输出调整：
+
+```powershell
+node scripts/verify-package.cjs dist-electron/win-unpacked/resources/app.asar
+node scripts/package-launch-smoke.mjs 'dist-electron/win-unpacked/JMComic Desktop.exe' unpacked-验收ID
+node scripts/package-launch-smoke.mjs 'dist-electron/JMComic Desktop Portable 1.0.6.exe' portable-验收ID
+node scripts/package-launch-smoke.mjs 'dist-electron/JMComic Desktop Portable 1.0.6.exe' portable-功能验收ID --fixture
+```
+
+包校验按 ASAR 内 Node 的祖先目录查找规则检查运行依赖，不从宿主项目补齐。EXE 驱动直接启动成品，隔离 Chromium 数据与便携数据，记录 EXE / ASAR 哈希、版本、启动验证状态和正常退出。可追加一个合法漫画 ID 验证真实网络阅读；真实验证必须先完成，脚本不会代点成年确认，也不会把验证视图后面的图片或预取页记作“首图可见”。首图检查锁定视口中的第 1 页，随后三页下载属于流水线验收，可能命中阅读预取缓存，不能当作网络测速对照。
+
+`--fixture` 模式仍启动实际 EXE，仅在入口运行前替换网络及保存对话框边界。它检查包内下载、23 行无损反打乱金样、本地解码、CBZ、通过指针输入打开的离线首图及正常退出；不在应用里加载项目 tsx 或模块解析补丁。此模式提供可重复的成品功能验证，不能证明真实 CDN 的连通性或时延。
+
+`postpackage` 与 `package` 分开，确保 CI 的 `npm run package -- --publish never` 参数仍传给 electron-builder。
 
 性能实验入口是 [scripts/ablation.ts](scripts/ablation.ts) 和 [scripts/reader-benchmark.cjs](scripts/reader-benchmark.cjs)。控制方式、统计口径和历史基线见 [实施与验收报告](outputs/2026-09-29-implementation-results.md)，三栏当前测量见 [工作区验收](outputs/2026-09-29-three-pane-results.md)。这些 Electron 和性能脚本不属于 `npm test` 的单元测试发现范围，应按修改范围单独运行。
 

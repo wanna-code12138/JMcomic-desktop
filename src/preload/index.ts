@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import type { WarmupState } from '../shared/sessionWarmupContracts'
 import type { AppSettings } from '../main/settingsCore'
 import type { MangaDetail } from '../main/types'
 import type { ReadingHistory, HistoryPositionContext, ReaderPagesReply } from '../shared/readerContracts'
@@ -132,10 +133,10 @@ const api = {
     ipcRenderer.invoke('content:category', params),
   contentDetail: (mangaId: string): Promise<{ ok: boolean; data?: MangaDetail; error?: string }> => ipcRenderer.invoke('content:detail', mangaId),
   contentPages: (chapterUrl: string): Promise<ReaderPagesReply> => ipcRenderer.invoke('content:pages', chapterUrl),
-  contentWarmupStatus: () => ipcRenderer.invoke('session:warmupStatus'),
-  contentWarmupRetry: () => ipcRenderer.invoke('session:warmupRetry'),
-  onWarmupStateChanged: (callback: (state: unknown) => void) => {
-    const handler = (_event: Electron.IpcRendererEvent, state: unknown): void => callback(state)
+  contentWarmupStatus: (): Promise<WarmupState> => ipcRenderer.invoke('session:warmupStatus'),
+  contentWarmupRetry: (): Promise<WarmupState> => ipcRenderer.invoke('session:warmupRetry'),
+  onWarmupStateChanged: (callback: (state: WarmupState) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, state: WarmupState): void => callback(state)
     ipcRenderer.on('app:warmupStateChanged', handler)
     return () => {
       ipcRenderer.removeListener('app:warmupStateChanged', handler)

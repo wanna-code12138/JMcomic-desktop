@@ -1,4 +1,5 @@
 import { BrowserWindow, WebContentsView, session, ipcMain } from 'electron'
+import { isVerificationPageReady } from './verificationPage'
 import {
   reduceWarmupState,
   type WarmupState,
@@ -91,6 +92,9 @@ export function createWarmupCoordinator(options?: WarmupCoordinatorOptions): War
     }
     if (activeAttempt) {
       return activeAttempt
+    }
+    if ((state.phase === 'failed' || state.phase === 'expired') && reason !== 'startup' && reason !== 'manual') {
+      return Promise.resolve(state)
     }
     const pending = executeVerification(reason, hostWindow).finally(() => {
       if (activeAttempt === pending) activeAttempt = null
@@ -230,15 +234,7 @@ async function defaultElectronVerification(
           var checkCount = 0;
           var iv = setInterval(function() {
             checkCount++;
-            var title = document.title;
-            var body = document.body ? document.body.innerText : '';
-            if (title &&
-                title.indexOf('Just a moment') === -1 &&
-                title.indexOf('Checking') === -1 &&
-                title.indexOf('Attention Required') === -1 &&
-                title.indexOf('DDoS') === -1 &&
-                body.indexOf('Enable JavaScript and cookies to continue') === -1 &&
-                (body.length > 500 || title.length > 5)) {
+            if ((${isVerificationPageReady.toString()})(document)) {
               clearInterval(iv);
               window.__jm_warmup_done = true;
             }

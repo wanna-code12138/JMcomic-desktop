@@ -31,7 +31,7 @@
 
 ## 架构上几个关键决定
 
-内容获取统一经过 `contentGateway`：优先使用匿名 API，失败、数据校验不通过或筛选条件不受支持时，依次尝试直接网页解析和隐藏 `BrowserWindow` 提取。直接网页路径只覆盖部分搜索、推荐列表和章节请求；浏览器提取使用互斥锁串行导航。启动时后台探测 API，只有进入浏览器回退或手动重试验证时才调用网页会话预热。
+内容获取统一经过 `contentGateway`：优先使用匿名 API，失败、数据校验不通过或筛选条件不受支持时，依次尝试直接网页解析和隐藏 `BrowserWindow` 提取。直接网页路径只覆盖部分搜索、推荐列表和章节请求；浏览器提取使用互斥锁串行导航。应用先配置代理，再随主窗口启动网页验证；本地下载恢复与匿名 API 预热同时进行。验证失败后由首页“重新验证”入口恢复，后台请求不会在阅读中重新弹出验证视图。
 
 在线封面和漫画图片通过 `jmimg://` 交给主进程，复用图片缓存、请求优先级和并发调度。请求补充 Referer / UA，并用 `credentials: 'omit'` 省略凭据；离线漫画通过限定下载目录的 `jmlocal://` 读取。在线阅读与下载共用反打乱算法。
 
@@ -96,7 +96,7 @@ src/
 │   ├── downloadExport.ts # CBZ 导出入口（归档写入在 cbzExport.ts）
 │   ├── database.ts       # sql.js 初始化、迁移、异步持久化与恢复
 │   ├── shutdownController.ts # 渲染器保存、停止下载/导出、数据库关闭的顺序
-│   ├── sessionWarmup.ts  # 浏览器回退所需的按需会话验证
+│   ├── sessionWarmup.ts  # 启动网页验证、会话状态与显式重试
 │   └── __tests__/        # 主进程与共享逻辑回归测试
 ├── preload/              # contextBridge，统一暴露 electronAPI
 ├── shared/               # 阅读器契约、反打乱算法等跨进程逻辑
@@ -120,6 +120,8 @@ npm run check         # 依次运行测试、类型检查和生产构建
 ```
 
 CI 在向 `main` 推送和 Pull Request 时运行测试、类型检查与生产构建（见 [ci.yml](.github/workflows/ci.yml)）。阅读器交互、真实 Canvas 和网络回退仍需按改动范围补充 Electron 验收，记录实际环境与结果；历史性能报告不代表当前版本的测量值。
+
+`npm run package` 完成后会独立校验 ASAR 内运行依赖。交付前还必须直接运行生成的 EXE，验证主进程、preload、界面及正常关闭；加载 ASAR 的开发测试不能代替成品启动验收。阅读器同时覆盖开发 StrictMode 与生产页面，具体命令见 [贡献指南](CONTRIBUTING.md#electron-行为回归)。
 
 ## 贡献
 

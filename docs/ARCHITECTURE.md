@@ -32,11 +32,11 @@ API 请求失败、返回值校验不通过或不支持当前条件时尝试直�
 
 **禁止直接调用 `getScraperWindow()` 做导航**；一律使用导出的提取函数（`extractHomepage`、`extractSearch` 等）。
 
-### 按需会话验证
+### 启动会话验证
 
-启动流程先建立应用窗口，在后台调用匿名 API 的 `prewarm()`，不要求先完成网页验证。只有浏览器 provider 进入 `ensureReady()` 或用户手动重试时，才调用 [sessionWarmup.ts](../src/main/sessionWarmup.ts) 的 `ensureWarmup()` / `retryWarmup()`。
+启动流程先应用代理设置，再建立应用窗口并立即调用 [sessionWarmup.ts](../src/main/sessionWarmup.ts) 的 `warmupSession()`。匿名 API 的 `prewarm()` 和本地下载恢复不等待验证完成。浏览器 provider 的 `ensureReady()` 复用当前验证；失败或过期后，后台请求只返回状态，用户在首页通过 `retryWarmup()` 显式重试，不在阅读过程中自动重新弹出。
 
-验证通过 `WebContentsView` 显示在主窗口内。同一次验证由协调器合并，失败、超时和已验证是不同状态；浏览器提取不能把超时当作验证成功。API 与直接网页请求不依赖这一验证步骤。
+验证通过 `WebContentsView` 显示在主窗口内。同一次验证由协调器合并，失败、超时和已验证是不同状态；浏览器提取必须取得 `verified`，不能把超时当作验证成功。就绪检测要求出现已知内容链接且没有仍可见的成年确认控件；页面标题或正文长度不是成功证据，普通作品标题不作为确认控件。Preload 直接返回 `WarmupState`；首页初始化和状态订阅使用同一契约。API 与直接网页请求不依赖这一验证步骤。
 
 ## 图片加载与离线访问
 

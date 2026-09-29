@@ -20,7 +20,8 @@ for (const key of ['userData', 'sessionData', 'downloads', 'temp', 'crashDumps']
 }
 process.env.PORTABLE_EXECUTABLE_DIR = join(root, 'portable')
 mkdirSync(process.env.PORTABLE_EXECUTABLE_DIR, { recursive: true })
-delete process.env.ELECTRON_RENDERER_URL
+if (process.env.JM_QA_DEV_URL) process.env.ELECTRON_RENDERER_URL = process.env.JM_QA_DEV_URL
+else delete process.env.ELECTRON_RENDERER_URL
 delete process.env.PORTABLE_EXECUTABLE_FILE
 
 const visible = process.env.JM_QA_VISIBLE === '1'
@@ -28,7 +29,8 @@ const benchmark = Boolean(process.env.JM_QA_BENCH)
 if(benchmark){const log=console.log;console.log=(...args)=>{if(!String(args[0]).startsWith('[perf]'))log(...args)}}
 const rendererEvents = []
 if (benchmark) ipcMain.on('performance:record', (_event,value) => rendererEvents.push({ ...value, receivedAt:performance.now() }))
-const report = { runId, mode: `${visible ? 'visible' : 'hidden'} Chromium / synthetic network`, assertions: [], errors: [], network: { api: 0, image: 0, blocked: 0 }, summaryQueries: 0 }
+const report = { runId, mode: `${visible ? 'visible' : 'hidden'} Chromium / ${process.env.JM_QA_DEV_URL ? 'development StrictMode' : 'production'} / synthetic network`, assertions: [], errors: [], network: { api: 0, image: 0, blocked: 0 }, summaryQueries: 0 }
+let warmupRetries = 0
 let rejectPreferenceSaves = false
 let rejectHistorySaves = false
 let closeFailures = 0
@@ -39,6 +41,7 @@ if (process.env.JM_QA_CLOSE_RETRY) dialog.showMessageBox = async options => {
 }
 const registerHandle = ipcMain.handle.bind(ipcMain)
 ipcMain.handle = (channel, handler) => registerHandle(channel, (...args) => {
+  if(channel === 'session:warmupRetry')warmupRetries++
   if(channel === 'download:summary')report.summaryQueries++
   if(channel === 'settings:set' && rejectPreferenceSaves && args[1]?.readerZoom !== undefined)throw Error('Synthetic preference write failure')
   if(channel === 'history:upsert' && rejectHistorySaves)throw Error('Synthetic history write failure')
@@ -56,7 +59,10 @@ function finish(code) {
   app.exit(code)
 }
 setTimeout(() => fail(new Error('Electron QA watchdog expired')), benchmark ? 1200000 : 90000).unref()
-const blockSession = (target) => target.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*'] }, (_details, callback) => { report.network.blocked++; callback({ cancel: true }) })
+const blockSession = (target) => target.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
+  if (process.env.JM_QA_DEV_URL && new URL(details.url).origin === new URL(process.env.JM_QA_DEV_URL).origin) return callback({})
+  report.network.blocked++; callback({ cancel: true })
+})
 app.on('session-created', blockSession)
 app.whenReady().then(() => blockSession(session.defaultSession))
 globalThis.fetch = async () => { throw new Error('External fetch disabled during QA') }
@@ -157,7 +163,7 @@ async function run(win) {
       if (await js(expression)) return
       await new Promise((resolve) => setTimeout(resolve, 50))
     }
-    throw new Error(`Timed out: ${label}\n${await js('document.body.innerText.slice(-3000)')}`)
+    throw new Error(`Timed out: ${label}\n${await js('document.body.innerText.slice(-3000)')}\n${await js(`JSON.stringify([...document.querySelectorAll('.reader-image img')].map(image=>({src:image.getAttribute('src'),complete:image.complete,width:image.naturalWidth,status:image.parentElement.dataset.readerImageStatus})))`)}`)
   }
   const clickText = async (text) => {
     const query = `[...document.querySelectorAll('button,[role="button"],[role="tab"]')].find(e=>e.getBoundingClientRect().width>0 && (e.innerText.trim()===${JSON.stringify(text)} || e.getAttribute('aria-label')===${JSON.stringify(text)}))`
@@ -171,6 +177,19 @@ async function run(win) {
     catch (error) { if (visible) throw error; report.assertions.push({ name: 'capture unavailable while hidden', details: String(error) }) }
   }
   await wait('Boolean(window.electronAPI)', 'preload')
+  if(process.env.JM_QA_STARTUP) {
+    await wait(`window.electronAPI.contentWarmupStatus().then(state=>state.phase==='failed')`, 'startup verification failure')
+    await wait(`Boolean(document.querySelector('[data-verification-retry]'))`, 'visible verification retry after startup failure')
+    await js('window.__qaNoReload = true')
+    await clickText('重新验证')
+    await wait(`window.electronAPI.contentWarmupStatus().then(state=>state.phase==='failed')`, 'explicit retry failure')
+    assert.equal(warmupRetries,1,'the recovery button must invoke the real retry IPC')
+    assert.equal(await js('window.__qaNoReload'),true,'verification retry must not reload away the workspace')
+    await wait(`Boolean(document.querySelector('[data-verification-retry] button:not(:disabled)'))`, 'retry remains available after failure')
+    await screenshot('startup-verification-retry')
+    mark('startup failure exposes a working retry action and preserves the renderer workspace')
+    assert.equal(report.errors.length,0,report.errors.join('\n'));finish(0);return
+  }
   if(process.env.JM_QA_GOLDEN) {
     if(process.env.JM_QA_PACKAGE) {
       const packageRoot=resolve(process.env.JM_QA_PACKAGE)
@@ -459,7 +478,7 @@ app.on('browser-window-created', (_event, win) => {
     if (event.level === 'error' && !event.message.includes('ERR_BLOCKED_BY_CLIENT') && !event.message.includes('503')) report.errors.push(`renderer: ${event.message}`)
   })
   win.webContents.once('did-finish-load', () => {
-    if (win.webContents.getURL().includes('/out/renderer/index.html')) {
+    if (win.webContents.getURL().includes('/out/renderer/index.html') || (process.env.JM_QA_DEV_URL && win.webContents.getURL().startsWith(process.env.JM_QA_DEV_URL))) {
       if (visible) showInactive()
       run(win).catch(fail)
     }

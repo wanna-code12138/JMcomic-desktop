@@ -17,6 +17,7 @@ import { initDownloadManager, stopDownloadManager, resumeDownloadManager } from 
 import { createShutdownController } from './shutdownController'
 import { registerDownloadExport, stopDownloadExports, resumeDownloadExports } from './downloadExport'
 import { warmAnonymousContentProvider } from './contentApi'
+import { warmupSession } from './sessionWarmup'
 
 let mainWindow: BrowserWindow | null = null
 let shutdownComplete = false
@@ -118,14 +119,14 @@ app.whenReady().then(async () => {
 
   const settings = await getSettings()
   setImageCacheLimit(settings.cacheLimitMb * 1024 * 1024)
+  await applyManualProxy(settings.proxyEnabled, settings.proxyUrl)
 
   createWindow(settings)
+  if (mainWindow) void warmupSession(mainWindow).catch(error => console.error('[startup] verification failed:', error))
   const recoveryNotice = getDatabaseRecoveryNotice()
   if (recoveryNotice) void dialog.showMessageBox({ type: 'info', title: '个人数据已恢复', message: recoveryNotice })
   applyWindowBackground(settings)
-  await applyManualProxy(settings.proxyEnabled, settings.proxyUrl)
-
-  // Public API discovery never blocks the shell or local task recovery.
+  // Verification starts with the window; local task recovery remains independent.
   void warmAnonymousContentProvider()
   initDownloadManager()
 

@@ -31,8 +31,8 @@ async function ensureReady(): Promise<void> {
   const hostWindow = BrowserWindow.getAllWindows().find((window) => !window.isDestroyed())
   if (!hostWindow) throw new Error('找不到用于网页验证的主窗口')
   const state = await ensureWarmup('browser-fallback', hostWindow)
-  if (state.phase === 'failed') {
-    throw new Error(`浏览器验证失败: ${state.reason}`)
+  if (state.phase !== 'verified') {
+    throw new Error(`网页验证未完成（${state.phase === 'failed' ? state.reason : state.phase}），请在首页重试验证`)
   }
 }
 

@@ -111,12 +111,6 @@ test('comic_read validates 1-based page numbers and rejects page count/ID confli
   assert.throws(() => parseComicReadPayload(payload, route.imageOrigin, '102'))
 })
 
-test('startup does not force browser verification or gate local download recovery on it', () => {
-  const index = readFileSync('src/main/index.ts', 'utf8')
-  assert.doesNotMatch(index, /warmupSession\(mainWindow\)/)
-  assert.match(index, /warmAnonymousContentProvider\(\)/)
-})
-
 test('download manifest resolution uses the same public gateway as the reader', () => {
   const source = readFileSync('src/main/downloadManager.ts', 'utf8')
   assert.doesNotMatch(source, /import.*extractChapterPages.*scraperWindow/)

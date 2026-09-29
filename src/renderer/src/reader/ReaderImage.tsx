@@ -17,6 +17,7 @@ export default function ReaderImage({ imageUrl, index, scrambleId, priority, onR
   notify.current = onReady
   // Priority is selected at mount; changing the current page must not reload a decoded image.
   const [source] = React.useState(() => toProxyUrl(imageUrl, priority))
+  const src = attempt === 0 ? source : `${source}${source.includes('?') ? '&' : '?'}retry=${attempt}`
   const perf = React.useRef<ReturnType<typeof recordRendererSpan>>()
   const frame = React.useRef<number>()
   React.useEffect(() => {
@@ -24,13 +25,15 @@ export default function ReaderImage({ imageUrl, index, scrambleId, priority, onR
     perf.current = recordRendererSpan('reader.image', { source: imageUrl.startsWith('jmlocal:') ? 'local' : 'online' })
     const element = canvas.current
     const request = image.current
+    // Start and cancel the request in the same lifecycle, including StrictMode replay.
+    if (request) request.src = src
     return () => {
       perf.current?.finish('cancelled')
       if (frame.current !== undefined) cancelAnimationFrame(frame.current)
       if (element) { element.width = 0; element.height = 0 }
       request?.removeAttribute('src')
     }
-  }, [imageUrl, attempt])
+  }, [imageUrl, src])
   const fail = (): void => { setStatus('error'); perf.current?.finish('error') }
   const loaded = (event: React.SyntheticEvent<HTMLImageElement>): void => {
     const image = event.currentTarget
@@ -46,9 +49,8 @@ export default function ReaderImage({ imageUrl, index, scrambleId, priority, onR
       frame.current = requestAnimationFrame(() => perf.current?.finish('ok', { scrambled: decoded }))
     } catch { fail() }
   }
-  const src = attempt === 0 ? source : `${source}${source.includes('?') ? '&' : '?'}retry=${attempt}`
   return <div className="reader-image" data-reader-image-status={status}>
-    <img ref={image} key={attempt} src={src} alt={`第 ${index + 1} 页`} onLoad={loaded} onError={fail}
+    <img ref={image} key={attempt} alt={`第 ${index + 1} 页`} onLoad={loaded} onError={fail}
       crossOrigin="anonymous" draggable={false} decoding="async"
       style={{ visibility: status === 'ready' && !scrambled ? 'visible' : 'hidden' }} />
     <canvas ref={canvas} role="img" aria-label={`第 ${index + 1} 页`} style={{ display: status === 'ready' && scrambled ? 'block' : 'none' }} />

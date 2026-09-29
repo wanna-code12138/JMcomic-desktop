@@ -1,0 +1,6 @@
+{
+  "assertions": [],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: an age-confirmation page is not verified merely because its title/body is long\n+ actual - expected\n\n+ 'verified'\n- 'verifying'\n        ^\n\n    at D:\\soft\\Opencode\\JMComic\\scripts\\session-startup-smoke.cjs:30:10"
+  ]
+}

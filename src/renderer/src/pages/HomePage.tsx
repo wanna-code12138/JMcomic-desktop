@@ -13,6 +13,7 @@ import { ArrowSync20Regular } from '@fluentui/react-icons'
 import { MangaCard, type MangaCardData } from '../components'
 import { useAppStore } from '../stores/appStore'
 import { usePageSnapshot } from '../navigation/pageStateCache'
+import type { WarmupState } from '../../../shared/sessionWarmupContracts'
 import {
   buildRecommendationFeed,
   nextRecommendationVisibleCount,
@@ -92,6 +93,18 @@ const useStyles = makeStyles({
     gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
     gap: '16px'
   },
+  verificationNotice: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: '12px',
+    padding: '12px 16px',
+    marginBottom: '16px',
+    borderRadius: 'var(--ui-radius-lg)',
+    backgroundColor: 'var(--ui-bg-card)',
+    color: 'var(--ui-text-secondary)'
+  },
   shimmerCard: {
     aspectRatio: '3/4',
     borderRadius: 'var(--ui-radius-md)'
@@ -117,7 +130,8 @@ export default function HomePage(): JSX.Element {
   const [tab, setTab] = React.useState<'recommended' | 'latest' | 'popular'>('recommended')
   const [loading, setLoading] = React.useState(true)
   const [loadingMore, setLoadingMore] = React.useState(false)
-  const [warmupState, setWarmupState] = React.useState<{ phase: string; reason?: string }>({ phase: 'idle' })
+  const [warmupState, setWarmupState] = React.useState<WarmupState>({ phase: 'idle' })
+  const verificationPassed = warmupState.phase === 'verified'
   const [recommendationRefreshing, setRecommendationRefreshing] = React.useState(false)
   const [recommendationFeed, setRecommendationFeed] = React.useState<MangaCardData[]>([])
   const [recommendationVisibleCount, setRecommendationVisibleCount] = React.useState(0)
@@ -234,16 +248,14 @@ export default function HomePage(): JSX.Element {
       try {
         if (window.electronAPI?.contentWarmupStatus) {
           const res = await window.electronAPI.contentWarmupStatus()
-          if (!cancelled && (res as any)?.state) {
-            setWarmupState((res as any).state as { phase: string; reason?: string })
-          }
+          if (!cancelled) setWarmupState(res)
         }
       } catch { /* proceed */ }
     }
     void checkWarmup()
 
     const unsub = window.electronAPI?.onWarmupStateChanged?.((state) => {
-      if (!cancelled) setWarmupState(state as { phase: string; reason?: string })
+      if (!cancelled) setWarmupState(state)
     })
 
     return () => {
@@ -282,7 +294,7 @@ export default function HomePage(): JSX.Element {
       if (tab === 'recommended') recommendationRequestId.current++
       else window.electronAPI?.contentHomepageCancel(tab)
     }
-  }, [currentPage, fetchCategory, loadRecommendations, recommendationRevision, tab])
+  }, [currentPage, fetchCategory, loadRecommendations, recommendationRevision, tab, verificationPassed])
 
   React.useEffect(() => {
     if (tab !== 'recommended' || recommendationFeed.length === 0 || recommendationVisibleCount === 0) return
@@ -317,6 +329,16 @@ export default function HomePage(): JSX.Element {
     void loadRecommendations(true)
   }
 
+  const handleVerificationRetry = async (): Promise<void> => {
+    setWarmupState({ phase: 'verifying', attempt: 0, reason: 'manual' })
+    try {
+      const state = await window.electronAPI!.contentWarmupRetry()
+      setWarmupState(state)
+    } catch {
+      setWarmupState({ phase: 'failed', reason: 'network-error', retryable: true })
+    }
+  }
+
   const visibleCards = tab === 'recommended'
     ? recommendationFeed.slice(0, recommendationVisibleCount)
     : sections[tab]
@@ -334,17 +356,6 @@ export default function HomePage(): JSX.Element {
           <Text size={200} style={{ opacity: 0.5 }}>
             验证成功后将自动开始加载内容
           </Text>
-          <Button
-            appearance="secondary"
-            size="small"
-            style={{ marginTop: '12px' }}
-            onClick={() => {
-              window.electronAPI?.contentWarmupRetry?.()
-              window.location.reload()
-            }}
-          >
-            验证卡住？点此重试
-          </Button>
         </div>
       </div>
     )
@@ -352,6 +363,12 @@ export default function HomePage(): JSX.Element {
 
   return (
     <div className={styles.root} ref={rootRef}>
+      {(warmupState.phase === 'failed' || warmupState.phase === 'expired') && (
+        <div className={styles.verificationNotice} role="status" data-verification-retry>
+          <Text>网页验证未完成，部分在线内容可能暂时无法加载。</Text>
+          <Button size="small" onClick={() => void handleVerificationRetry()}>重新验证</Button>
+        </div>
+      )}
       <div className={styles.tabs}>
         <TabList selectedValue={tab} onTabSelect={(_e, d) => setTab(d.value as typeof tab)}>
           <Tab value="recommended">推荐</Tab>
