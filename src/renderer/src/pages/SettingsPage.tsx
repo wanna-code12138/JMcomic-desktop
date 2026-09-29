@@ -12,10 +12,14 @@ const useStyles = makeStyles({
   root: {
     padding: '24px',
     height: '100%',
-    overflow: 'auto',
-    maxWidth: '720px'
+    overflow: 'auto'
   },
-  section: { marginBottom: '32px' },
+  section: {
+    marginBottom: '32px',
+    maxWidth: '672px',
+    marginLeft: 'auto',
+    marginRight: 'auto'
+  },
   sectionTitle: {
     marginBottom: '16px',
     display: 'block',

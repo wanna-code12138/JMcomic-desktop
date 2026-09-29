@@ -304,6 +304,10 @@ async function run(win) {
     })
     win.close(); return
   }
+  if(process.env.JM_QA_BROWSE_LAYOUT) {
+    await require('./browse-layout-smoke.cjs')({win,js,wait,clickText,clickSelector,screenshot,mark})
+    assert.equal(report.errors.length,0,report.errors.join('\n'));finish(0);return
+  }
   if(process.env.JM_QA_WORKSPACE) {
     await require('./reader-workspace-smoke.cjs')({win,js,wait,clickText,clickSelector,showTools,screenshot,mark,rejectSaves:value=>{rejectPreferenceSaves=value}})
     assert.equal(report.errors.length,0,report.errors.join('\n'));finish(0);return
