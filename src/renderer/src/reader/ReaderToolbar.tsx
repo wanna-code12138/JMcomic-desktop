@@ -2,13 +2,15 @@ import React from 'react'
 import { ArrowDownload20Regular, BookOpen20Regular, FullScreenMaximize20Regular, FullScreenMinimize20Regular, MoreHorizontal20Regular } from '@fluentui/react-icons'
 import type { ReaderPreferences, ReaderState } from '../../../shared/readerContracts'
 
-export default function ReaderToolbar({ reader, preferences, fullscreen, downloadLabel,
+export default function ReaderToolbar({ reader, preferences, fullscreen, downloadLabel, exiting,
   change, toggleDirectory, toggleFullscreen, download }: {
   reader: ReaderState; preferences: ReaderPreferences; fullscreen: boolean; downloadLabel: string
+  exiting?: boolean
   change: (patch: Partial<ReaderPreferences>) => void
-  toggleDirectory: () => void; toggleFullscreen: () => void; download: () => void
+  toggleDirectory: () => void; toggleFullscreen: () => void; download: (chooseFormat?: boolean) => void
 }): JSX.Element {
-  return <header className="reader-toolbar" id="reader-tools" aria-label="阅读工具栏">
+  return <header className="reader-toolbar" id="reader-tools" data-exiting={exiting} aria-hidden={exiting || undefined}
+    ref={element => { if (element) element.inert = Boolean(exiting) }} aria-label="阅读工具栏">
       <select aria-label="阅读模式" value={preferences.readerMode} onChange={event => change({ readerMode: event.target.value as ReaderPreferences['readerMode'] })}>
         <option value="scroll">连续滚动</option><option value="single">单页阅读</option>
       </select>
@@ -29,7 +31,9 @@ export default function ReaderToolbar({ reader, preferences, fullscreen, downloa
           <label>翻页方向<select aria-label="阅读方向" value={preferences.readerDirection} onChange={(event) => change({ readerDirection: event.target.value as 'ltr' | 'rtl' })}>
             <option value="ltr">从左向右</option><option value="rtl">从右向左</option>
           </select></label>
-          {!reader.local && <button onClick={download} disabled={downloadLabel !== '下载本章'} aria-label={downloadLabel}><ArrowDownload20Regular />{downloadLabel}</button>}
+          {!reader.local && <><button onClick={() => download()} disabled={downloadLabel === '准备下载'} aria-label="下载本章"><ArrowDownload20Regular />下载本章</button>
+            <button onClick={() => download(true)} disabled={downloadLabel === '准备下载'}>选择下载格式…</button>
+            {downloadLabel !== '下载本章' && <small role="status">{downloadLabel}</small>}</>}
           <small>方向键翻页 · H 工具栏 · F 全屏 · Ctrl + 滚轮缩放</small>
         </div>
       </details>

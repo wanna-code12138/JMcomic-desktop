@@ -8,9 +8,9 @@ import ts from 'typescript'
 import { groupTasksByManga, type DownloadProgress, type DownloadTaskRow } from '../../shared/downloadContracts'
 
 // Execute the real page's load/event callbacks; React, timers and IPC are boundary ports.
-for (const retrying of [false, true]) test(`slow download summary preserves ${retrying ? 'retry reset to zero' : 'newer page progress'}`, async () => {
+for (const pdf of [false, true]) for (const retrying of [false, true]) test(`slow ${pdf ? 'PDF' : 'image'} summary preserves ${retrying ? 'retry reset to zero' : 'newer page progress'}`, async () => {
   const a: DownloadTaskRow = { id: 1, mangaId: '42', mangaTitle: 'Book', chapterIndex: 0, chapterTitle: 'A',
-    status: retrying ? 'failed' : 'downloading', totalPages: 10, downloadedPages: retrying ? 8 : 3, savePath: '', createdAt: 1 }
+    kind: pdf ? 'pdf' : 'images', status: retrying ? 'failed' : 'downloading', totalPages: 10, downloadedPages: retrying ? 8 : 3, savePath: '', createdAt: 1 }
   const b = { ...a, id: 2, chapterIndex: 1, chapterTitle: 'B', status: 'downloading', downloadedPages: 9 }
   const snapshot = (completedB = false) => groupTasksByManga([{ ...a }, { ...b, ...(completedB ? { status: 'completed', downloadedPages: 10 } : {}) }])
   let release!: (groups: ReturnType<typeof snapshot>) => void
@@ -33,7 +33,8 @@ for (const retrying of [false, true]) test(`slow download summary preserves ${re
   } }).outputText
   const module = { exports: {} as { default: () => void } }
   vm.runInNewContext(source, { module, exports: module.exports, require: (id: string) => Object.hasOwn(ports, id) ? ports[id] : require(id), console,
-    window: { electronAPI: { downloadSummary: () => ++queries === 1 ? Promise.resolve(snapshot()) : delayed,
+    window: { electronAPI: { downloadSummary: () => pdf ? Promise.resolve([]) : ++queries === 1 ? Promise.resolve(snapshot()) : delayed,
+      downloadPdfList: () => !pdf ? Promise.resolve([]) : ++queries === 1 ? Promise.resolve([a,b]) : delayed.then(groups => groups.flatMap(g => g.tasks)),
       onDownloadProgress: (fn: typeof onProgress) => { onProgress = fn; return () => {} } } },
     setTimeout: (fn: () => void) => { const id = ++timerId; timers.set(id, fn); return id }, clearTimeout: (id: number) => timers.delete(id)
   }, { filename })
@@ -46,7 +47,7 @@ for (const retrying of [false, true]) test(`slow download summary preserves ${re
   for (const [id, fn] of [...timers]) { timers.delete(id); fn() }
   assert.equal(queries, 2, 'terminal events coalesce into one summary')
   onProgress(event(a, 'downloading', retrying ? 0 : 8))
-  const displayed = () => { const task = states[1][0].tasks.find((item: DownloadTaskRow) => item.id === 1); return { status: task.status, pages: task.downloadedPages } }
+  const displayed = () => { const records = states.find(value => Array.isArray(value) && (pdf ? value[0]?.kind === 'pdf' : value[0]?.tasks)); const task = (pdf ? records : records[0].tasks).find((item: DownloadTaskRow) => item.id === 1); return { status: task.status, pages: task.downloadedPages } }
   const before = displayed()
   release(snapshot(true)); await tick()
   assert.deepEqual(displayed(), before, 'a slow snapshot must not overwrite progress received while scanning')

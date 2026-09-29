@@ -1,4 +1,5 @@
 export interface DownloadTaskRow {
+  kind?: 'images' | 'pdf'
   id: number
   mangaId: string
   mangaTitle: string
@@ -40,6 +41,8 @@ export interface MangaDownloadGroup {
 }
 
 export interface DownloadProgress {
+  kind?: 'images' | 'pdf'
+  mergedPages?: number
   taskId: number
   mangaId: string
   mangaTitle: string
@@ -49,6 +52,9 @@ export interface DownloadProgress {
   downloadedPages: number
   status: string
 }
+
+export interface DownloadTaskIdentity { kind: 'images' | 'pdf'; id: number }
+export const downloadTaskKey = (task: { kind?: string; id?: number; taskId?: number }): string => `${task.kind ?? 'images'}:${task.id ?? task.taskId}`
 
 /** 把下载任务行按漫画聚合，输出本地详情页与下载页所需的分组摘要。 */
 export function groupTasksByManga(rows: DownloadTaskRow[]): MangaDownloadGroup[] {

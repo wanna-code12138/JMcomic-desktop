@@ -20,6 +20,10 @@ for (const key of ['userData', 'sessionData', 'downloads', 'temp', 'crashDumps']
 }
 process.env.PORTABLE_EXECUTABLE_DIR = join(root, 'portable')
 mkdirSync(process.env.PORTABLE_EXECUTABLE_DIR, { recursive: true })
+if(process.env.JM_QA_GRAPHICS) {
+  const dataDir=join(process.env.PORTABLE_EXECUTABLE_DIR,'JMComicData');mkdirSync(dataDir,{recursive:true})
+  writeFileSync(join(dataDir,'startup-preferences.json'),JSON.stringify({version:1,hardwareAcceleration:process.env.JM_QA_GRAPHICS==='on'}))
+}
 if (process.env.JM_QA_DEV_URL) process.env.ELECTRON_RENDERER_URL = process.env.JM_QA_DEV_URL
 else delete process.env.ELECTRON_RENDERER_URL
 delete process.env.PORTABLE_EXECUTABLE_FILE
@@ -58,7 +62,7 @@ function finish(code) {
   console.log(`QA RESULT=${code} evidence=${evidence}`)
   app.exit(code)
 }
-setTimeout(() => fail(new Error('Electron QA watchdog expired')), benchmark ? 1200000 : 90000).unref()
+setTimeout(() => fail(new Error('Electron QA watchdog expired')), benchmark ? 1200000 : process.env.JM_QA_RESOURCE_MATRIX ? 300000 : 90000).unref()
 const blockSession = (target) => target.webRequest.onBeforeRequest({ urls: ['http://*/*', 'https://*/*'] }, (details, callback) => {
   if (process.env.JM_QA_DEV_URL && new URL(details.url).origin === new URL(process.env.JM_QA_DEV_URL).origin) return callback({})
   report.network.blocked++; callback({ cancel: true })
@@ -140,7 +144,7 @@ net.fetch = async (target, init = {}) => {
     if(url.pathname.endsWith('/golden.png'))return fixtureImage(goldenPng,init.signal)
     const index = Number(url.pathname.match(/\/(\d+)\.png$/)?.[1] || 0)
     const second = url.pathname.includes('/photos/203/')
-    if (second && index === 0 && failingSecondChapter) return new Response('Synthetic page failure', { status: 503 })
+    if (second && index === 0 && failingSecondChapter && !process.env.JM_QA_PDF) return new Response('Synthetic page failure', { status: 503 })
     return fixtureImage(syntheticPng(second ? index + 37 : index, url.pathname.includes('/albums/')),init.signal)
   }
   report.network.api++
@@ -148,7 +152,7 @@ net.fetch = async (target, init = {}) => {
   let data
   if (url.pathname === '/setting') data = { jm3_version: '2.1.7', img_host: 'https://cdn-msp.18comic.vip' }
   else if (url.pathname === '/album') data = { id: url.searchParams.get('id') || '101', name: url.searchParams.get('id') === '102' ? '海边日记 · 合成阅读样章' : '山间来信 · 合成阅读样章', author: ['阅读体验实验室'], tags: ['风景', '旅途'], description: '用于测试长图、横图与章节切换的合成内容。', series: [{ id: url.searchParams.get('id') === '102' ? '204' : benchmark?'267000':'202', sort: '1', name: '第一章 · 出发' }, { id: '203', sort: '2', name: '第二章 · 抵达' }] }
-  else if (url.pathname === '/comic_read') data = { id: url.searchParams.get('id') || '202', scramble_id: benchmark?200000:0, total_page: 36, images: Array.from({ length: 36 }, (_, i) => `${i}.png${benchmark?'?fixture='+fixtureEpoch:''}`) }
+  else if (url.pathname === '/comic_read') data = { id: url.searchParams.get('id') || '202', scramble_id: benchmark?200000:0, total_page: process.env.JM_QA_PDF?3:36, images: Array.from({ length: process.env.JM_QA_PDF?3:36 }, (_, i) => `${i}.png${benchmark?'?fixture='+fixtureEpoch:''}`) }
   else if (['/categories/filter', '/search', '/promote'].includes(url.pathname)) data = { total: 1, content: [{ id: '101', name: '山间来信 · 合成阅读样章', image: '/media/albums/101.png' }] }
   else throw new Error(`Unexpected fixture route: ${url.pathname}`)
   return new Response(envelope(data, init.headers), { headers: { 'Content-Type': 'application/json' } })
@@ -156,25 +160,27 @@ net.fetch = async (target, init = {}) => {
 
 async function run(win) {
   const wc = win.webContents
-  const js = (source) => wc.executeJavaScript(source, true)
+  const js = (source) => wc.executeJavaScript(source, true).catch(error=>{throw Error(`${String(error)}\nExpression: ${source.slice(0,800)}`)})
   const wait = async (expression, label) => {
     const deadline = Date.now() + 12000
     while (Date.now() < deadline) {
       if (await js(expression)) return
       await new Promise((resolve) => setTimeout(resolve, 50))
     }
-    throw new Error(`Timed out: ${label}\n${await js('document.body.innerText.slice(-3000)')}\n${await js(`JSON.stringify([...document.querySelectorAll('.reader-image img')].map(image=>({src:image.getAttribute('src'),complete:image.complete,width:image.naturalWidth,status:image.parentElement.dataset.readerImageStatus})))`)}`)
+    throw new Error(`Timed out: ${label}\nFocus: ${await js('document.activeElement?.outerHTML.slice(0,500)')}\nTrace: ${await js('JSON.stringify(window.__qaFocusTrace)')}\n${await js('document.body.innerText.slice(-3000)')}\n${await js(`JSON.stringify([...document.querySelectorAll('.reader-image img')].map(image=>({src:image.getAttribute('src'),complete:image.complete,width:image.naturalWidth,status:image.parentElement.dataset.readerImageStatus})))`)}`)
   }
   const pointerClick = async query => {
-    const point = await js(`(()=>{const e=${query};if(!e)throw Error('missing click target');e.scrollIntoView({block:'nearest',inline:'nearest'});const r=e.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;return {x,y,hit:r.width>0&&r.height>0&&e.contains(document.elementFromPoint(x,y))}})()`)
-    assert.equal(point.hit, true, 'pointer target must be visible and unobscured')
+    wc.invalidate()
+    await js(`Promise.race([Promise.all(document.getAnimations().filter(a=>a.effect?.getComputedTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{}))),new Promise(resolve=>setTimeout(resolve,300))])`)
+    const point = await js(`(()=>{const e=${query};if(!e)throw Error('missing click target');e.scrollIntoView({block:'nearest',inline:'nearest'});const r=e.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;return {x,y,hit:r.width>0&&r.height>0&&e.contains(document.elementFromPoint(x,y)),target:e.outerHTML.slice(0,220),cover:document.elementFromPoint(x,y)?.outerHTML.slice(0,350)}})()`)
+    assert.equal(point.hit, true, 'pointer target must be visible and unobscured: '+JSON.stringify(point))
     await js(`window.__qaClickReceived=false;document.addEventListener('click',()=>{window.__qaClickReceived=true},{capture:true,once:true})`)
     wc.sendInputEvent({type:'mouseDown',x:Math.round(point.x),y:Math.round(point.y),button:'left',clickCount:1})
     wc.sendInputEvent({type:'mouseUp',x:Math.round(point.x),y:Math.round(point.y),button:'left',clickCount:1})
     await wait('window.__qaClickReceived', 'pointer click delivered to the renderer')
   }
   const clickSelector = async selector => {
-    await wait(`Boolean(document.querySelector(${JSON.stringify(selector)}))`, `selector ${selector}`)
+    await wait(`Boolean(document.querySelector(${JSON.stringify(selector)})?.getBoundingClientRect().width)`, `visible selector ${selector}`)
     await pointerClick(`document.querySelector(${JSON.stringify(selector)})`)
   }
   const showTools = async () => {
@@ -198,6 +204,20 @@ async function run(win) {
     catch (error) { if (visible) throw error; report.assertions.push({ name: 'capture unavailable while hidden', details: String(error) }) }
   }
   await wait('Boolean(window.electronAPI)', 'preload')
+  if(process.env.JM_QA_RESTORE_WORKSPACE) {
+    await wait(`document.querySelectorAll('[data-reader-tab]').length===2 && Boolean(document.querySelector('[data-reader-start]'))`, 'workspace restored on a cold process start')
+    const saved=await js('window.electronAPI.workspaceGet()'),gpu=await js('window.electronAPI.graphicsGet()')
+    assert.equal(saved.tabs[0].customTitle,'跨进程恢复书签');assert.equal(saved.tabs[0].pinned,true)
+    assert.equal(saved.activeId,saved.tabs[1].id)
+    assert.equal(gpu.requested,false);assert.equal(gpu.runningPreference,false);assert.equal(gpu.restartRequired,false)
+    assert.equal(await js(`document.querySelectorAll('.reader-root').length`),0,'background restored books do not mount images')
+    await clickSelector('[data-reader-tab="online:101"]')
+    await wait(`Boolean(document.querySelector('[data-reader-image-status="ready"]'))`, 'restored book opens with real IPC')
+    assert.equal(await js(`document.querySelector('[data-reader-tab][aria-selected="true"]').textContent.includes('跨进程恢复书签')`),true)
+    await screenshot('cold-workspace-restore')
+    mark('cold restart restores start/book tabs, pin, custom title and active selection; GPU preference applies at startup',{gpu,snapshot:saved})
+    finish(0);return
+  }
   if(process.env.JM_QA_STARTUP) {
     await wait(`window.electronAPI.contentWarmupStatus().then(state=>state.phase==='failed')`, 'startup verification failure')
     await wait(`Boolean(document.querySelector('[data-verification-retry]'))`, 'visible verification retry after startup failure')
@@ -303,6 +323,26 @@ async function run(win) {
       }).catch(fail)
     })
     win.close(); return
+  }
+  if(process.env.JM_QA_PDF) {
+    await require('./pdf-download-smoke.cjs')({win,js,wait,clickText,clickSelector,showTools,screenshot,mark,evidence})
+    assert.equal(report.errors.length,0,report.errors.join('\n'));finish(0);return
+  }
+  if(process.env.JM_QA_EXPERIENCE_SETTINGS) {
+    await require('./experience-settings-smoke.cjs')({win,js,wait,clickText,clickSelector,screenshot,mark})
+    assert.equal(report.errors.length,0,report.errors.join('\n'));finish(0);return
+  }
+  if(process.env.JM_QA_MOTION) {
+    await require('./experience-motion-smoke.cjs')({win,js,wait,clickSelector,screenshot,mark})
+    assert.equal(report.errors.length,0,report.errors.join('\n'));finish(0);return
+  }
+  if(process.env.JM_QA_RESOURCE_MATRIX) {
+    await require('./experience-resource-smoke.cjs')({app,win,js,wait,clickSelector,screenshot,mark,evidence,report})
+    assert.equal(report.errors.length,0,report.errors.join('\n'));finish(0);return
+  }
+  if(process.env.JM_QA_EXPERIENCE_TABS) {
+    await require('./experience-tabs-smoke.cjs')({win,js,wait,clickText,clickSelector,screenshot,mark})
+    assert.equal(report.errors.length,0,report.errors.join('\n'));finish(0);return
   }
   if(process.env.JM_QA_BROWSE_LAYOUT) {
     await require('./browse-layout-smoke.cjs')({win,js,wait,clickText,clickSelector,screenshot,mark})

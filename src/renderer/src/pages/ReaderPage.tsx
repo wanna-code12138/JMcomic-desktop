@@ -11,6 +11,8 @@ import { useReaderSession } from '../reader/useReaderSession'
 import { focusReaderContent } from '../reader/readerFocus'
 import { isReaderShortcutTarget, pageSize, positionAtOffset, READER_TOP_INSET, READER_BOTTOM_INSET, type PageDimensions } from '../reader/readerLayout'
 import '../reader/reader.css'
+import { requestDownload } from '../downloads/downloadRequest'
+import { useExitPresence } from '../motion/motion'
 
 const READING_INSET = READER_TOP_INSET
 const PAGE_GAP = 12
@@ -37,6 +39,8 @@ function ReadingSession({ reader, headerHost }: { reader: ReaderState; headerHos
   const [viewportSize, setViewportSize] = React.useState({ width: 960, height: 800 })
   const [currentPage, setCurrentPage] = React.useState(0)
   const [directory, setDirectory] = React.useState(false)
+  const toolsPresent = useExitPresence(toolsVisible)
+  const directoryPresent = useExitPresence(directory)
   const [fullscreen, setFullscreen] = React.useState(() => Boolean(document.fullscreenElement))
   const [downloadLabel, setDownloadLabel] = React.useState('下载本章')
   const [actionError, setActionError] = React.useState('')
@@ -169,19 +173,19 @@ function ReadingSession({ reader, headerHost }: { reader: ReaderState; headerHos
     let cancelled = false
     const update = (task: DownloadProgress | DownloadTaskRow): void => {
       if (task.mangaId !== reader.mangaId || task.chapterIndex !== reader.chapterIndex) return
-      const labels: Record<string, string> = { completed: '已离线保存', pending: '等待下载', downloading: '正在下载', resolving: '准备下载' }
+      const labels: Record<string, string> = { completed: task.kind === 'pdf' ? 'PDF 已保存' : '图片已保存', pending: '等待下载', downloading: '正在下载', resolving: '准备下载', merging: '正在生成 PDF', committing: '正在保存 PDF' }
       setDownloadLabel(labels[String(task.status)] ?? '下载本章')
     }
     void window.electronAPI?.downloadList().then((tasks) => { if (!cancelled) tasks.forEach(update) })
     const off = window.electronAPI?.onDownloadProgress(update)
     return () => { cancelled = true; off?.() }
   }, [reader])
-  const download = async (): Promise<void> => {
+  const download = async (chooseFormat = false): Promise<void> => {
     setDownloadLabel('准备下载')
     try {
-      const result = await window.electronAPI?.downloadAdd({ mangaId: reader.mangaId, mangaTitle: reader.mangaTitle,
-        chapterIndex: reader.chapterIndex, chapterTitle: reader.chapterTitle, chapterUrl: reader.chapterUrl,
-        coverUrl: reader.mangaCoverUrl, imageUrls: pages.map((page) => page.imageUrl), scrambleId: session.scrambleId })
+      const result = await requestDownload({ mangaId: reader.mangaId, mangaTitle: reader.mangaTitle,
+        coverUrl: reader.mangaCoverUrl, chapters: [{ index: reader.chapterIndex, title: reader.chapterTitle, url: reader.chapterUrl }] }, chooseFormat)
+      if (result.cancelled) { setDownloadLabel('下载本章'); return }
       if (result?.ok === false) throw new Error(result.error)
       setDownloadLabel('等待下载')
     } catch { setDownloadLabel('下载本章'); setActionError('下载任务创建失败，请重试') }
@@ -202,10 +206,10 @@ function ReadingSession({ reader, headerHost }: { reader: ReaderState; headerHos
       else return
       event.preventDefault(); event.stopPropagation()
     }}>
-    {toolsVisible && <ReaderToolbar reader={reader} preferences={preferences}
+    {toolsPresent && <ReaderToolbar reader={reader} preferences={preferences} exiting={!toolsVisible}
       fullscreen={fullscreen} downloadLabel={downloadLabel} change={session.changePreferences}
       toggleDirectory={() => setDirectory(!directory)}
-      toggleFullscreen={toggleFullscreen} download={() => { void download() }} />}
+      toggleFullscreen={toggleFullscreen} download={chooseFormat => { void download(chooseFormat) }} />}
     {session.loading ? <div className="reader-message" role="status"><span className="reader-loading-dot" />正在打开章节…</div>
       : session.error ? <div className="reader-message" role="alert"><h2>暂时无法打开这一章</h2>
         <button onClick={session.retry}>重新加载章节</button><details><summary>查看原因</summary>{session.error}</details></div>
@@ -234,7 +238,8 @@ function ReadingSession({ reader, headerHost }: { reader: ReaderState; headerHos
       </div>}
     {headerHost && pages.length > 0 && createPortal(<ReaderPageNavigation currentPage={currentPage} totalPages={pages.length}
       chapterTitle={reader.chapterTitle} previous={previous} next={next} jump={jump} changeChapter={changeChapter} />, headerHost)}
-    {directory && <aside className="reader-drawer" aria-label="章节目录"><div className="reader-drawer-header">章节与附近页面<button aria-label="关闭目录" onClick={() => setDirectory(false)}>×</button></div>
+    {directoryPresent && <aside className="reader-drawer" data-exiting={!directory} aria-hidden={!directory || undefined}
+      ref={element => { if (element) element.inert = !directory }} aria-label="章节目录"><div className="reader-drawer-header">章节与附近页面<button aria-label="关闭目录" onClick={() => setDirectory(false)}>×</button></div>
       <div className="reader-chapters">{session.chapters.map((chapter) => <button key={chapter.index} disabled={chapter.available === false}
         aria-pressed={chapter.index === reader.chapterIndex} onClick={() => changeChapter(chapter.index)}>{chapter.title}</button>)}</div>
       <div className="reader-thumbnails">{pages.slice(Math.max(0, currentPage - 2), currentPage + 3).map((page) => <button key={page.index}

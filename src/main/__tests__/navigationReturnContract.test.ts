@@ -24,7 +24,10 @@ test('visited primary pages stay mounted while detail is open', () => {
 })
 
 test('inactive preserved pages remain isolated from the visible page', () => {
-  assert.match(hostSource, /height: '100%'[\s\S]*?minHeight: 0[\s\S]*?overflow: 'hidden'/)
+  const css = readFileSync(resolve('src/renderer/src/assets/global.css'), 'utf8')
+  assert.match(css, /\.app-page-stack \{[^}]*height: 100%;[^}]*overflow: hidden/)
+  assert.match(css, /\.app-page-surface \{[^}]*position: absolute; inset: 0; min-height: 0; overflow: hidden/)
+  assert.match(hostSource, /element\.inert = !isCurrent/)
   assert.match(hostSource, /display: isCurrent \? 'block' : 'none'/)
   assert.match(hostSource, /aria-hidden=\{!isCurrent\}/)
 })

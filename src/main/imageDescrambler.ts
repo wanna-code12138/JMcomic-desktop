@@ -9,14 +9,18 @@ const md5 = ${md5.toString()};
 const getDescrambleStripCount = ${getDescrambleStripCount.toString()};
 const buildDescrambleSlices = ${buildDescrambleSlices.toString()};
 const drawDescrambledImage = ${drawDescrambledImage.toString()};
-window.doDescramble = async function(base64, scrambleId, url, mime) {
+window.doDescramble = async function(base64, scrambleId, url, mime, forcePng) {
   const image = new Image();
   image.src = 'data:' + mime + ';base64,' + base64;
   await image.decode();
   const canvas = document.createElement('canvas');
   try {
-    return drawDescrambledImage(canvas, image, scrambleId, url)
-      ? canvas.toDataURL('image/png').split(',')[1] : base64;
+    const changed = drawDescrambledImage(canvas, image, scrambleId, url);
+    if (!changed && forcePng) {
+      canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+      canvas.getContext('2d').drawImage(image, 0, 0);
+    }
+    return changed || forcePng ? canvas.toDataURL('image/png').split(',')[1] : base64;
   } finally {
     canvas.width = 0;
     canvas.height = 0;
@@ -57,9 +61,10 @@ function getDescrambleWindow(): BrowserWindow {
 async function doDescramble(
   inputBuffer: Buffer,
   scrambleId: number,
-  imageUrl: string
+  imageUrl: string,
+  forcePng = false
 ): Promise<Buffer> {
-  if (scrambleId <= 0) return inputBuffer
+  if (scrambleId <= 0 && !forcePng) return inputBuffer
 
   const base64 = inputBuffer.toString('base64')
   const win = getDescrambleWindow()
@@ -68,7 +73,7 @@ async function doDescramble(
   await win.webContents.executeJavaScript('1')
 
   const resultBase64: string = await win.webContents.executeJavaScript(
-    `window.doDescramble(${JSON.stringify(base64)}, ${scrambleId}, ${JSON.stringify(imageUrl)}, ${JSON.stringify(imageMimeType(inputBuffer))})`
+    `window.doDescramble(${JSON.stringify(base64)}, ${scrambleId}, ${JSON.stringify(imageUrl)}, ${JSON.stringify(imageMimeType(inputBuffer))}, ${forcePng})`
   )
 
   return Buffer.from(resultBase64, 'base64')
@@ -85,9 +90,10 @@ let descrambleQueue: Promise<unknown> = Promise.resolve()
 export function descrambleImage(
   inputBuffer: Buffer,
   scrambleId: number,
-  imageUrl: string
+  imageUrl: string,
+  forcePng = false
 ): Promise<Buffer> {
-  const run = descrambleQueue.then(() => doDescramble(inputBuffer, scrambleId, imageUrl))
+  const run = descrambleQueue.then(() => doDescramble(inputBuffer, scrambleId, imageUrl, forcePng))
   descrambleQueue = run.catch(() => {})
   return run
 }

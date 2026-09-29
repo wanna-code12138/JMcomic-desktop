@@ -10,12 +10,14 @@ import {
 import { useAppStore } from '../stores/appStore'
 import { toJmImg } from '../utils/image'
 import { groupTasksByManga, type MangaDownloadGroup, type DownloadTaskRow, type DownloadProgress } from '../../../shared/downloadContracts'
+import type { PdfTask } from '../../../shared/pdfContracts'
 
 type MainTab = 'manga' | 'tasks'
 
 const STATUS_LABEL: Record<string, string> = {
   pending: '等待中',
   downloading: '下载中',
+  resolving: '获取章节', merging: '生成 PDF', committing: '保存 PDF',
   completed: '已完成',
   failed: '失败',
   cancelled: '已取消'
@@ -142,9 +144,10 @@ export default function DownloadsPage(): JSX.Element {
   const setCurrentLocalMangaId = useAppStore((s) => s.setCurrentLocalMangaId)
   const [mainTab, setMainTab] = React.useState<MainTab>('manga')
   const [groups, setGroups] = React.useState<MangaDownloadGroup[]>([])
+  const [pdfTasks, setPdfTasks] = React.useState<PdfTask[]>([])
   const groupsRef = React.useRef(groups)
   const loadingRequest = React.useRef<Promise<void>>()
-  const progressDuringLoad = React.useRef(new Map<number, DownloadProgress>())
+  const progressDuringLoad = React.useRef(new Map<string, DownloadProgress>())
   const reloadRequested = React.useRef(false)
   const [loading, setLoading] = React.useState(true)
   const [actionError, setActionError] = React.useState('')
@@ -172,9 +175,14 @@ export default function DownloadsPage(): JSX.Element {
       do {
         reloadRequested.current = false
         progressDuringLoad.current.clear()
-        const list = await window.electronAPI?.downloadSummary()
+        const [list, pdf] = await Promise.all([window.electronAPI?.downloadSummary(), window.electronAPI?.downloadPdfList()])
+        setPdfTasks((pdf ?? []).map(task => {
+          const progress = progressDuringLoad.current.get(`pdf:${task.id}`)
+          return progress ? { ...task, status: progress.status, downloadedPages: progress.downloadedPages, totalPages: progress.totalPages,
+            mergedPages: progress.mergedPages ?? task.mergedPages } : task
+        }))
         groupsRef.current = groupTasksByManga((list ?? []).flatMap(group => group.tasks.map(task => {
-          const progress = progressDuringLoad.current.get(task.id)
+          const progress = progressDuringLoad.current.get(`images:${task.id}`)
           return progress ? { ...task, status: progress.status, downloadedPages: progress.downloadedPages, totalPages: progress.totalPages } : task
         })))
         progressDuringLoad.current.clear()
@@ -190,7 +198,13 @@ export default function DownloadsPage(): JSX.Element {
     void load()
     let timer: ReturnType<typeof setTimeout> | undefined
     const off = window.electronAPI?.onDownloadProgress((progress) => {
-      if (loadingRequest.current) progressDuringLoad.current.set(progress.taskId, progress)
+      if (loadingRequest.current) progressDuringLoad.current.set(`${progress.kind ?? 'images'}:${progress.taskId}`, progress)
+      if (progress.kind === 'pdf') {
+        setPdfTasks(tasks => tasks.map(task => task.id === progress.taskId ? { ...task, status: progress.status, totalPages: progress.totalPages,
+          downloadedPages: progress.downloadedPages, mergedPages: progress.mergedPages ?? task.mergedPages } : task))
+        if (!timer && progress.status !== 'downloading' && progress.status !== 'merging') timer = setTimeout(() => { timer = undefined; void load() }, 300)
+        return
+      }
       const known = groupsRef.current.some(group => group.tasks.some(task => task.id === progress.taskId))
       if (known) {
         groupsRef.current = groupTasksByManga(groupsRef.current.flatMap(group => group.tasks.map(task => task.id === progress.taskId
@@ -203,8 +217,8 @@ export default function DownloadsPage(): JSX.Element {
   }, [load])
 
   const allTasks = React.useMemo(
-    () => groups.flatMap((g) => g.tasks).sort((a, b) => b.createdAt - a.createdAt),
-    [groups]
+    () => [...groups.flatMap((g) => g.tasks), ...pdfTasks].sort((a, b) => b.createdAt - a.createdAt),
+    [groups, pdfTasks]
   )
   const completedGroups = React.useMemo(
     () => groups.filter((g) => g.completedChapters > 0),
@@ -258,7 +272,7 @@ export default function DownloadsPage(): JSX.Element {
         ? `确定删除任务《${task.mangaTitle} - ${task.chapterTitle}》并删除本地文件吗？此操作不可恢复。`
         : `确定删除任务《${task.mangaTitle} - ${task.chapterTitle}》吗？本地文件将保留。`,
       onConfirm: () => {
-        void window.electronAPI?.downloadRemove(task.id, deleteFiles).then((r) => {
+        void window.electronAPI?.downloadRemove({ kind: task.kind ?? 'images', id: task.id }, deleteFiles).then((r) => {
           if (!r?.ok) setActionError(r?.error ?? '删除失败')
           void load()
         })
@@ -284,11 +298,18 @@ export default function DownloadsPage(): JSX.Element {
           {actionMsg}
         </Text>
       )}
+      {mainTab === 'manga' && pdfTasks.some(task => task.status === 'completed') && <section className="download-pdf-library">
+        <h2>PDF 文档</h2>{pdfTasks.filter(task => task.status === 'completed').map(task => <div className="download-pdf-card" key={task.id}>
+          <span className="download-format-badge">PDF</span><div><strong>{task.mangaTitle}</strong><small>{task.outputFile} · {task.totalPages} 页{task.available === false ? ' · 文件缺失' : ''}</small></div>
+          <Button size="small" disabled={task.available === false} onClick={() => { void window.electronAPI?.downloadOpenPdf(task.id).then(result => { if (!result.ok) setActionError(result.error) }) }}>打开 PDF</Button>
+          <Button size="small" appearance="subtle" icon={<FolderOpen20Regular />} aria-label="显示 PDF 所在文件夹" onClick={() => { void window.electronAPI?.downloadOpenTaskFolder({ kind: 'pdf', id: task.id }) }} />
+        </div>)}
+      </section>}
 
       {loading ? (
         <div className={styles.statusMsg}><Text size={300}>加载中…</Text></div>
       ) : mainTab === 'manga' ? (
-        completedGroups.length === 0 ? (
+        completedGroups.length === 0 ? pdfTasks.some(task => task.status === 'completed') ? null : (
           <div className={styles.statusMsg}>
             <Text size={400}>📥 还没有下载完成的漫画</Text>
             <Text size={200}>下载完成后会出现在这里，点击即可离线阅读</Text>
@@ -367,17 +388,19 @@ export default function DownloadsPage(): JSX.Element {
             const progress = task.totalPages > 0
               ? Math.min(1, task.downloadedPages / task.totalPages)
               : 0
-            const active = task.status === 'pending' || task.status === 'downloading'
+            const active = ['pending', 'downloading', 'resolving', 'merging', 'committing'].includes(task.status)
+            const identity = { kind: task.kind ?? 'images', id: task.id } as const
             const retryable = task.status === 'failed' || task.status === 'cancelled' || (task.status === 'completed' && task.available === false)
             return (
-              <div key={task.id} className={styles.taskItem}>
+              <div key={`${identity.kind}:${task.id}`} className={`${styles.taskItem} download-task-row`} data-download-kind={identity.kind}>
                 <div className={styles.taskInfo}>
                   <div className={styles.taskTitle}>
-                    {task.mangaTitle} - {task.chapterTitle}
+                    <span className="download-format-badge">{task.kind === 'pdf' ? 'PDF' : '图片'}</span>{task.mangaTitle} - {task.chapterTitle}
                   </div>
                   <div className={styles.taskMeta}>
                     {STATUS_LABEL[task.status] ?? task.status}
                     {active && ` · ${task.downloadedPages}/${task.totalPages} 页`}
+                    {'mergedPages' in task && task.status === 'merging' && ` · 已合并 ${task.mergedPages} 页`}
                   </div>
                   {task.status === 'completed' && task.available === false && (
                     <Tooltip content={missingFileMessage(task.availabilityReason)} relationship="description">
@@ -389,29 +412,31 @@ export default function DownloadsPage(): JSX.Element {
                       {task.error}
                     </Text>
                   )}
-                  {(task.status === 'downloading' || task.status === 'pending') && (
+                  {active && (
                     <div className={styles.taskProgress} style={{ marginTop: '6px', height: '4px', borderRadius: '2px', backgroundColor: 'var(--ui-stroke-card)', overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: `${Math.round(progress * 100)}%`, backgroundColor: 'var(--ui-brand)', transition: 'width var(--ui-motion-standard) ease-out' }} />
                     </div>
                   )}
                 </div>
                 <div className={styles.taskActions}>
-                  {task.status === 'completed' && task.available !== false && <Button size="small" appearance="subtle" disabled={exporting} onClick={() => void exportCbz({ taskId: task.id })}>导出 CBZ</Button>}
+                  {task.status === 'completed' && task.available !== false && (task.kind === 'pdf'
+                    ? <Button size="small" appearance="subtle" onClick={() => { void window.electronAPI?.downloadOpenPdf(task.id).then(result => { if (!result.ok) setActionError(result.error) }) }}>打开 PDF</Button>
+                    : <Button size="small" appearance="subtle" disabled={exporting} onClick={() => void exportCbz({ taskId: task.id })}>导出 CBZ</Button>)}
                   {active && (
                     <Tooltip content="取消" relationship="label">
                       <Button size="small" appearance="subtle" icon={<Dismiss20Regular />}
-                        onClick={() => void window.electronAPI?.downloadCancel(task.id)} />
+                        onClick={() => void window.electronAPI?.downloadCancel(identity).then(result => { if (!result.ok) setActionError(result.error); void load() })} />
                     </Tooltip>
                   )}
                   {retryable && (
                     <Tooltip content={task.status === 'completed' ? '修复缺失页' : '重试'} relationship="label">
                       <Button size="small" appearance="subtle" icon={<ArrowClockwise20Regular />}
-                        onClick={() => void window.electronAPI?.downloadRetry(task.id).then(result => { if (!result.ok) setActionError(result.error ?? '重试失败'); void load() })}>{task.status === 'completed' ? '修复缺失页' : null}</Button>
+                        onClick={() => void window.electronAPI?.downloadRetry(identity).then(result => { if (!result.ok) setActionError(result.error ?? '重试失败'); void load() })}>{task.status === 'completed' ? '修复缺失页' : null}</Button>
                     </Tooltip>
                   )}
                   <Tooltip content="打开文件夹" relationship="label">
                     <Button size="small" appearance="subtle" icon={<FolderOpen20Regular />}
-                      onClick={() => void window.electronAPI?.downloadOpenTaskFolder(task.id).then((r) => {
+                      onClick={() => void window.electronAPI?.downloadOpenTaskFolder(identity).then((r) => {
                         if (!r?.ok) setActionError(r?.error ?? '打开文件夹失败')
                       })} />
                   </Tooltip>

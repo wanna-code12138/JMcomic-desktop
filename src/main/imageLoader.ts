@@ -20,7 +20,7 @@ export interface ImageResult {
   error?: string
 }
 
-interface ImageLoaderOptions {
+export interface ImageLoaderOptions {
   concurrency?: number
   maxRetries?: number
   signal?: AbortSignal

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { mkdirSync, copyFileSync, writeFileSync, createReadStream } from 'node:fs'
 import { resolve, join, basename } from 'node:path'
-import { createHash } from 'node:crypto'
+import { createHash, randomInt } from 'node:crypto'
 import { createServer } from 'node:net'
 import { installPackageFixture, testPackageFixture } from './package-fixture.mjs'
 
@@ -24,11 +24,17 @@ for await (const chunk of createReadStream(original)) sha.update(chunk)
 const report = {executable:original,sha256:sha.digest('hex'),mode:`direct packaged EXE / ${fixture?'synthetic network and save dialog':'real network'}`,assertions:[],errors:[]}
 const sleep = ms=>new Promise(resolve=>setTimeout(resolve,ms))
 async function freePort() {
-  const server=createServer()
-  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve))
-  const port=server.address().port
-  await new Promise(resolve=>server.close(resolve))
-  return port
+  // Windows may assign low ephemeral ports that fetch deliberately rejects (e.g. 3659).
+  for(let attempt=0;attempt<20;attempt++) {
+    const server=createServer()
+    try {
+      await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(randomInt(20000,60000),'127.0.0.1',resolve)})
+      const port=server.address().port
+      await new Promise(resolve=>server.close(resolve))
+      return port
+    } catch(error) { if(!['EADDRINUSE','EACCES'].includes(error.code))throw error }
+  }
+  throw Error('No available local QA inspector port')
 }
 const mainPort=await freePort(), rendererPort=await freePort()
 const env={...process.env}
@@ -63,6 +69,14 @@ async function connect(port,predicate) {
   socket.onmessage=event=>{
     const message=JSON.parse(event.data)
     if(!message.id) {
+      if(message.method==='NodeWorker.attachedToWorker') {
+        report.workerInspections??=[]
+        report.workerInspections.push(message.params.workerInfo)
+        // The QA --inspect-brk launch can also pause worker entrypoints. Resume through
+        // the official inspector protocol; keep the packaged worker implementation intact.
+        void call('NodeWorker.sendMessageToWorker',{sessionId:message.params.sessionId,
+          message:JSON.stringify({id:1,method:'Runtime.runIfWaitingForDebugger'})}).catch(error=>runtimeErrors.push(String(error)))
+      }
       if(message.method==='Debugger.paused')paused=message.params
       if(message.method==='Runtime.exceptionThrown')runtimeErrors.push(message.params.exceptionDetails.exception?.description||message.params.exceptionDetails.text)
       return
@@ -95,10 +109,12 @@ try {
     await waitFor(()=>main.paused,'packaged entrypoint pause')
     await main.evaluate(`(${installPackageFixture.toString()})(${JSON.stringify(join(evidence,'sample.cbz'))})`)
     await main.call('Debugger.resume')
+    await main.call('NodeWorker.enable',{waitForDebuggerOnStart:false})
   }
   renderer=await connect(rendererPort,target=>target.type==='page'&&target.url.includes('/out/renderer/index.html'))
   report.runtime=await main.evaluate(`(()=>{const app=process.mainModule.require('electron').app;return {packaged:app.isPackaged,version:app.getVersion(),appPath:app.getAppPath(),userData:app.getPath('userData'),electron:process.versions.electron,node:process.versions.node}})()`)
   assert.equal(report.runtime.packaged,true)
+  assert.equal(report.runtime.version,'1.1.0','the delivered EXE must expose the unified release version')
   assert.equal(resolve(report.runtime.userData),profile,'the real EXE must use the isolated profile')
   assert.ok(report.runtime.appPath.endsWith('app.asar'))
   const archiveSha=createHash('sha256')
@@ -121,6 +137,29 @@ try {
     await clickElement(query)
   }
   if(fixture)await testPackageFixture({js,main,waitFor,click,clickElement,report,downloadDir:join(root,'downloads')})
+  if(fixture) {
+    await click('下载')
+    await waitFor(()=>js(`document.querySelector('[data-browse-pane]').textContent.includes('PDF')`),'packaged PDF library')
+    const capture=async name=>{
+      await js(`Promise.race([Promise.all(document.getAnimations().map(a=>a.finished.catch(()=>{}))),new Promise(resolve=>setTimeout(resolve,400))])`)
+      await main.evaluate(`(()=>{const wc=process.mainModule.require('electron').BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().includes('/out/renderer/index.html')).webContents;
+        globalThis.__qaCapture={done:false};wc.invalidate();(async()=>{
+          await wc.capturePage(undefined,{stayHidden:true,stayAwake:true});
+          await wc.executeJavaScript('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+          const image=await wc.capturePage(undefined,{stayHidden:true,stayAwake:true});
+          process.mainModule.require('node:fs').writeFileSync(${JSON.stringify(join(evidence,name+'.png'))},image.toPNG());globalThis.__qaCapture={done:true};
+        })().catch(error=>{globalThis.__qaCapture={done:true,error:String(error)}})})()`)
+      await waitFor(()=>main.evaluate('globalThis.__qaCapture.done'),'hidden-window capture',10000)
+      assert.equal(await main.evaluate('globalThis.__qaCapture.error'),undefined)
+    }
+    await capture('release-downloads')
+    await click('新建阅读标签')
+    await waitFor(()=>js(`Boolean(document.querySelector('[data-reader-start]'))`),'packaged new tab')
+    await capture('release-start')
+    await click('设置')
+    await waitFor(()=>js(`Boolean(document.querySelector('[aria-label="GPU 硬件加速"]'))`),'packaged experience settings')
+    await capture('release-settings')
+  }
   if(mangaId) {
     assert.match(mangaId,/^\d+$/)
     console.log('QA: waiting for real startup verification before reader input')

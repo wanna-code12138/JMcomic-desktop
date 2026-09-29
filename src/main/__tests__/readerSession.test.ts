@@ -40,7 +40,9 @@ test('history IPC saves in-page offsets and ignores a late previous-chapter upda
   const ipc = loadModule<typeof import('../ipc')>('src/main/ipc.ts', {
     electron: { ipcMain: { handle: (name: string, fn: Function) => handlers.set(name, fn) } },
     './database': { getDatabase: async () => db, saveDatabase: async () => {}, scheduleDatabaseSave: () => { scheduled++ } },
-    './scraperWindow': {}, './imageLoader': {}, './settingsStore': {}, './windowChrome': {}, './localImageProtocol': {}, './contentApi': {}
+    './scraperWindow': {}, './imageLoader': {}, './settingsStore': {}, './windowChrome': {}, './localImageProtocol': {}, './contentApi': {},
+    './workspacePersistence': { readWorkspaceSnapshot: async () => null, writeWorkspaceSnapshot: async () => {} },
+    './downloadManager': {}, './downloadExport': {}, './pdfDownloadManager': {}
   })
   ipc.registerIpcHandlers()
   const call = (name: string, ...args: unknown[]) => handlers.get(name)!(null, ...args)

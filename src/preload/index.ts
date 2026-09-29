@@ -4,6 +4,16 @@ import type { AppSettings } from '../main/settingsCore'
 import type { MangaDetail } from '../main/types'
 import type { ReadingHistory, HistoryPositionContext, ReaderPagesReply } from '../shared/readerContracts'
 import type { DownloadTaskRow, MangaDownloadGroup, DownloadProgress } from '../shared/downloadContracts'
+import type { WorkspaceSnapshot } from '../shared/workspaceSnapshot'
+import type { GraphicsStatus } from '../shared/graphicsContracts'
+import type { PdfDownloadRequest, PdfTask } from '../shared/pdfContracts'
+import type { DownloadTaskIdentity } from '../shared/downloadContracts'
+
+const taskCommand = (command: string, target: DownloadTaskIdentity | number, deleteFiles?: boolean) => {
+  const task = typeof target === 'number' ? { kind: 'images', id: target } : target
+  return task.kind === 'pdf' ? ipcRenderer.invoke('download:pdfCommand', command, task.id, deleteFiles)
+    : ipcRenderer.invoke(`download:${command === 'folder' ? 'openTaskFolder' : command}`, task.id, deleteFiles)
+}
 
 const closeHandlers = new Set<() => Promise<void>>()
 ipcRenderer.on('window:prepare-close', async (_event, id: string) => {
@@ -58,6 +68,16 @@ const api = {
 
   // Settings
   settingsGet: (): Promise<AppSettings> => ipcRenderer.invoke('settings:get'),
+  workspaceGet: (): Promise<WorkspaceSnapshot | null> => ipcRenderer.invoke('workspace:get'),
+  workspaceSet: (snapshot: WorkspaceSnapshot): Promise<void> => ipcRenderer.invoke('workspace:set', snapshot),
+  graphicsGet: (): Promise<GraphicsStatus> => ipcRenderer.invoke('graphics:get'),
+  graphicsSet: (enabled: boolean): Promise<GraphicsStatus> => ipcRenderer.invoke('graphics:set', enabled),
+  onGraphicsChanged: (callback: (status: GraphicsStatus) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, status: GraphicsStatus): void => callback(status)
+    ipcRenderer.on('graphics:changed', handler)
+    return () => { ipcRenderer.removeListener('graphics:changed', handler) }
+  },
+  appRestart: (): Promise<void> => ipcRenderer.invoke('app:restart'),
   settingsSet: (patch: Record<string, unknown>): Promise<AppSettings> => ipcRenderer.invoke('settings:set', patch),
 
   // Image loading
@@ -69,19 +89,31 @@ const api = {
   downloadAdd: (data: Record<string, unknown>) => ipcRenderer.invoke('download:add', data),
   downloadAddChapters: (data: Record<string, unknown>) =>
     ipcRenderer.invoke('download:addChapters', data),
-  downloadList: (): Promise<DownloadTaskRow[]> => ipcRenderer.invoke('download:list'),
+  downloadPdfAdd: (data: PdfDownloadRequest): Promise<{ ok: boolean; taskId?: number; error?: string }> => ipcRenderer.invoke('download:pdfAdd', data),
+  downloadPdfList: (): Promise<PdfTask[]> => ipcRenderer.invoke('download:pdfList'),
+  downloadList: async (): Promise<Array<DownloadTaskRow | PdfTask>> => {
+    const [images, pdf] = await Promise.all([ipcRenderer.invoke('download:list'), ipcRenderer.invoke('download:pdfList')])
+    return [...images, ...pdf].sort((a, b) => b.createdAt - a.createdAt || b.id - a.id)
+  },
+  downloadOpenPdf: (id: number) => taskCommand('open', { kind: 'pdf', id }),
   downloadSummary: (): Promise<MangaDownloadGroup[]> => ipcRenderer.invoke('download:summary'),
   downloadExportCbz: (selection: { mangaId?: string; taskId?: number }): Promise<{ ok?: boolean; canceled?: boolean; path?: string; pages?: number; error?: string }> => ipcRenderer.invoke('download:exportCbz', selection),
   downloadMangaDetail: (mangaId: string): Promise<MangaDownloadGroup | null> => ipcRenderer.invoke('download:mangaDetail', mangaId),
-  downloadCancel: (taskId: number) => ipcRenderer.invoke('download:cancel', taskId),
-  downloadRetry: (taskId: number) => ipcRenderer.invoke('download:retry', taskId),
-  downloadRetryFailed: () => ipcRenderer.invoke('download:retryFailed'),
-  downloadRemove: (taskId: number, deleteFiles: boolean) =>
-    ipcRenderer.invoke('download:remove', taskId, deleteFiles),
+  downloadCancel: (task: DownloadTaskIdentity | number) => taskCommand('cancel', task),
+  downloadRetry: (task: DownloadTaskIdentity | number) => taskCommand('retry', task),
+  downloadRetryFailed: async () => {
+    const image = await ipcRenderer.invoke('download:retryFailed')
+    const pdf: PdfTask[] = await ipcRenderer.invoke('download:pdfList')
+    let retried = image.retried ?? 0
+    for (const task of pdf.filter(task => ['failed', 'cancelled'].includes(task.status))) {
+      const result = await taskCommand('retry', { kind: 'pdf', id: task.id }); if (result.ok) retried++
+    }
+    return { ...image, retried }
+  },
+  downloadRemove: (task: DownloadTaskIdentity | number, deleteFiles: boolean) => taskCommand('remove', task, deleteFiles),
   downloadRemoveManga: (mangaId: string, deleteFiles: boolean) =>
     ipcRenderer.invoke('download:removeManga', mangaId, deleteFiles),
-  downloadOpenTaskFolder: (taskId: number) =>
-    ipcRenderer.invoke('download:openTaskFolder', taskId),
+  downloadOpenTaskFolder: (task: DownloadTaskIdentity | number) => taskCommand('folder', task),
   downloadOpenMangaFolder: (mangaId: string) =>
     ipcRenderer.invoke('download:openMangaFolder', mangaId),
   downloadChapterPages: (mangaId: string, chapterIndex: number): Promise<ReaderPagesReply> =>

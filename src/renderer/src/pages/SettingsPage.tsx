@@ -1,12 +1,13 @@
 import React from 'react'
 import {
-  makeStyles, Text, Switch, Slider, Button,
+  makeStyles, Text, Switch, Slider, Button, Select,
   Card, Input, Dialog, DialogSurface, DialogBody,
   DialogTitle, DialogContent, DialogActions
 } from '@fluentui/react-components'
 import { ArrowSync20Regular } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
 import { RECOMMENDATION_TAGS } from '../../../shared/recommendationCore'
+import ExperienceSettings from '../components/ExperienceSettings'
 
 const useStyles = makeStyles({
   root: {
@@ -34,6 +35,7 @@ const useStyles = makeStyles({
   },
   row: {
     display: 'flex',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: '24px'
@@ -95,7 +97,7 @@ export default function SettingsPage(): JSX.Element {
   } = useAppStore()
 
   const [dataStatus, setDataStatus] = React.useState('')
-  const [appVersion, setAppVersion] = React.useState('1.0.3')
+  const [appVersion, setAppVersion] = React.useState('…')
 
   // 手动代理
   const [proxyEnabled, setProxyEnabled] = React.useState(false)
@@ -118,6 +120,7 @@ export default function SettingsPage(): JSX.Element {
   const [downloadConcurrency, setDownloadConcurrency] = React.useState(4)
   const [downloadRetries, setDownloadRetries] = React.useState(3)
   const [downloadResumeOnStartup, setDownloadResumeOnStartup] = React.useState(true)
+  const [downloadFormat, setDownloadFormat] = React.useState<'ask' | 'images' | 'pdf'>('ask')
   const downloadTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // 推荐偏好（显式选择，不读取收藏、历史或搜索数据）
@@ -140,6 +143,7 @@ export default function SettingsPage(): JSX.Element {
       setDownloadConcurrency(s.downloadConcurrency)
       setDownloadRetries(s.downloadRetries)
       setDownloadResumeOnStartup(s.downloadResumeOnStartup)
+      setDownloadFormat(s.downloadFormat)
       setRecommendationTags(s.recommendationTags ?? [])
     })
 
@@ -334,19 +338,26 @@ export default function SettingsPage(): JSX.Element {
   const handleClearPersonalData = async (): Promise<void> => {
     const confirmed = window.confirm(
       '确定要清除所有内部个人数据吗？\n\n' +
-      '收藏、阅读历史、搜索历史、下载记录和登录凭据都会被删除，且无法恢复。'
+      '收藏、阅读历史、搜索历史、标签记录、下载记录和登录凭据都会被删除，且无法恢复。\n正在进行的下载会停止，已完成的文件保留。'
     )
     if (!confirmed) return
+    try {
+    useAppStore.setState({ readerClosing: true })
+    await useAppStore.getState().flushReaderWorkspace()
+    useAppStore.setState({ readerTabs: [], closedReaderTabs: [], activeReaderId: null, readerVisible: false, readerExpanded: false,
+      readerAutoCollapse: false, readerSidebarCollapsed: useAppStore.getState().navigationCollapsed })
     const counts = await window.electronAPI?.personalDataClear()
     if (!counts) return
     setDataStatus(
       `已清除：收藏 ${counts.favorites} 条、历史 ${counts.readingHistory} 条、` +
       `搜索 ${counts.searchHistory} 条、下载 ${counts.downloads} 条、登录凭据 ${counts.auth} 条`
     )
+    } catch (error) { setDataStatus(`清除失败：${String(error)}`) }
+    finally { useAppStore.getState().cancelReaderClose() }
   }
 
   return (
-    <div className={styles.root}>
+    <div className={`${styles.root} settings-page`}>
       {/* Appearance */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>外观</Text>
@@ -399,6 +410,10 @@ export default function SettingsPage(): JSX.Element {
         </Card>
       </div>
 
+      <div className={styles.section}>
+        <Text size={500} weight="semibold" className={styles.sectionTitle}>阅读与交互</Text>
+        <ExperienceSettings cardClass={styles.card} rowClass={styles.row} />
+      </div>
       {/* Recommendations */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>推荐</Text>
@@ -518,13 +533,20 @@ export default function SettingsPage(): JSX.Element {
       {/* Downloads */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>下载</Text>
+        <Card className={styles.card}><div className={styles.row}>
+          <div><Text weight="semibold">默认下载格式</Text><p className="settings-caption">未选择默认格式时，每次下载都会询问。</p></div>
+          <Select aria-label="默认下载格式" value={downloadFormat} onChange={async (_event, data) => {
+            try { const settings = await window.electronAPI?.settingsSet({ downloadFormat: data.value }); if (settings) setDownloadFormat(settings.downloadFormat) }
+            catch { setDataStatus('下载格式未能保存，请重试。') }
+          }}><option value="ask">每次询问</option><option value="images">逐张图片</option><option value="pdf">合并为 PDF</option></Select>
+        </div></Card>
         <Card className={styles.card}>
           <div className={styles.row}>
             <div>
               <Text weight="semibold">下载目录</Text>
               <div>
                 <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>
-                  漫画按「目录/漫画名/章节名」保存，新任务使用此目录
+                  图片按漫画和章节分目录保存；PDF 直接保存到此目录
                 </Text>
               </div>
             </div>

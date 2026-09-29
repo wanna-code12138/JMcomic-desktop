@@ -33,7 +33,8 @@ test('renderer types expose downloaded-file availability without replacing exist
 test('download task rows render a recoverable missing-file state', () => {
   assert.match(downloads, /task\.status === 'completed' && task\.available === false/)
   assert.match(downloads, />文件缺失</)
-  assert.match(downloads, /downloadOpenTaskFolder\(task\.id\)/)
+  assert.match(downloads, /downloadOpenTaskFolder\(identity\)/)
+  assert.match(downloads, /const identity = \{ kind: task\.kind \?\? 'images', id: task\.id \}/)
 })
 
 test('local detail guards reader opening for unavailable chapters', () => {

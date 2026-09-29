@@ -11,6 +11,17 @@ const book = (mangaId: string, chapterIndex = 0, local = false): ReaderState => 
 })
 const reset = () => useAppStore.setState({ ...initial, currentPage: 'detail', currentMangaId: '1' })
 
+test('workspace tab limit prevents an unsaveable session and allows closing before trying again', async () => {
+  reset()
+  useAppStore.setState({ readerTabs: Array.from({ length: 100 }, (_, i) => ({ id: `start:${i}`, kind: 'start', pinned: false })), activeReaderId: 'start:99' })
+  assert.equal(await state().newReaderTab(), false)
+  assert.equal(state().readerTabs.length, 100)
+  assert.match(state().readerTransitionError, /100/)
+  await state().closeReader('start:99')
+  assert.equal(await state().newReaderTab(), true)
+  assert.equal(state().readerTabs.length, 100)
+})
+
 test('hiding the reader preserves tabs and the active session; opening the same book reveals it without reloading', async () => {
   reset()
   assert.equal(state().readerVisible, false)
@@ -194,4 +205,124 @@ test('retrying a failed close save clears the recovered error', async () => {
   off()
   assert.equal(state().readerTransitionError, '')
   assert.deepEqual(leaving, [true, false], 'an in-place retry must save without suspending the retained chapter')
+})
+
+test('new tabs are independent start pages and a book replaces the active start page', async () => {
+  reset()
+  assert.equal(typeof state().newReaderTab, 'function', 'the workspace needs a new-tab action')
+  await state().newReaderTab()
+  const first = state().activeReaderId
+  await state().newReaderTab()
+  const second = state().activeReaderId
+  assert.notEqual(first, second)
+  assert.equal(state().readerTabs.length, 2)
+  assert.ok(state().readerTabs.every((tab: any) => tab.kind === 'start' && !tab.reader))
+  await state().openReader(book('1'))
+  assert.equal(state().activeReaderId, second)
+  assert.equal(state().readerTabs.length, 2)
+  assert.equal(state().readerTabs[1].reader.mangaId, '1')
+  await state().activateReader(first)
+  await state().openReader(book('1'))
+  assert.equal(state().activeReaderId, second, 'existing books win over the empty target')
+  assert.equal(state().readerTabs.length, 2)
+})
+
+test('tab metadata and reorder do not save, replace the reader object, or lose concurrent updates', async () => {
+  reset()
+  await state().openReader(book('1'))
+  await state().openReader(book('2'))
+  const reader = state().readerTabs[1].reader
+  let saves = 0
+  let release!: () => void
+  const gate = new Promise<void>(done => { release = done })
+  const off = state().registerReaderSession('online:2', async () => { saves++; await gate; return { pageIndex: 8, pageOffset: 0.25 } })
+  try {
+    assert.equal(typeof state().renameReaderTab, 'function')
+    await state().renameReaderTab('online:2', ' My book ')
+    await state().pinReaderTab('online:2', true)
+    assert.equal(saves, 0)
+    assert.equal(state().readerTabs[0].reader, reader)
+    assert.equal(state().readerTabs[0].customTitle, 'My book')
+    const switching = state().activateReader('online:1')
+    const rename = state().renameReaderTab('online:2', 'Kept after saving')
+    const reorder = state().moveReaderTab('online:1', 0)
+    release()
+    await Promise.all([switching, rename, reorder])
+    assert.equal(saves, 1)
+    assert.equal(state().readerTabs[0].id, 'online:2', 'unpinned items cannot cross into the pinned partition')
+    assert.equal(state().readerTabs[0].customTitle, 'Kept after saving')
+    assert.equal(state().readerTabs[0].reader.resumePageIndex, 8)
+    await state().openReader(book('2', 1))
+    assert.equal(state().readerTabs[0].pinned, true)
+    assert.equal(state().readerTabs[0].customTitle, 'Kept after saving')
+  } finally { release(); off() }
+})
+
+test('batch close protects pinned tabs and undo restores the saved anchor without duplication', async () => {
+  reset()
+  for (const id of ['1', '2', '3']) await state().openReader(book(id))
+  assert.equal(typeof state().closeReaderTabs, 'function')
+  await state().pinReaderTab('online:1', true)
+  const off = state().registerReaderSession('online:3', async () => ({ pageIndex: 9, pageOffset: 0.3 }))
+  try {
+    await state().closeReaderTabs('others', 'online:2')
+    assert.deepEqual(state().readerTabs.map((tab: any) => tab.id), ['online:1', 'online:2'])
+    assert.equal(state().closedReaderTabs.length, 1)
+    await state().reopenReaderTab()
+    assert.equal(state().activeReaderId, 'online:3')
+    assert.equal(state().readerTabs[2].reader.resumePageIndex, 9)
+    await state().closeReader('online:3')
+    await state().openReader(book('3'))
+    await state().reopenReaderTab()
+    assert.equal(state().readerTabs.length, 3)
+    assert.equal(state().closedReaderTabs.length, 0)
+  } finally { off() }
+})
+
+test('failed closing does not alter the closed stack and the stack is bounded', async () => {
+  reset()
+  await state().openReader(book('1'))
+  const off = state().registerReaderSession('online:1', async () => { throw Error('disk full') })
+  assert.equal(await state().closeReader('online:1'), false)
+  assert.deepEqual(state().closedReaderTabs, [])
+  off()
+  for (let i = 0; i < 24; i++) {
+    await state().newReaderTab()
+    await state().closeReader()
+  }
+  assert.equal(state().closedReaderTabs.length, 20)
+})
+
+test('hiding undoes automatic navigation collapse but preserves explicit user choices', async () => {
+  reset()
+  await state().openReader(book('1'))
+  state().setReaderVisible(false)
+  assert.equal(state().readerSidebarCollapsed, false, 'automatic collapse is temporary')
+  state().setReaderVisible(true)
+  assert.equal(state().readerSidebarCollapsed, true)
+  state().setReaderSidebarCollapsed(false)
+  state().setReaderVisible(false)
+  state().setReaderVisible(true)
+  assert.equal(state().readerSidebarCollapsed, false, 'manual expansion takes precedence')
+  state().setReaderSidebarCollapsed(true)
+  await state().closeReader()
+  assert.equal(state().readerSidebarCollapsed, true, 'final close preserves a manual compact navigation')
+})
+
+test('optional workspace persistence saves the final anchor without remounting and propagates disk failure', async () => {
+  reset()
+  assert.equal(typeof state().registerWorkspacePersistence, 'function')
+  await state().openReader(book('1'))
+  const original = state().readerTabs[0].reader
+  const off = state().registerReaderSession('online:1', async () => ({ pageIndex: 12, pageOffset: 0.6 }))
+  let saved: any, fail = false
+  const unbind = state().registerWorkspacePersistence(async (snapshot: any) => { if (fail) throw Error('disk full'); saved = snapshot })
+  try {
+    await state().flushReaderWorkspace()
+    assert.equal(saved.tabs[0].reader.resumePageIndex, 12)
+    assert.equal(state().readerTabs[0].reader, original)
+    state().cancelReaderClose(); fail = true
+    await assert.rejects(state().flushReaderWorkspace())
+    assert.equal(state().readerClosing, false)
+  } finally { off(); unbind() }
 })

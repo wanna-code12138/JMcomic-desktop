@@ -7,6 +7,10 @@ export interface AppSettings extends ReaderPreferences {
   themeMode: ThemeMode
   micaEnabled: boolean
   solidWindow: boolean
+  animationsEnabled: boolean
+  restoreReaderWorkspace: boolean
+  browseRatio: number
+  downloadFormat: 'ask' | 'images' | 'pdf'
   proxyEnabled: boolean
   proxyUrl: string
   cacheLimitMb: number
@@ -27,6 +31,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   themeMode: 'system',
   micaEnabled: true,
   solidWindow: false,
+  animationsEnabled: true,
+  restoreReaderWorkspace: false,
+  browseRatio: 0.4,
+  downloadFormat: 'ask',
   proxyEnabled: false,
   proxyUrl: '',
   cacheLimitMb: 1000,
@@ -85,6 +93,10 @@ export function normalizeSettings(raw: Record<string, unknown>): AppSettings {
     themeMode,
     micaEnabled: toBoolean(raw.micaEnabled, DEFAULT_SETTINGS.micaEnabled),
     solidWindow: toBoolean(raw.solidWindow, DEFAULT_SETTINGS.solidWindow),
+    animationsEnabled: toBoolean(raw.animationsEnabled, true),
+    restoreReaderWorkspace: toBoolean(raw.restoreReaderWorkspace, false),
+    browseRatio: Math.max(0.25, Math.min(0.65, toNumber(raw.browseRatio, 0.4))),
+    downloadFormat: raw.downloadFormat === 'images' || raw.downloadFormat === 'pdf' ? raw.downloadFormat : 'ask',
     proxyEnabled: toBoolean(raw.proxyEnabled, DEFAULT_SETTINGS.proxyEnabled),
     proxyUrl: typeof raw.proxyUrl === 'string' ? raw.proxyUrl.trim() : DEFAULT_SETTINGS.proxyUrl,
     cacheLimitMb,

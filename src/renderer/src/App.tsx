@@ -7,6 +7,10 @@ import AppNavigation from './components/AppNavigation'
 import AppStatusBar from './components/AppStatusBar'
 import PageHost, { type PageId } from './components/PageHost'
 import ReaderWorkspace from './reader/ReaderWorkspace'
+import { installWorkspaceShortcuts } from './reader/workspaceShortcuts'
+import { installWorkspacePersistence } from './reader/workspacePersistence'
+import DownloadFormatDialog from './downloads/DownloadFormatDialog'
+import { useExitPresence } from './motion/motion'
 
 import { touchPage, createPageCacheState, type PrimaryPageId } from './navigation/pageStateCache'
 
@@ -34,11 +38,15 @@ interface AppProps {
 export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Element {
   const currentPage = useAppStore((state) => state.currentPage)
   const hasReader = useAppStore((state) => state.readerTabs.length > 0)
+  const readerPresent = useExitPresence(hasReader)
   const readerExpanded = useAppStore((state) => state.readerExpanded)
   const readerVisible = useAppStore((state) => state.readerVisible)
   const readerClosing = useAppStore((state) => state.readerClosing)
+  const restoreWorkspace = useAppStore(state => state.restoreReaderWorkspace)
   const [pageCache, setPageCache] = React.useState(() => createPageCacheState('home'))
   const visitedPrimaryPages = pageCache.mounted as readonly PrimaryNavPageId[]
+  React.useEffect(installWorkspaceShortcuts, [])
+  React.useEffect(() => restoreWorkspace ? installWorkspacePersistence() : undefined, [restoreWorkspace])
 
   React.useEffect(() => {
     const offClose = window.electronAPI?.onBeforeClose(() => useAppStore.getState().flushReaderWorkspace())
@@ -67,15 +75,15 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
   ]
 
   return (
-    <AppFrame
+    <><AppFrame
       titleBar={<TitleBar darkMode={darkMode} onToggleDarkMode={onToggleDarkMode} />}
       navigation={<AppNavigation />}
       page={<PageHost currentPage={currentPage as PageId} mountedPages={mountedPages} />}
       statusBar={hasReader && readerVisible ? null : <AppStatusBar />}
-      reader={hasReader ? <ReaderWorkspace /> : null}
+      reader={readerPresent ? <ReaderWorkspace /> : null}
       readerExpanded={readerExpanded}
-      readerVisible={readerVisible}
+      readerVisible={hasReader && readerVisible}
       closing={readerClosing}
-    />
+    /><DownloadFormatDialog /></>
   )
 }

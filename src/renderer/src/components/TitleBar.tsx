@@ -11,9 +11,12 @@ import {
   ArrowDownload20Regular,
   PanelRightContract20Regular,
   PanelRightExpand20Regular
+  , TabAdd20Regular
 } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
 import { toggleReaderVisibility } from '../reader/readerFocus'
+import appIcon from '../../../../build/icons/icon-64.png'
+import { useExitPresence } from '../motion/motion'
 
 const TITLE_BAR_HEIGHT = '36px'
 
@@ -130,6 +133,7 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
   const [addStatus, setAddStatus] = useState<{ current: number; total: number; stage: string; error?: string } | null>(null)
   const [activeTasks, setActiveTasks] = useState<Array<{
     taskId: number
+    kind: 'images' | 'pdf'
     mangaTitle: string
     chapterTitle: string
     totalPages: number
@@ -137,6 +141,7 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
     status: string
   }>>([])
   const [hovered, setHovered] = useState(false)
+  const popoverPresent = useExitPresence(hovered)
 
   useEffect(() => {
     // Sync native caption button colors with the active Fluent theme
@@ -147,14 +152,15 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
   useEffect(() => {
     window.electronAPI?.downloadList().then((list) => {
       const rows = (list ?? []) as Array<{ status: string } & {
-        id: number; mangaTitle: string; chapterTitle: string
+        id: number; kind?: 'images' | 'pdf'; mangaTitle: string; chapterTitle: string
         totalPages: number; downloadedPages: number
       }>
       setActiveTasks(
         rows
-          .filter((t) => t.status === 'pending' || t.status === 'downloading')
+          .filter((t) => ['pending', 'downloading', 'resolving', 'merging', 'committing'].includes(t.status))
           .map((t) => ({
             taskId: t.id,
+            kind: t.kind ?? 'images',
             mangaTitle: t.mangaTitle,
             chapterTitle: t.chapterTitle,
             totalPages: t.totalPages,
@@ -167,6 +173,7 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
     const offProgress = window.electronAPI?.onDownloadProgress((progress) => {
       const p = progress as {
         taskId: number
+        kind?: 'images' | 'pdf'
         status: string
         mangaTitle?: string
         chapterTitle?: string
@@ -175,10 +182,12 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
       }
       if (!p.taskId) return
       setActiveTasks((prev) => {
-        const map = new Map(prev.map((t) => [t.taskId, t]))
-        if (p.status === 'pending' || p.status === 'downloading') {
-          map.set(p.taskId, {
+        const map = new Map(prev.map((t) => [`${t.kind}:${t.taskId}`, t]))
+        const key = `${p.kind ?? 'images'}:${p.taskId}`
+        if (['pending', 'downloading', 'resolving', 'merging', 'committing'].includes(p.status)) {
+          map.set(key, {
             taskId: p.taskId,
+            kind: p.kind ?? 'images',
             mangaTitle: p.mangaTitle ?? '',
             chapterTitle: p.chapterTitle ?? '',
             totalPages: p.totalPages ?? 0,
@@ -186,7 +195,7 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
             status: p.status
           })
         } else {
-          map.delete(p.taskId)
+          map.delete(key)
         }
         return [...map.values()]
       })
@@ -215,6 +224,7 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
 
   return (
     <div className={styles.bar}>
+      <img src={appIcon} width={22} height={22} alt="" draggable={false} />
       <span className={styles.title}>JMComic Desktop</span>
       <div className={styles.actions}>
         {(addStatus?.stage === 'fetching' || activeTasks.length > 0) && (
@@ -232,8 +242,9 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
                 ? `添加章节 ${addStatus.current}/${addStatus.total}`
                 : `下载中 ${activeTasks.length}`}
             </div>
-            {hovered && (
-              <div className={styles.downloadPopover}>
+            {popoverPresent && (
+              <div className={`${styles.downloadPopover} download-status-popover`} data-exiting={!hovered}
+                ref={element => { if (element) element.inert = !hovered }} aria-hidden={!hovered || undefined}>
                 {addStatus?.stage === 'fetching' && (
                   <div className={styles.popRow}>
                     <Text size={200}>正在抓取章节图片列表… {addStatus.current}/{addStatus.total}</Text>
@@ -249,16 +260,18 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
                       ? Math.min(100, Math.round((t.downloadedPages / t.totalPages) * 100))
                       : 0
                     return (
-                      <div key={t.taskId} className={styles.popRow}>
+                      <div key={`${t.kind}:${t.taskId}`} className={styles.popRow}>
                         <div className={styles.popTitle}>{t.mangaTitle} - {t.chapterTitle}</div>
-                        <div className={styles.popMeta}>{t.downloadedPages}/{t.totalPages} 页 · {pct}%</div>
+                        <div className={styles.popMeta}>{t.kind === 'pdf' ? 'PDF · ' : ''}{t.status === 'merging' ? '正在合并' : t.status === 'committing' ? '正在保存' : `${t.downloadedPages}/${t.totalPages} 页 · ${pct}%`}</div>
                         <div className={styles.popProgress}>
                           <div
                             style={{
                               height: '100%',
-                              width: `${pct}%`,
+                              width: '100%',
+                              transform: `scaleX(${pct / 100})`,
+                              transformOrigin: 'left',
                               backgroundColor: 'var(--ui-brand)',
-                              transition: 'width var(--ui-motion-standard) ease-out'
+                              transition: 'transform var(--ui-motion-standard) ease-out'
                             }}
                           />
                         </div>
@@ -277,6 +290,10 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
             icon={darkMode ? <WeatherSunny20Regular /> : <WeatherMoon20Regular />}
             onClick={handleToggleDarkMode}
           />
+        </Tooltip>
+        <Tooltip content="新建阅读标签 · Ctrl T" relationship="description">
+          <Button appearance="subtle" size="small" aria-label="新建阅读标签" icon={<TabAdd20Regular />}
+            onClick={() => { void useAppStore.getState().newReaderTab() }} />
         </Tooltip>
         {readerCount > 0 && <Tooltip content={`${readerVisible ? '隐藏' : '显示'}阅读侧栏 · ${readerCount} 本漫画`} relationship="description">
           <Button appearance="subtle" size="small" data-reader-visibility-toggle

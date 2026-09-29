@@ -44,7 +44,7 @@ module.exports = async ({ win, js, wait, clickText, clickSelector, screenshot, m
     assert.ok(shown.sameReader, 'restoring must preserve the reader session')
   }
   await clickText('收起阅读侧栏')
-  await clickSelector('nav [aria-label="展开导航"]')
+  if(await js(`document.querySelector('nav').dataset.collapsed==='true'`)) await clickSelector('nav [aria-label="展开导航"]')
   const expandedNavigation = await measure()
   assert.ok(Math.abs(expandedNavigation.scroll.right - expandedNavigation.browse.right) <= 1, 'navigation expansion must not strand the scrollbar')
   await js(`window.__settingsScroll.scrollTop = 0`)
@@ -60,4 +60,8 @@ module.exports = async ({ win, js, wait, clickText, clickSelector, screenshot, m
   await js(`window.__settingsScroll.scrollTop = window.__settingsScroll.scrollHeight`)
   assert.ok(await js(`Math.abs(window.__settingsScroll.getBoundingClientRect().right - document.querySelector('[data-browse-pane]').getBoundingClientRect().right) <= 1`), 'closing the last tab also restores the full settings scroll viewport')
   mark('settings scrollbar fills the browse pane across hide, restore, resize, navigation expansion and final close', samples)
+  await clickText('打开诊断页')
+  await wait(`Boolean(document.querySelector('[data-page-id="diagnostics"]'))`, 'diagnostics page')
+  const diagnostics = await js(`(()=>{const button=[...document.querySelectorAll('button')].find(e=>e.textContent==='返回设置');let e=button.parentElement;while(e && !['auto','scroll'].includes(getComputedStyle(e).overflowY))e=e.parentElement;return {right:e.getBoundingClientRect().right,width:innerWidth}})()`)
+  assert.ok(Math.abs(diagnostics.right-diagnostics.width)<=1, 'diagnostics scrollbar also fills the restored browse pane: '+JSON.stringify(diagnostics))
 }

@@ -1,0 +1,757 @@
+[
+  {
+    "phase": "before",
+    "processes": [
+      {
+        "type": "Browser",
+        "privateKB": 162520,
+        "cpu": 0
+      },
+      {
+        "type": "GPU",
+        "privateKB": 55056,
+        "cpu": 0
+      },
+      {
+        "type": "Utility",
+        "privateKB": 11956,
+        "cpu": 0
+      },
+      {
+        "type": "Tab",
+        "privateKB": 75028,
+        "cpu": 0
+      }
+    ],
+    "renderer": {
+      "readers": 1,
+      "images": 6,
+      "tabs": 1,
+      "animations": 7,
+      "animationDetails": [
+        {
+          "target": "___1nn878q f22iagw f122n59 f1ga9sj3 f1w5jphr f1mk8lai f10pi13n ff1bbxe f1k6fduh fses1vf fhuq1gn fphb47g f9o4duy f1lzbuw2 f1ovodvj f3bhgqh fly5x3f f1o700av f1ewtqcl f6unqad f1wv2ul9 frsxs6k fz7cnr3 f1wl9k8s f1j7ml58 f1fzr1x6 f145hawh f1kikay2 f7oq29x f1pcajfq f1d5l6vp f4d9j23",
+          "currentTime": 48.49100000037598,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 116.23174300098596,
+            "easing": "ease-out",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 116.23174300098596,
+            "currentIteration": 0,
+            "endTime": 116.23174300098596,
+            "localTime": 48.49100000037598,
+            "progress": 0.5913184579115545
+          }
+        },
+        {
+          "target": "___1nn878q f22iagw f122n59 f1ga9sj3 f1w5jphr f1mk8lai f10pi13n ff1bbxe f1k6fduh fses1vf fhuq1gn fphb47g f9o4duy f1lzbuw2 f1ovodvj f3bhgqh fly5x3f f1o700av f1ewtqcl f6unqad f1wv2ul9 frsxs6k fz7cnr3 f1wl9k8s f1j7ml58 f1fzr1x6 f145hawh f1kikay2 f7oq29x f1pcajfq f1d5l6vp f4d9j23",
+          "currentTime": 48.49100000037598,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 120,
+            "easing": "ease-out",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 120,
+            "currentIteration": 0,
+            "endTime": 120,
+            "localTime": 48.49100000037598,
+            "progress": 0.5757764522357315
+          }
+        },
+        {
+          "target": "app-page-surface",
+          "currentTime": 48.49100000037598,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 160,
+            "easing": "ease",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 160,
+            "currentIteration": 0,
+            "endTime": 160,
+            "localTime": 48.49100000037598,
+            "progress": 0.5193326490311366
+          }
+        },
+        {
+          "target": "app-page-surface",
+          "currentTime": 48.49100000037598,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 140,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 140,
+            "currentIteration": 0,
+            "endTime": 140,
+            "localTime": 48.49100000037598,
+            "progress": 0.8684543315935485
+          }
+        },
+        {
+          "target": "app-page-surface",
+          "currentTime": 48.49100000037598,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 160,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 160,
+            "currentIteration": 0,
+            "endTime": 160,
+            "localTime": 48.49100000037598,
+            "progress": 0.8307197120555356
+          }
+        },
+        {
+          "target": "app-page-surface",
+          "currentTime": 48.49100000037598,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 140,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 140,
+            "currentIteration": 0,
+            "endTime": 140,
+            "localTime": 48.49100000037598,
+            "progress": 0.8684543315935485
+          }
+        },
+        {
+          "target": "app-page-surface",
+          "currentTime": 48.49100000037598,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 160,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 160,
+            "currentIteration": 0,
+            "endTime": 160,
+            "localTime": 48.49100000037598,
+            "progress": 0.8307197120555356
+          }
+        }
+      ],
+      "heap": 15200000
+    }
+  },
+  {
+    "phase": "cycle-1",
+    "processes": [
+      {
+        "type": "Browser",
+        "privateKB": 162928,
+        "cpu": 0.11339663916850411
+      },
+      {
+        "type": "GPU",
+        "privateKB": 55240,
+        "cpu": 0.03864221511650947
+      },
+      {
+        "type": "Utility",
+        "privateKB": 11960,
+        "cpu": 0.0003096080671477976
+      },
+      {
+        "type": "Tab",
+        "privateKB": 77948,
+        "cpu": 0.45890818121021476
+      }
+    ],
+    "renderer": {
+      "readers": 1,
+      "images": 6,
+      "tabs": 1,
+      "animations": 5,
+      "animationDetails": [
+        {
+          "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 100,
+            "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 100,
+            "currentIteration": 0,
+            "endTime": 100,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 100,
+            "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 100,
+            "currentIteration": 0,
+            "endTime": 100,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "reader-tab",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 120,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "none",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 120,
+            "currentIteration": 0,
+            "endTime": 120,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "___r9a7ja0 fz7g6wx f22iagw f1vx9l62 f1a3p1vp fy77jfu browse-pane",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 200,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "none",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 200,
+            "currentIteration": 0,
+            "endTime": 200,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "reading-pane",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 200,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "none",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 200,
+            "currentIteration": 0,
+            "endTime": 200,
+            "localTime": 0,
+            "progress": 0
+          }
+        }
+      ],
+      "heap": 15200000
+    }
+  },
+  {
+    "phase": "cycle-4",
+    "processes": [
+      {
+        "type": "Browser",
+        "privateKB": 163084,
+        "cpu": 0.11878333981325329
+      },
+      {
+        "type": "GPU",
+        "privateKB": 55468,
+        "cpu": 0.03879102436015906
+      },
+      {
+        "type": "Utility",
+        "privateKB": 11960,
+        "cpu": 0
+      },
+      {
+        "type": "Tab",
+        "privateKB": 86088,
+        "cpu": 0.4469742082302136
+      }
+    ],
+    "renderer": {
+      "readers": 1,
+      "images": 6,
+      "tabs": 1,
+      "animations": 5,
+      "animationDetails": [
+        {
+          "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 100,
+            "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 100,
+            "currentIteration": 0,
+            "endTime": 100,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 100,
+            "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 100,
+            "currentIteration": 0,
+            "endTime": 100,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "reader-tab",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 120,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "none",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 120,
+            "currentIteration": 0,
+            "endTime": 120,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "___r9a7ja0 fz7g6wx f22iagw f1vx9l62 f1a3p1vp fy77jfu browse-pane",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 200,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "none",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 200,
+            "currentIteration": 0,
+            "endTime": 200,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "reading-pane",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 200,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "none",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 200,
+            "currentIteration": 0,
+            "endTime": 200,
+            "localTime": 0,
+            "progress": 0
+          }
+        }
+      ],
+      "heap": 15200000
+    }
+  },
+  {
+    "phase": "cycle-7",
+    "processes": [
+      {
+        "type": "Browser",
+        "privateKB": 164220,
+        "cpu": 0.10979918119792738
+      },
+      {
+        "type": "GPU",
+        "privateKB": 55544,
+        "cpu": 0.03543534325610883
+      },
+      {
+        "type": "Utility",
+        "privateKB": 11972,
+        "cpu": 0.0057560837835433165
+      },
+      {
+        "type": "Tab",
+        "privateKB": 90744,
+        "cpu": 0.4311755318092356
+      }
+    ],
+    "renderer": {
+      "readers": 1,
+      "images": 0,
+      "tabs": 1,
+      "animations": 5,
+      "animationDetails": [
+        {
+          "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 100,
+            "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 100,
+            "currentIteration": 0,
+            "endTime": 100,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 100,
+            "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 100,
+            "currentIteration": 0,
+            "endTime": 100,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "reader-tab",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 120,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "none",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 120,
+            "currentIteration": 0,
+            "endTime": 120,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "___r9a7ja0 fz7g6wx f22iagw f1vx9l62 f1a3p1vp fy77jfu browse-pane",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 200,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "none",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 200,
+            "currentIteration": 0,
+            "endTime": 200,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "reading-pane",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 200,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "none",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 200,
+            "currentIteration": 0,
+            "endTime": 200,
+            "localTime": 0,
+            "progress": 0
+          }
+        }
+      ],
+      "heap": 15200000
+    }
+  },
+  {
+    "phase": "cycle-10",
+    "processes": [
+      {
+        "type": "Browser",
+        "privateKB": 165384,
+        "cpu": 0.09986970319279373
+      },
+      {
+        "type": "GPU",
+        "privateKB": 55644,
+        "cpu": 0.0384788879361503
+      },
+      {
+        "type": "Utility",
+        "privateKB": 11972,
+        "cpu": 0
+      },
+      {
+        "type": "Tab",
+        "privateKB": 92840,
+        "cpu": 0.36594331644854217
+      }
+    ],
+    "renderer": {
+      "readers": 1,
+      "images": 6,
+      "tabs": 1,
+      "animations": 5,
+      "animationDetails": [
+        {
+          "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 100,
+            "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 100,
+            "currentIteration": 0,
+            "endTime": 100,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 100,
+            "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+            "endDelay": 0,
+            "fill": "backwards",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 100,
+            "currentIteration": 0,
+            "endTime": 100,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "reader-tab",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 120,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "none",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 120,
+            "currentIteration": 0,
+            "endTime": 120,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "___r9a7ja0 fz7g6wx f22iagw f1vx9l62 f1a3p1vp fy77jfu browse-pane",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 200,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "none",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 200,
+            "currentIteration": 0,
+            "endTime": 200,
+            "localTime": 0,
+            "progress": 0
+          }
+        },
+        {
+          "target": "reading-pane",
+          "currentTime": 0,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 200,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "none",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 200,
+            "currentIteration": 0,
+            "endTime": 200,
+            "localTime": 0,
+            "progress": 0
+          }
+        }
+      ],
+      "heap": 15200000
+    }
+  },
+  {
+    "phase": "settled",
+    "processes": [
+      {
+        "type": "Browser",
+        "privateKB": 166536,
+        "cpu": 0.1585733334886104
+      },
+      {
+        "type": "GPU",
+        "privateKB": 57972,
+        "cpu": 0.11829518904753841
+      },
+      {
+        "type": "Utility",
+        "privateKB": 11972,
+        "cpu": 0
+      },
+      {
+        "type": "Tab",
+        "privateKB": 93588,
+        "cpu": 0.33467226696592073
+      }
+    ],
+    "renderer": {
+      "readers": 1,
+      "images": 6,
+      "tabs": 1,
+      "animations": 2,
+      "animationDetails": [
+        {
+          "target": "___r9a7ja0 fz7g6wx f22iagw f1vx9l62 f1a3p1vp fy77jfu browse-pane",
+          "currentTime": 48.535999997845636,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 200,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "none",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 200,
+            "currentIteration": 0,
+            "endTime": 200,
+            "localTime": 48.535999997845636,
+            "progress": 0.7565819833946875
+          }
+        },
+        {
+          "target": "reading-pane",
+          "currentTime": 48.535999997845636,
+          "timing": {
+            "delay": 0,
+            "direction": "normal",
+            "duration": 200,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "endDelay": 0,
+            "fill": "none",
+            "iterationStart": 0,
+            "iterations": 1,
+            "activeDuration": 200,
+            "currentIteration": 0,
+            "endTime": 200,
+            "localTime": 48.535999997845636,
+            "progress": 0.7565819833946875
+          }
+        }
+      ],
+      "heap": 15200000
+    }
+  }
+]

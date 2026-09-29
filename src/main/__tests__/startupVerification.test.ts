@@ -19,7 +19,9 @@ test('the real application starts verification before online prewarm, after appl
   loadModule('src/main/index.ts', {
     electron: { app, BrowserWindow: Window, dialog: { showErrorBox: (...args: unknown[]) => { throw Error(String(args)) } }, shell:{}, ipcMain:{handle:noop} },
     '@electron-toolkit/utils': { is: { dev:false } },
-    './ipc': { registerIpcHandlers:noop },
+    './ipc': { registerIpcHandlers:noop, waitForPersonalDataClear:noop },
+    './dataPaths': { getAppDataDir: () => 'test-data', getPortableDir: () => null },
+    './startupPreferences': { readStartupPreferences: () => ({ hardwareAcceleration: true }), writeStartupPreferences: async () => {} },
     './performanceDiagnosticsIpc': { registerPerformanceDiagnosticsIpc:noop },
     './database': { closeDatabase:noop, getDatabaseRecoveryNotice:()=>'' },
     './networkProbe': { startPeriodicProbe:noop, applyManualProxy:async()=>{ calls.push('proxy') } },
@@ -31,6 +33,7 @@ test('the real application starts verification before online prewarm, after appl
     './downloadManager': { initDownloadManager:()=>calls.push('downloads'), stopDownloadManager:noop, resumeDownloadManager:noop },
     './shutdownController': { createShutdownController:()=>({prepare:async()=>{}}) },
     './downloadExport': { registerDownloadExport:noop, stopDownloadExports:noop, resumeDownloadExports:noop },
+    './pdfDownloadManager': { registerPdfDownloads:noop, initPdfDownloads:noop, stopPdfDownloads:noop, resumePdfDownloads:noop },
     './contentApi': { warmAnonymousContentProvider:async()=>{calls.push('prewarm')} },
     './sessionWarmup': { warmupSession:()=>{ calls.push('verification'); return new Promise(()=>{}) } }
   }, 'const __dirname = "test-main"')

@@ -81,6 +81,14 @@ async function initializeDatabase(): Promise<SqlJsDatabase> {
 }
 
 function initTables(d: SqlJsDatabase): void {
+  d.run(`CREATE TABLE IF NOT EXISTS pdf_downloads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    manga_id TEXT NOT NULL,
+    identity TEXT NOT NULL,
+    status TEXT NOT NULL,
+    payload_json TEXT NOT NULL
+  )`)
+  d.run('CREATE INDEX IF NOT EXISTS idx_pdf_identity ON pdf_downloads(identity)')
   d.run(`
     CREATE TABLE IF NOT EXISTS manga_cache (
       id TEXT PRIMARY KEY,

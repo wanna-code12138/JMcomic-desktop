@@ -7,8 +7,7 @@ const useStyles = makeStyles({
   root: {
     padding: '24px',
     height: '100%',
-    overflow: 'auto',
-    maxWidth: '880px'
+    overflow: 'auto'
   },
   header: {
     display: 'flex',
@@ -159,8 +158,8 @@ export default function PerformanceDiagnosticsPage(): JSX.Element {
   }
 
   return (
-    <div className={styles.root}>
-      <div className={styles.header}>
+    <div className={styles.root}><div className="diagnostics-content">
+      <div className={`${styles.header} diagnostics-header`}>
         <div className={styles.titleRow}>
           <Button
             size="small"
@@ -170,7 +169,7 @@ export default function PerformanceDiagnosticsPage(): JSX.Element {
           >
             返回设置
           </Button>
-          <Text size={600} weight="semibold">性能诊断与 V2 基线</Text>
+          <Text size={600} weight="semibold">性能诊断</Text>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <Button size="small" icon={<ArrowSync20Regular />} onClick={fetchSnapshot}>
@@ -301,6 +300,6 @@ export default function PerformanceDiagnosticsPage(): JSX.Element {
           </table>
         </Card>
       </div>
-    </div>
+    </div></div>
   )
 }

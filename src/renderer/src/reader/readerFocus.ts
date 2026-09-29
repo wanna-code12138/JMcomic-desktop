@@ -10,7 +10,9 @@ export async function closeReaderTab(id?: string): Promise<void> {
 }
 
 export function focusReaderContent(): void {
+  const origin = document.activeElement
   requestAnimationFrame(() => {
+    if (document.activeElement !== origin && document.activeElement !== document.body) return
     const panel = document.getElementById('active-reader-panel')
     const target = panel?.querySelector<HTMLElement>('[data-reader-viewport]') ?? panel
     target?.focus()

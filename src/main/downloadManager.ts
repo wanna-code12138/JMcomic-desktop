@@ -746,3 +746,8 @@ export function resumeDownloadManager(): void {
   stopping = false
   void processDownloadQueue()
 }
+
+export function clearStoppedDownloadQueue(): void {
+  if (!stopping || runningTasks.size || pendingMutations.size) throw new Error('请先停止下载任务')
+  downloadQueue = []
+}

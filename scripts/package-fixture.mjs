@@ -18,9 +18,20 @@ export function installPackageFixture(exportPath) {
     bitmap[offset + 3] = 255
   }
   const png = nativeImage.createFromBitmap(bitmap, { width: 16, height: 23 }).toPNG()
-  net.fetch = async url => String(url).includes('/media/photos/267000/golden.png')
-    ? new Response(png, { headers: { 'Content-Type': 'image/png' } })
-    : new Response('Synthetic offline response', { status: 503 })
+  net.fetch = async (target, init = {}) => {
+    const url = new URL(String(target))
+    if(url.pathname.includes('/media/photos/267000/golden.png')) return new Response(png, { headers: { 'Content-Type': 'image/png' } })
+    let data
+    if(url.pathname==='/setting')data={jm3_version:'2.1.7',img_host:'cdn-msp.18comic.vip'}
+    else if(url.pathname==='/comic_read')data={id:'267000',scramble_id:200000,total_page:1,images:['golden.png']}
+    else return new Response('Synthetic offline response',{status:503})
+    const {createHash,createCipheriv}=process.mainModule.require('node:crypto')
+    const timestamp=new Headers(init.headers).get('tokenparam').split(',')[0]
+    // Public protocol salt, identical to the API fixtures; this is not an account credential.
+    const key=createHash('md5').update(timestamp+'185Hcomic3PAPP7R').digest('hex')
+    const cipher=createCipheriv('aes-256-ecb',key,null)
+    return new Response(JSON.stringify({code:200,data:Buffer.concat([cipher.update(JSON.stringify(data)),cipher.final()]).toString('base64')}),{headers:{'Content-Type':'application/json'}})
+  }
   globalThis.fetch = async () => { throw Error('External fetch disabled during package fixture QA') }
   app.whenReady().then(() => session.defaultSession.protocol.handle('https', () => new Response(
     '<!doctype html><title>Package test fixture</title><a href="/album/104">合成测试目录</a>',
@@ -77,4 +88,13 @@ export async function testPackageFixture({ js, main, waitFor, click, clickElemen
   await clickElement(`document.querySelector('[data-close-reader="local:104"]')`)
   await waitFor(() => js(`!document.querySelector('[data-reader-workspace]')`), 'packaged tab X closes last book')
   report.assertions.push('actual EXE has manual docked tools, preserves its book while hidden and closes its last tab with X')
+  const pdfAdded=await js(`window.electronAPI.downloadPdfAdd({mangaId:'104',mangaTitle:'打包验收合成样章',chapters:[{index:0,title:'23行无损金样',url:'/photo/267000'}]})`)
+  assert.equal(pdfAdded.ok,true,pdfAdded.error)
+  await waitFor(()=>js(`window.electronAPI.downloadPdfList().then(rows=>rows.find(row=>row.id===${pdfAdded.taskId})?.status==='completed')`),'packaged PDF worker and PDFKit dependencies')
+  const pdf=(await js('window.electronAPI.downloadPdfList()')).find(row=>row.id===pdfAdded.taskId)
+  assert.equal(pdf.totalPages,1);assert.equal(pdf.savePath,downloadDir)
+  const bytes=readFileSync(process.platform==='win32'?`${pdf.savePath}\\${pdf.outputFile}`:`${pdf.savePath}/${pdf.outputFile}`)
+  assert.ok(bytes.subarray(0,5).equals(Buffer.from('%PDF-')))
+  assert.equal((bytes.toString('latin1').match(/\/Type \/Page\b/g)||[]).length,1)
+  report.assertions.push('actual EXE launches its packaged PDF worker, restores scrambled pixels, and publishes a root-level PDF with packaged PDFKit')
 }

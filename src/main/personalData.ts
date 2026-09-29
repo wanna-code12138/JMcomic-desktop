@@ -1,4 +1,8 @@
 import type { Database as SqlJsDatabase } from 'sql.js'
+import { randomUUID } from 'node:crypto'
+import { normalizeWorkspaceSnapshot, type WorkspaceSnapshot } from '../shared/workspaceSnapshot'
+import { preparePdfRequest, resolvePdfOutput, pdfIdentity } from './pdfDownloadCore'
+import type { PdfTask } from '../shared/pdfContracts'
 
 export const EXPORT_FORMAT = 'jmcomic-personal-data'
 export const EXPORT_VERSION = 1
@@ -12,6 +16,8 @@ export interface PersonalExport {
     readingHistory: Array<Record<string, unknown>>
     searchHistory: Array<Record<string, unknown>>
     downloads: Array<Record<string, unknown>>
+    pdfDownloads?: PdfTask[]
+    workspace?: WorkspaceSnapshot | null
   }
 }
 
@@ -64,7 +70,12 @@ export function exportPersonalData(db: SqlJsDatabase): PersonalExport {
       favorites: queryAll(db, 'SELECT * FROM favorites ORDER BY added_at DESC'),
       readingHistory: queryAll(db, 'SELECT * FROM reading_history ORDER BY read_at DESC').map(({ reader_session: _session, ...row }) => row),
       searchHistory: queryAll(db, 'SELECT * FROM search_history ORDER BY searched_at DESC'),
-      downloads: queryAll(db, 'SELECT * FROM downloads ORDER BY created_at DESC')
+      downloads: queryAll(db, 'SELECT * FROM downloads ORDER BY created_at DESC'),
+      pdfDownloads: queryAll(db, 'SELECT id,payload_json,status FROM pdf_downloads ORDER BY id DESC').map(row => ({ ...JSON.parse(String(row.payload_json)), id: row.id, status: row.status })),
+      workspace: (() => {
+        try { return normalizeWorkspaceSnapshot(JSON.parse(String(db.exec("SELECT value FROM settings WHERE key='readerWorkspaceSnapshot'")[0]?.values[0]?.[0] ?? 'null'))) }
+        catch { return null }
+      })()
     }
   }
 }
@@ -153,6 +164,27 @@ export function importPersonalData(db: SqlJsDatabase, payload: unknown): ImportS
     imported.downloads += db.getRowsModified()
   }
 
+  for (const raw of Array.isArray(data.pdfDownloads) ? data.pdfDownloads : []) {
+    const request = preparePdfRequest(raw)
+    if (!request || !isRecord(raw)) { skipped++; continue }
+    try {
+      const savePath = asString(raw.savePath), outputFile = asString(raw.outputFile)
+      if (!savePath || !outputFile) throw Error('missing path')
+      resolvePdfOutput(savePath, outputFile)
+      const identity = pdfIdentity(request, savePath)
+      if (db.exec('SELECT id FROM pdf_downloads WHERE identity=?', [identity])[0]?.values.length) continue
+      const completed = raw.status === 'completed' && typeof raw.checksum === 'string' && /^[a-f0-9]{64}$/.test(raw.checksum)
+      const task: Omit<PdfTask, 'id'> = { ...request, kind: 'pdf', identity, stagingId: randomUUID(), status: completed ? 'completed' : 'failed',
+        chapterIndex: request.chapters[0].index, chapterTitle: `${request.chapters.length} 章合并`, savePath, outputFile,
+        totalPages: Math.max(0, asNumber(raw.totalPages) ?? 0), downloadedPages: Math.max(0, asNumber(raw.downloadedPages) ?? 0), mergedPages: completed ? Math.max(0, asNumber(raw.totalPages) ?? 0) : 0,
+        checksum: completed ? String(raw.checksum) : undefined, createdAt: asNumber(raw.createdAt) ?? Math.floor(Date.now() / 1000),
+        error: completed ? '' : '导入的未完成任务不会自动运行，请确认下载目录后重试' }
+      db.run('INSERT INTO pdf_downloads (manga_id,identity,status,payload_json) VALUES (?,?,?,?)', [task.mangaId, identity, task.status, JSON.stringify(task)])
+      imported.downloads++
+    } catch { skipped++ }
+  }
+  const workspace = normalizeWorkspaceSnapshot(data.workspace)
+  if (workspace) db.run("INSERT OR IGNORE INTO settings (key,value) VALUES ('readerWorkspaceSnapshot',?)", [JSON.stringify(workspace)])
   return { imported, skipped }
 }
 
@@ -174,5 +206,7 @@ export function clearPersonalData(db: SqlJsDatabase): ClearCounts {
     db.run(sqlMap[table])
     counts[table] = db.getRowsModified()
   }
+  db.run('DELETE FROM pdf_downloads'); counts.downloads += db.getRowsModified()
+  db.run("DELETE FROM settings WHERE key IN ('readerWorkspaceSnapshot','readerWorkspaceRecovery')")
   return counts
 }

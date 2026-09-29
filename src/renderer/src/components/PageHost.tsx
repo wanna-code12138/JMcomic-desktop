@@ -49,16 +49,17 @@ export interface PageHostProps {
 
 function PageHost({ currentPage, mountedPages }: PageHostProps): JSX.Element {
   return (
-    <>
+    <div className="app-page-stack">
       {mountedPages.map((page) => {
         const isCurrent = page === currentPage
         return (
           <div
             key={page}
+            className="app-page-surface"
+            data-current={isCurrent}
+            ref={element => { if (element) element.inert = !isCurrent }}
+            data-page-id={page}
             style={{
-              height: '100%',
-              minHeight: 0,
-              overflow: 'hidden',
               display: isCurrent ? 'block' : 'none'
             }}
             aria-hidden={!isCurrent}
@@ -73,7 +74,7 @@ function PageHost({ currentPage, mountedPages }: PageHostProps): JSX.Element {
           </div>
         )
       })}
-    </>
+    </div>
   )
 }
 

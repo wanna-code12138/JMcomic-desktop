@@ -8,13 +8,22 @@ import { getSettings, updateSettings } from './settingsStore'
 import { applyWindowBackground } from './windowChrome'
 import { invalidateLocalImageAllowedRoots } from './localImageProtocol'
 import { clearContentCache } from './contentApi'
+import { readWorkspaceSnapshot, writeWorkspaceSnapshot } from './workspacePersistence'
+import { stopDownloadManager, resumeDownloadManager, clearStoppedDownloadQueue } from './downloadManager'
+import { stopDownloadExports, resumeDownloadExports } from './downloadExport'
+import { stopPdfDownloads, resumePdfDownloads, clearStoppedPdfTasks } from './pdfDownloadManager'
 import {
   exportPersonalData,
   importPersonalData,
   clearPersonalData
 } from './personalData'
 
+let clearingPersonalData: Promise<unknown> | undefined
+export async function waitForPersonalDataClear(): Promise<void> { await clearingPersonalData }
+
 export function registerIpcHandlers(): void {
+  ipcMain.handle('workspace:get', readWorkspaceSnapshot)
+  ipcMain.handle('workspace:set', (_event, snapshot: unknown) => writeWorkspaceSnapshot(snapshot))
   // Favorites
   ipcMain.handle('favorites:add', async (_event, manga: { mangaId: string; title?: string; coverUrl?: string }) => {
     const db = await getDatabase()
@@ -220,11 +229,21 @@ export function registerIpcHandlers(): void {
     }
   })
 
-  ipcMain.handle('data:clearPersonal', async () => {
-    const db = await getDatabase()
-    const counts = clearPersonalData(db)
-    await saveDatabase()
-    invalidateLocalImageAllowedRoots()
-    return counts
+  ipcMain.handle('data:clearPersonal', () => {
+    if (clearingPersonalData) return clearingPersonalData
+    const operation = (async () => {
+      try {
+        await Promise.all([stopDownloadManager(), stopDownloadExports(), stopPdfDownloads()])
+        clearStoppedDownloadQueue(); await clearStoppedPdfTasks()
+        const db = await getDatabase()
+        const counts = clearPersonalData(db)
+        await saveDatabase()
+        invalidateLocalImageAllowedRoots()
+        return counts
+      } finally { resumeDownloadExports(); resumeDownloadManager(); resumePdfDownloads() }
+    })()
+    clearingPersonalData = operation
+    void operation.finally(() => { clearingPersonalData = undefined }).catch(() => {})
+    return operation
   })
 }

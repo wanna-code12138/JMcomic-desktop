@@ -1,10 +1,18 @@
 # 1.1.0 视觉探索提示词
 
-日期：2026-09-29。使用内置 image_gen 工具；未使用 API 密钥或 CLI 回退。两张图都是待批准设计的概念稿，未替换正式应用资源。
+日期：2026-09-29。使用内置 image_gen 工具；未使用 API 密钥或 CLI 回退。概念稿随后获准实施，正式图标已生成并接入应用。
 
 界面图已目检：三栏结构、新标签入口、继续阅读、收藏/离线入口和最近关闭均可辨认。图片中的示例章节数、书名、页面文案只用于构图，功能与最终文案以设计文档为准。
 
 图标已目检：书页与书签轮廓清楚；透明边缘仍有少量生成杂点。此图仅用于确认造型和颜色，正式图标需继续清理并验证各尺寸，不能直接当作合格 ICO 发布。
+
+## 正式图标
+
+最终原图 `build/icon-source.png`，使用下列内置 image_gen 提示词重新生成平面版本。先前针对边缘的局部修改未获得足够干净的结果，未采用。正式版本经项目 `scripts/build-icon.mjs` 转换为 16/24/32/48/64/128/256/1024 PNG 和七尺寸 ICO，原图透明度保留。已核对 256px 轮廓，全部尺寸与 ICO 条目验证通过。
+
+```text
+Use case: logo-brand. Final production icon for a polished Windows desktop comic reader. A crisp, flat geometric application icon. One cobalt blue rounded square with smooth edges, centered, filling 84 percent of square canvas. A simple symmetrical white open book made of just two bold page silhouettes, with a small amber bookmark on the right page. Perfect clean cutout on transparent background, fully transparent 8 percent margin. Hard clean edges with normal antialiasing only. Flat blue and white solid fills, no gradients, no texture, no noise, no brushwork, no shadows, no glow, no bevels, no particles, no stray marks, no text, no letters. Must look excellent at 16px and 32px. Vector-like logo rendered as PNG.
+```
 
 ## 界面概念图
 

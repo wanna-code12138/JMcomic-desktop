@@ -1,6 +1,6 @@
 {
   "name": "jmcomic-desktop",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "禁漫天堂桌面客户端 — WinUI 3 风格漫画阅读器",
   "main": "./out/main/index.js",
   "author": "JMComic Desktop",
@@ -30,6 +30,7 @@
     "cheerio": "^1.0.0",
     "got": "^13.0.0",
     "https-proxy-agent": "^7.0.5",
+    "pdfkit": "0.20.2",
     "socks-proxy-agent": "^8.0.4",
     "sql.js": "^1.11.0",
     "zustand": "^5.0.0"
@@ -37,8 +38,9 @@
   "devDependencies": {
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
-    "@types/react": "^18.3.12",
     "@types/archiver": "6.0.3",
+    "@types/pdfkit": "0.17.6",
+    "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/sql.js": "^1.4.9",
     "@vitejs/plugin-react": "^4.3.4",

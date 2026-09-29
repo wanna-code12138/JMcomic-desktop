@@ -2,7 +2,7 @@ import { app, BrowserWindow, dialog, shell, ipcMain } from 'electron'
 import { randomUUID } from 'crypto'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
-import { registerIpcHandlers } from './ipc'
+import { registerIpcHandlers, waitForPersonalDataClear } from './ipc'
 import { registerPerformanceDiagnosticsIpc } from './performanceDiagnosticsIpc'
 import { closeDatabase, getDatabaseRecoveryNotice } from './database'
 import { startPeriodicProbe, applyManualProxy } from './networkProbe'
@@ -18,10 +18,29 @@ import { createShutdownController } from './shutdownController'
 import { registerDownloadExport, stopDownloadExports, resumeDownloadExports } from './downloadExport'
 import { warmAnonymousContentProvider } from './contentApi'
 import { warmupSession } from './sessionWarmup'
+import { getAppDataDir, getPortableDir } from './dataPaths'
+import { readStartupPreferences, writeStartupPreferences } from './startupPreferences'
+import type { GraphicsStatus } from '../shared/graphicsContracts'
+import { registerPdfDownloads, initPdfDownloads, stopPdfDownloads, resumePdfDownloads } from './pdfDownloadManager'
+
+const startupFile = join(getAppDataDir(), 'startup-preferences.json')
+const runningGraphics = readStartupPreferences(startupFile).hardwareAcceleration
+let requestedGraphics = runningGraphics
+let gpuInitialized = false
+if (!runningGraphics) app.disableHardwareAcceleration()
+app.on('gpu-info-update', () => {
+  gpuInitialized = true
+  for (const window of BrowserWindow.getAllWindows()) window.webContents.send('graphics:changed', graphicsStatus())
+})
+const graphicsStatus = (): GraphicsStatus => ({ requested: requestedGraphics, runningPreference: runningGraphics,
+  restartRequired: requestedGraphics !== runningGraphics, initialized: gpuInitialized,
+  hardwareActive: gpuInitialized ? app.isHardwareAccelerationEnabled() : null,
+  compositor: gpuInitialized ? app.getGPUFeatureStatus().gpu_compositing : 'initializing' })
 
 let mainWindow: BrowserWindow | null = null
 let shutdownComplete = false
 let shutdownRunning = false
+let restartRequested = false
 
 function saveRendererBeforeClose(): Promise<void> {
   const contents = mainWindow?.webContents
@@ -41,8 +60,8 @@ function saveRendererBeforeClose(): Promise<void> {
 }
 
 const shutdown = createShutdownController({ saveRenderer: saveRendererBeforeClose,
-  stopWork: async () => { await Promise.all([stopDownloadManager(), stopDownloadExports()]) }, closeDatabase: () => closeDatabase(5000),
-  resumeWork: () => { resumeDownloadExports(); resumeDownloadManager() } })
+  stopWork: async () => { await waitForPersonalDataClear(); await Promise.all([stopDownloadManager(), stopDownloadExports(), stopPdfDownloads()]) }, closeDatabase: () => closeDatabase(5000),
+  resumeWork: () => { resumeDownloadExports(); resumeDownloadManager(); resumePdfDownloads() } })
 
 // 必须在 app.ready 之前注册自定义协议为 standard scheme，
 // 否则 jmimg:// 的 URL 解析行为不确定，会导致图片加载失败。
@@ -112,6 +131,7 @@ function createWindow(settings: AppSettings): void {
 app.whenReady().then(async () => {
   registerIpcHandlers()
   registerDownloadExport()
+  registerPdfDownloads()
   registerPerformanceDiagnosticsIpc()
   registerImageProtocol()
   registerLocalImageProtocol()
@@ -129,6 +149,7 @@ app.whenReady().then(async () => {
   // Verification starts with the window; local task recovery remains independent.
   void warmAnonymousContentProvider()
   initDownloadManager()
+  initPdfDownloads()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -145,8 +166,16 @@ app.on('before-quit', (event) => {
   event.preventDefault()
   if (shutdownRunning) return
   shutdownRunning = true
-  void shutdown.prepare().then(() => { shutdownComplete = true; app.quit() }).catch((error) => {
+  void shutdown.prepare().then(() => {
+    shutdownComplete = true
+    if (restartRequested) {
+      const portableFile = process.env.PORTABLE_EXECUTABLE_FILE
+      app.relaunch(portableFile && getPortableDir() ? { execPath: portableFile, args: [] } : undefined)
+    }
+    app.quit()
+  }).catch((error) => {
     shutdownRunning = false
+    restartRequested = false
     mainWindow?.webContents.send('window:close-cancelled')
     void dialog.showMessageBox({ type: 'error', title: '尚未完成保存', message: String(error), detail: '窗口已保留，请检查磁盘空间后重新关闭。' })
   })
@@ -156,6 +185,13 @@ app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(
 
 // Window control IPC
 ipcMain.handle('window:minimize', () => mainWindow?.minimize())
+ipcMain.handle('graphics:get', graphicsStatus)
+ipcMain.handle('graphics:set', async (_event, enabled: boolean) => {
+  await writeStartupPreferences(startupFile, enabled)
+  requestedGraphics = enabled
+  return graphicsStatus()
+})
+ipcMain.handle('app:restart', () => { restartRequested = true; app.quit() })
 ipcMain.handle('window:maximize', () => {
   if (mainWindow?.isMaximized()) {
     mainWindow.unmaximize()
