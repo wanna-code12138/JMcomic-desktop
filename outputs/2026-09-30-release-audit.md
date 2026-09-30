@@ -13,6 +13,7 @@
 | 检查 | 实际结果 |
 | --- | --- |
 | `npm run check` | 退出码 0；统一测试、TypeScript 类型检查和生产构建通过。构建保留两条混合静态/动态导入提示。 |
+| GitHub `main` CI | GitHub Actions 对 `2c342d2` 的 CI 运行已完成，结论为 `success`。文档分支尚未合并。 |
 | `npm audit --omit=dev` | 生产依赖高危、严重及其他级别漏洞数均为 0。 |
 | 标准 `npm run package -- --publish never` | 源码构建通过，electron-builder 在官方 GitHub 下载请求等待 600 秒后超时；本轮未由此命令生成 EXE。 |
 | 本机缓存重试 | 使用 electron-builder 的临时 `electronDist` 参数指定已有 Electron 43.2.0 官方缓存包，成功生成 1.1.0 便携 EXE；未修改项目配置，也未上传。 |
