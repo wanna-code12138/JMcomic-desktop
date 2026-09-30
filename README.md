@@ -14,7 +14,7 @@
 
 便携版是单文件 exe，免安装。收藏、阅读进度、下载记录和设置保存在 exe 旁的 `JMComicData/jmcomic.db`；非便携运行使用 Electron 的 `userData` 目录。漫画默认下载到系统“下载”目录下的 `JMComic`，也可在设置中更改。迁移时需要保留数据目录和漫画文件，删除 exe 本身不会清空这些数据。
 
-> 版本状态（2026-09-29）：仓库 `main` 是 **1.1.0 源码**，GitHub [最新已发布的便携版](https://github.com/wanna-code12138/JMcomic-desktop/releases/latest) 仍是 **v1.0.5**。下列功能以当前源码为准；Release 页面上的 v1.0.5 不包含后续的阅读标签和 PDF 下载。版本演进见 [更新日志](CHANGELOG.md)。
+> 仓库源码版本以 `package.json` 为准，可下载的便携版版本以 [Releases](https://github.com/wanna-code12138/JMcomic-desktop/releases/latest) 页面为准。下列功能以当前源码为准；下载旧版 EXE 时请核对版本，v1.0.5 不包含后续的阅读标签和 PDF 下载。版本演进见 [更新日志](CHANGELOG.md)。
 
 > 仅限成年人，请在合法合规的前提下使用。
 
