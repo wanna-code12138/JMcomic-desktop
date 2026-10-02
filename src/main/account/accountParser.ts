@@ -35,8 +35,9 @@ export function parseLibrary(raw: unknown, page: number, imageOrigin: string, ki
     const row = record(raw); const albumId = String(row.id ?? row.aid ?? '')
     if (!/^\d{1,12}$/.test(albumId) || seen.has(albumId)) return []
     seen.add(albumId)
+    const image = typeof row.image === 'string' ? row.image.trim() : ''
     let coverUrl = ''
-    try { coverUrl = validateTrustedImageUrl(new URL(String(row.image ?? `/media/albums/${albumId}.jpg`), imageOrigin).href) ?? '' } catch { /* Optional cover. */ }
+    try { coverUrl = validateTrustedImageUrl(new URL(image || `/media/albums/${albumId}.jpg`, imageOrigin).href) ?? '' } catch { /* Optional cover. */ }
     return [{ id: albumId, title: safeText(row.name ?? row.title, 500) || `JM${albumId}`, coverUrl,
       author: safeText(Array.isArray(row.author) ? row.author.join('、') : row.author, 200), date: safeText(row.addtime ?? row.adddt ?? row.update_at, 100) }]
   })

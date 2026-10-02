@@ -22,9 +22,14 @@ export function installPackageFixture(exportPath, visible = false) {
   const png = nativeImage.createFromBitmap(bitmap, { width: 16, height: 23 }).toPNG()
   net.fetch = async (target, init = {}) => {
     const url = new URL(String(target))
-    if(url.pathname.includes('/media/photos/267000/golden.png')) return new Response(png, { headers: { 'Content-Type': 'image/png' } })
+    if(url.pathname.includes('/media/photos/267000/golden.png') || url.pathname==='/media/albums/1477646.jpg') return new Response(png, { headers: { 'Content-Type': 'image/png' } })
     let data
     if(url.pathname==='/setting')data={jm3_version:'2.1.7',img_host:'cdn-msp.18comic.vip'}
+    else if(url.pathname==='/login')data={uid:'7',username:'synthetic',s:'fixture-session'}
+    else if(url.pathname==='/logout')data={status:'ok'}
+    // Account endpoints use an explicitly blank image field; this differs from the public list fixture.
+    else if(url.pathname==='/favorite'||url.pathname==='/watch_list')data={total:'1',list:[{id:'1477646',name:'在线空封面字段回归',image:''}]}
+    else if(url.pathname==='/album_tracking')data={totalCnt:'1',item:[{id:'1477646',name:'在线空封面字段回归',image:''}]}
     else if(url.pathname==='/album')data={id:url.searchParams.get('id'),name:'单篇打包验收',series:[]}
     else if(url.pathname==='/categories/filter'||url.pathname==='/search')data={total:1,content:[{id:'1477646',name:'单篇打包验收'}]}
     else if(url.pathname==='/comic_read')data={id:'267000',scramble_id:200000,total_page:1,images:['golden.png']}
@@ -37,10 +42,13 @@ export function installPackageFixture(exportPath, visible = false) {
     return new Response(JSON.stringify({code:200,data:Buffer.concat([cipher.update(JSON.stringify(data)),cipher.final()]).toString('base64')}),{headers:{'Content-Type':'application/json'}})
   }
   globalThis.fetch = async () => { throw Error('External fetch disabled during package fixture QA') }
-  app.whenReady().then(() => session.defaultSession.protocol.handle('https', () => new Response(
-    '<!doctype html><title>Package test fixture</title><a href="/album/104">合成测试目录</a>',
-    { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-  )))
+  app.whenReady().then(() => {
+    Object.getPrototypeOf(session.defaultSession).fetch = net.fetch
+    session.defaultSession.protocol.handle('https', () => new Response(
+      '<!doctype html><title>Package test fixture</title><a href="/album/104">合成测试目录</a>',
+      { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    ))
+  })
   dialog.showSaveDialog = async () => ({ canceled: false, filePath: exportPath })
 }
 
@@ -110,4 +118,26 @@ export async function testPackageFixture({ js, main, waitFor, click, clickElemen
   assert.ok(bytes.subarray(0,5).equals(Buffer.from('%PDF-')))
   assert.equal((bytes.toString('latin1').match(/\/Type \/Page\b/g)||[]).length,1)
   report.assertions.push('actual EXE launches its packaged PDF worker, restores scrambled pixels, and publishes a root-level PDF with packaged PDFKit')
+
+  const login = await js(`window.electronAPI.accountLogin('synthetic','fixture-only',false)`)
+  assert.equal(login.ok, true, login.error)
+  await click('收藏')
+  const selectTab = async label => {
+    const tab = `[...document.querySelectorAll('[data-page-id="favorites"][data-current="true"] [role="tab"]')].find(node=>node.getBoundingClientRect().width>0&&[${JSON.stringify(label)},${JSON.stringify(label+label)}].includes(node.textContent.trim()))`
+    await waitFor(() => js(`Boolean(${tab})`), `online cover tab ${label}`)
+    await clickElement(tab)
+  }
+  report.onlineCoverImages = {}
+  for (const label of ['收藏', '历史', '追更']) {
+    await selectTab(label)
+    if (label !== '追更') await selectTab('在线')
+    const selector = `[aria-label="在线${label}"] .manga-card img`
+    await waitFor(() => js(`document.querySelector(${JSON.stringify(selector)})?.complete === true`), `${label} cover request completed`)
+    const size = await js(`(()=>{const img=document.querySelector(${JSON.stringify(selector)});return {width:img.naturalWidth,height:img.naturalHeight}})()`)
+    assert.deepEqual(size, { width:16, height:23 }, `${label}: online covers must decode, not just render blank card slots`)
+    await waitFor(() => js(`getComputedStyle(document.querySelector(${JSON.stringify(selector)})).opacity==='1'`), `${label} cover visible`)
+    report.onlineCoverImages[label] = { ...size, opacity:1 }
+    report.assertions.push(`actual EXE ${label} online cover decodes and is visible when the API returns image=""`)
+  }
+  assert.equal((await js('window.electronAPI.accountLogout()')).ok, true)
 }
