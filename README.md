@@ -10,11 +10,11 @@
 
 ---
 
-一个 Windows 上用的禁漫天堂客户端。界面由 React 和 Fluent UI 构建，内容通过匿名 API 获取，必要时回退到直接网页解析或隐藏浏览器提取。整体采用 WinUI 3 风格：自定义标题栏、Mica 材质和 Fluent 控件。
+一个 Windows 上用的禁漫天堂客户端。界面由 React 和 Fluent UI 构建，公开内容通过匿名 API 获取，必要时回退到直接网页解析或隐藏浏览器提取；在线收藏、历史、追更和互动使用独立账户会话。整体采用 WinUI 3 风格：自定义标题栏、Mica 材质和 Fluent 控件。
 
 便携版是单文件 exe，免安装。收藏、阅读进度、下载记录和设置保存在 exe 旁的 `JMComicData/jmcomic.db`；非便携运行使用 Electron 的 `userData` 目录。漫画默认下载到系统“下载”目录下的 `JMComic`，也可在设置中更改。迁移时需要保留数据目录和漫画文件，删除 exe 本身不会清空这些数据。
 
-> 仓库源码版本以 `package.json` 为准，可下载的便携版版本以 [Releases](https://github.com/wanna-code12138/JMcomic-desktop/releases/latest) 页面为准。下列功能以当前源码为准；下载旧版 EXE 时请核对版本，v1.0.5 不包含后续的阅读标签和 PDF 下载。版本演进见 [更新日志](CHANGELOG.md)。
+> 当前版本 **1.3.4**，修复在线收藏、历史、追更封面空白，并包含此前的阅读标签、PDF 下载、外观优化、评论与在线账户功能。推荐从 [最新 Release](https://github.com/wanna-code12138/JMcomic-desktop/releases/latest) 下载；各阶段变更见 [更新日志](CHANGELOG.md) 和 [发布说明](docs/releases/v1.3.4.md)。1.3.1～1.3.3 有已知在线封面问题，请升级到 1.3.4。
 
 > 仅限成年人，请在合法合规的前提下使用。
 
@@ -68,7 +68,11 @@ flowchart LR
 
 ## 快速开始
 
-如需已发布的便携版，从 [Releases](https://github.com/wanna-code12138/JMcomic-desktop/releases/latest) 下载 `JMComic Desktop Portable <版本>.exe`，双击即用，无需安装。下载前请核对 Release 页的版本号；尚未发布的源码功能可按下方步骤构建。
+从 [Releases](https://github.com/wanna-code12138/JMcomic-desktop/releases/latest) 下载 Windows x64 便携版 `JMComic.Desktop.Portable.1.3.4.exe`，双击即用，无需安装。Release 同时提供 `SHA256SUMS.txt`；可用 PowerShell 的 `Get-FileHash -Algorithm SHA256` 核对下载文件。
+
+升级前正常退出旧程序，把新 EXE 放到原目录，保留同级 `JMComicData` 和下载的漫画文件。账户会话使用本机系统加密，迁移到另一台电脑可能需要重新登录；密码不保存在数据目录中。
+
+历史版本按演进顺序保留：[1.1.0](https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.1.0) → [1.2.0](https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.2.0) → [1.3.1](https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.3.1) → [1.3.2](https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.3.2) → [1.3.3](https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.3.3) → [1.3.4](https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.3.4)。1.0.6 是并入后续版本的开发节点，1.3.0 是设计阶段，二者没有独立便携发行版。
 
 ## 从源码构建
 
@@ -98,6 +102,8 @@ src/
 │   ├── contentApi.ts     # 首页 / 搜索 / 分类 / 详情 / 章节 IPC
 │   ├── contentGateway.ts # API → 直接网页 → 浏览器回退与结果校验
 │   ├── content/          # 匿名 API 的发现、传输与数据解析
+│   ├── account/          # 在线会话、资料库、账户活动及资料管理
+│   ├── comments/         # 评论读取、发表与回复
 │   ├── imageProtocol.ts  # jmimg:// 图片代理
 │   ├── imageNetwork.ts   # 图片请求调度、取消与重试
 │   ├── imageLoader.ts    # 图片磁盘缓存与下载加载器
@@ -112,7 +118,7 @@ src/
 ├── shared/               # 阅读器契约、反打乱算法等跨进程逻辑
 └── renderer/             # React 18 + Fluent UI v9 + Tailwind
     └── src/
-        ├── pages/        # 首页 / 搜索 / 分类 / 详情 / 阅读器 / 下载 / 收藏 / 设置
+        ├── pages/        # 首页 / 搜索 / 分类 / 详情 / 阅读器 / 下载 / 收藏 / 账户 / 设置
         ├── reader/       # 阅读会话、图片、工具栏、布局计算与样式
         ├── components/   # 漫画卡片、标题栏、章节选择等
         ├── stores/       # zustand 全局状态

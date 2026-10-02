@@ -121,3 +121,5 @@ docs: 更新架构文档
 ## 发布流程
 
 维护者打 `v*` tag 后，GitHub Actions 会自动构建并发布便携版 .exe 到 Releases，无需手动打包上传。仅更新 `main` 或 `package.json` 的版本号不会创建 Release；发布前须确认标签指向已验证的版本提交。
+
+标签版本必须等于 `package.json` 的版本，并提交对应的 `docs/releases/v<版本>.md` 中文发布说明。工作流执行完整 `npm test`、类型检查、生产打包、ASAR 依赖校验及实际便携 EXE 的隔离回归；通过后发布 EXE、`SHA256SUMS.txt` 和人工维护的说明，并更新最新版本入口。GitHub 构建的 EXE 与本地打包文件可能有不同哈希，应以同一 Release 附带的校验文件为准。自动化成品检查不能替代任务要求的真实窗口验收。
