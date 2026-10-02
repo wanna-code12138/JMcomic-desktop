@@ -8,8 +8,9 @@ import type { WorkspaceSnapshot } from '../shared/workspaceSnapshot'
 import type { GraphicsStatus } from '../shared/graphicsContracts'
 import type { PdfDownloadRequest, PdfTask } from '../shared/pdfContracts'
 import type { DownloadTaskIdentity } from '../shared/downloadContracts'
-import type { CommentReply } from '../shared/commentContracts'
+import type { CommentReply, CommentPage } from '../shared/commentContracts'
 import type { AccountReply, AccountState, LibraryQuery, OnlineLibraryPage, AlbumAccountState, AlbumMutation, AccountNotifications } from '../shared/accountContracts'
+import type { CommentSubmission, DailyState, DailyResult, DailyMonth, AccountTask } from '../shared/accountContracts'
 
 const taskCommand = (command: string, target: DownloadTaskIdentity | number, deleteFiles?: boolean) => {
   const task = typeof target === 'number' ? { kind: 'images', id: target } : target
@@ -37,6 +38,13 @@ const api = {
   accountMutate: (query: AlbumMutation): Promise<AccountReply<AlbumAccountState>> => ipcRenderer.invoke('account:mutate', query),
   accountNotifications: (generation: number): Promise<AccountReply<AccountNotifications>> => ipcRenderer.invoke('account:notifications', generation),
   accountNoticeRead: (id: string, generation: number, operationId: string): Promise<AccountReply<AccountNotifications>> => ipcRenderer.invoke('account:noticeRead', id, generation, operationId),
+  accountMyComments: (page: number, generation: number): Promise<AccountReply<CommentPage>> => ipcRenderer.invoke('account:myComments', page, generation),
+  accountPostComment: (query: CommentSubmission): Promise<AccountReply<{ status: 'sent' }>> => ipcRenderer.invoke('account:postComment', query),
+  accountDaily: (generation: number): Promise<AccountReply<DailyState>> => ipcRenderer.invoke('account:daily', generation),
+  accountCheckIn: (generation: number, operationId: string): Promise<AccountReply<DailyResult>> => ipcRenderer.invoke('account:checkIn', generation, operationId),
+  accountDailyYears: (generation: number): Promise<AccountReply<string[]>> => ipcRenderer.invoke('account:dailyYears', generation),
+  accountDailyHistory: (year: string, generation: number): Promise<AccountReply<DailyMonth[]>> => ipcRenderer.invoke('account:dailyHistory', year, generation),
+  accountTasks: (generation: number): Promise<AccountReply<AccountTask[]>> => ipcRenderer.invoke('account:tasks', generation),
   onAccountChanged: (callback: (state: AccountState) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, state: AccountState): void => callback(state)
     ipcRenderer.on('account:changed', handler)

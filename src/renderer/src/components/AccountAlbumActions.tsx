@@ -19,13 +19,13 @@ export default function AccountAlbumActions({ id, visible }: { id: string; visib
     return () => { cancelled = true }
   }, [id, visible, state.phase, state.generation, revision])
   const album = data?.generation === state.generation && data.album.id === id ? data.album : null
-  const toggle = async (kind: 'favorite' | 'tracking', desired: boolean): Promise<void> => {
+  const toggle = async (kind: 'favorite' | 'tracking' | 'liked', desired: boolean): Promise<void> => {
     if (busy) return
     setBusy(true); setError('')
     try {
       const reply = await window.electronAPI!.accountMutate({ id, kind, desired, generation: state.generation, operationId: crypto.randomUUID() })
       if (useAccountStore.getState().state.generation !== state.generation) return
-      if (reply.ok) setData(previous => ({ generation: state.generation, album: { id, favorite: previous?.album.favorite ?? null, tracking: previous?.album.tracking ?? null, [kind]: reply.data[kind] } }))
+      if (reply.ok) setData(previous => ({ generation: state.generation, album: { id, favorite: previous?.album.favorite ?? null, tracking: previous?.album.tracking ?? null, liked: previous?.album.liked ?? null, [kind]: reply.data[kind] } }))
       else setError(reply.error)
     } catch { setError('尚未确认操作结果，请先刷新在线状态。') } finally { setBusy(false) }
   }
@@ -34,6 +34,7 @@ export default function AccountAlbumActions({ id, visible }: { id: string; visib
     <div className={styles.row}>
       <Button size="small" disabled={busy || album?.favorite === null || !album} aria-pressed={album?.favorite ?? false} onClick={() => void toggle('favorite', !album?.favorite)}>{album?.favorite ? '取消在线收藏' : '在线收藏'}</Button>
       <Button size="small" disabled={busy || album?.tracking === null || !album} aria-pressed={album?.tracking ?? false} onClick={() => void toggle('tracking', !album?.tracking)}>{album?.tracking ? '取消追更' : '追更'}</Button>
+      <Button size="small" disabled={busy || album?.liked == null || album.liked} aria-pressed={album?.liked ?? false} title="服务端点赞后不能撤销" onClick={() => void toggle('liked', true)}>{album?.liked ? '已点赞' : '点赞作品'}</Button>
       <Button size="small" appearance="subtle" disabled={busy} onClick={() => setRevision(value => value + 1)}>刷新在线状态</Button>
     </div>
     {error && <Text role="alert" className={styles.error}>{error}</Text>}

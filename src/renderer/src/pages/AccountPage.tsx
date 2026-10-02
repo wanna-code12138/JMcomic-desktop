@@ -5,6 +5,8 @@ import { useAccountStore } from '../stores/accountStore'
 import { useAppStore } from '../stores/appStore'
 import { useCommunityStyles } from '../components/communityStyles'
 import type { AccountNotifications } from '../../../shared/accountContracts'
+import MyCommentsPanel from '../components/MyCommentsPanel'
+import AccountActivityPanel from '../components/AccountActivityPanel'
 
 export default function AccountPage(): JSX.Element {
   const styles = useCommunityStyles()
@@ -66,7 +68,10 @@ export default function AccountPage(): JSX.Element {
       </div>
       <TabList selectedValue={tab} onTabSelect={(_, data) => setTab(String(data.value))}>
         <Tab value="overview">概览</Tab><Tab value="notifications">通知{data?.unread !== null && data?.unread !== undefined ? ` (${data.unread})` : ''}</Tab>
+        <Tab value="comments">我的评论</Tab><Tab value="activity">活动</Tab>
       </TabList>
+      {tab === 'comments' && <MyCommentsPanel key={state.generation} visible={visible} />}
+      {tab === 'activity' && <AccountActivityPanel key={state.generation} visible={visible} />}
       {tab === 'overview' && <div className={styles.card}>
         <Text weight="semibold">账户信息</Text>
         <div className={styles.metric}>{[['等级', profile.level], ['金币', profile.coins], ['经验', profile.experience], ['收藏数量', profile.favorites], ['收藏上限', profile.favoriteLimit]].map(([label, value]) =>

@@ -4,13 +4,14 @@ import { AccountError } from '../account/accountErrors'
 import type { AccountService } from '../account/accountService'
 
 async function main() {
-  let favorite = false, tracking = false, writes = 0, failAfterWrite = false, failRead = false
+  let favorite = false, tracking = false, liked = false, writes = 0, failAfterWrite = false, failRead = false
   const service = {
     getState: () => ({ generation: 1, phase: 'authenticated' }), imageOrigin: () => 'https://cdn-msp.18comic.vip',
     async request(endpoint: string, params: Record<string, string>) {
-      if (endpoint === 'album') { if (failRead) throw new AccountError('NETWORK'); return { id: '123', is_favorite: favorite ? '1' : '0' } }
+      if (endpoint === 'album') { if (failRead) throw new AccountError('NETWORK'); return { id: '123', is_favorite: favorite ? '1' : '0', liked } }
       if (endpoint === 'trackingState') return false // 真实接口可能与列表不一致
       if (endpoint === 'tracking') return tracking ? { item: [{ id: '123', name: '连载' }], totalCnt: '1' } : { totalCnt: '0' }
+      if (endpoint === 'like') { writes++; liked = !liked; return { status: 'success' } }
       if (endpoint === 'favorite' || endpoint === 'trackingToggle') {
         writes++
         if (endpoint === 'favorite') favorite = !favorite; else tracking = !tracking
@@ -38,6 +39,11 @@ async function main() {
   assert.equal((await library.mutate({ ...input, kind: 'tracking', operationId: 'fixture-operation-7' })).tracking, true)
   assert.equal((await library.album('123', 1)).tracking, true, '追更状态必须与真实列表一致')
   assert.equal((await library.mutate({ ...input, kind: 'tracking', desired: false, operationId: 'fixture-operation-9' })).tracking, false)
+  assert.equal((await library.mutate({ ...input, kind: 'liked', operationId: 'fixture-like-1' })).liked, true, '作品点赞与收藏独立')
+  assert.equal((await library.album('123', 1)).liked, true)
+  const beforeUnsupported = writes
+  await assert.rejects(() => library.mutate({ ...input, kind: 'liked', desired: false, operationId: 'fixture-like-2' }), (e: any) => e.code === 'UNAVAILABLE', '真实服务点赞为单向，不得提供虚假的取消操作')
+  assert.equal(writes, beforeUnsupported, '取消点赞必须在网络请求前拒绝')
   await assert.rejects(() => library.mutate({ ...input, generation: 0, operationId: 'fixture-operation-8' }), (e: any) => e.code === 'CANCELLED')
   console.log('PASS account mutations: desired state, operation deduplication, serial toggle, outcome reconciliation, preflight failure, stale scope')
 }

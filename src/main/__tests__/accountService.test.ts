@@ -96,6 +96,11 @@ async function main() {
   assert.equal(optionalAttempts, 2)
   await assert.rejects(() => retry.service.request('favorite', { aid: '123' }, 1), (e: any) => e.code === 'UNAVAILABLE')
   assert.equal(writeAttempts, 1, '恢复重试严格排除写请求')
+  assert.equal(typeof retry.service.onInvalidate, 'function', '账户退出必须通知私有结果缓存清除')
+  let invalidations = 0
+  retry.service.onInvalidate(() => invalidations++)
+  await retry.service.logout(); assert.equal(invalidations, 1)
+  await retry.service.close(); assert.equal(invalidations, 2)
   console.log('PASS account lifecycle: proof, optional 401, expiry, 100 stale races, login cancellation, logout, proxy pause')
 }
 void main().catch(error => { console.error(error); process.exitCode = 1 })

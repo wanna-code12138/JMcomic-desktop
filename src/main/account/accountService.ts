@@ -16,8 +16,13 @@ export function createAccountService(deps: AccountServiceDeps) {
   let candidate: AbortController | null = null
   let epoch = 0, paused = false, closed = false
   let verification: { generation: number; promise: Promise<AccountState> } | null = null
+  const invalidationListeners = new Set<() => void>()
+  const invalidate = (): void => { for (const listener of invalidationListeners) listener() }
   const getState = (): AccountState => structuredClone(state)
-  const publish = (patch: Partial<AccountState>): void => { state = { ...state, ...patch }; deps.publish?.(getState()) }
+  const publish = (patch: Partial<AccountState>): void => {
+    const changed = patch.generation !== undefined && patch.generation !== state.generation
+    state = { ...state, ...patch }; if (changed) invalidate(); deps.publish?.(getState())
+  }
   const cancelled = (): AccountError => new AccountError('CANCELLED')
   function check(generation: number, captured = active): NonNullable<typeof active> {
     if (closed || generation !== state.generation || captured !== active) throw cancelled()
@@ -97,6 +102,7 @@ export function createAccountService(deps: AccountServiceDeps) {
   }
   return {
     getState,
+    onInvalidate(listener: () => void) { invalidationListeners.add(listener); return () => { invalidationListeners.delete(listener) } },
     async login(username: string, password: string, remember: boolean) {
       if (typeof username !== 'string' || !username.trim() || username.length > 120 || typeof password !== 'string' || !password || password.length > 256) throw new AccountError('INVALID_INPUT')
       return establish(username.trim(), password, remember === true)
@@ -153,7 +159,7 @@ export function createAccountService(deps: AccountServiceDeps) {
         const failure = accountError(error)
         if (failure.code === 'AUTH_REQUIRED') {
           await verify(generation); check(generation, captured)
-          if (['favorites', 'history', 'tracking', 'album', 'trackingState', 'notifications', 'unread', 'profile'].includes(endpoint)) {
+          if (['favorites', 'history', 'tracking', 'album', 'trackingState', 'notifications', 'unread', 'profile', 'myComments', 'daily', 'dailyYears', 'dailyHistory', 'tasks'].includes(endpoint)) {
             try {
               const result = await captured.session.request(endpoint, params, controller.signal)
               check(generation, captured); controller.signal.throwIfAborted(); return result
@@ -178,6 +184,7 @@ export function createAccountService(deps: AccountServiceDeps) {
     },
     async close() {
       closed = true; epoch++; candidate?.abort(cancelled()); active?.controller.abort(cancelled())
+      invalidate()
       await deps.vault.flush()
       if (active) await active.session.dispose()
       active = null

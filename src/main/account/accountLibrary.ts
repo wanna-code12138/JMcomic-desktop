@@ -3,36 +3,11 @@ import type { AccountService } from './accountService'
 import { id, boolean, parseLibrary, parseNotifications } from './accountParser'
 import { count, record } from '../comments/commentParser'
 import { AccountError } from './accountErrors'
+import { createAccountOperations } from './accountOperations'
 
 export function createAccountLibrary(service: AccountService) {
-  const queues = new Map<string, Promise<unknown>>()
-  const operations = new Map<string, { fingerprint: string; promise: Promise<unknown> }>()
-  let cacheGeneration = -1
-  function scope(generation: number): void {
-    const state = service.getState()
-    if (generation !== state.generation) throw new AccountError('CANCELLED')
-    if (state.phase !== 'authenticated') throw new AccountError('AUTH_REQUIRED')
-    if (cacheGeneration !== generation) { operations.clear(); queues.clear(); cacheGeneration = generation }
-  }
-  function operate<T>(generation: number, operationId: string, resource: string, fingerprint: string, work: () => Promise<T>): Promise<T> {
-    scope(generation)
-    if (typeof operationId !== 'string' || !/^[a-zA-Z0-9_-]{8,128}$/.test(operationId)) throw new AccountError('INVALID_INPUT')
-    const operationKey = `${generation}:${operationId}`, resourceKey = `${generation}:${resource}`
-    const old = operations.get(operationKey)
-    if (old) {
-      if (old.fingerprint !== fingerprint) throw new AccountError('INVALID_INPUT')
-      return old.promise as Promise<T>
-    }
-    if (queues.size >= 100) throw new AccountError('BUSY')
-    const promise = (queues.get(resourceKey) ?? Promise.resolve()).catch(() => {}).then(async () => { scope(generation); return work() })
-    queues.set(resourceKey, promise); operations.set(operationKey, { fingerprint, promise })
-    void promise.finally(() => {
-      if (queues.get(resourceKey) === promise) queues.delete(resourceKey)
-      while (operations.size > 200) operations.delete(operations.keys().next().value!)
-    }).catch(() => {})
-    return promise
-  }
-  async function readState(albumId: string, kind: 'favorite' | 'tracking', generation: number): Promise<boolean | null> {
+  const { scope, operate } = createAccountOperations(service)
+  async function readState(albumId: string, kind: AlbumMutation['kind'], generation: number): Promise<boolean | null> {
     scope(generation)
     if (kind === 'tracking') {
       // The single-album endpoint can report false for an album present in the tracking list.
@@ -53,7 +28,7 @@ export function createAccountLibrary(service: AccountService) {
     const raw = await service.request('album', { id: albumId }, generation)
     scope(generation)
     const row = record(raw)
-    return String(row.id) === albumId ? boolean(row.is_favorite) : null
+    return String(row.id) === albumId ? boolean(kind === 'liked' ? row.liked : row.is_favorite) : null
   }
   async function notifications(generation: number): Promise<AccountNotifications> {
     scope(generation)
@@ -77,22 +52,27 @@ export function createAccountLibrary(service: AccountService) {
     },
     async album(albumId: string, generation: number): Promise<AlbumAccountState> {
       id(albumId); scope(generation)
-      const results = await Promise.allSettled([readState(albumId, 'favorite', generation), readState(albumId, 'tracking', generation)])
+      const results = await Promise.allSettled([service.request('album', { id: albumId }, generation), readState(albumId, 'tracking', generation)])
       scope(generation)
       if (results.every(result => result.status === 'rejected')) throw (results[0] as PromiseRejectedResult).reason
-      return { id: albumId, favorite: results[0].status === 'fulfilled' ? results[0].value : null, tracking: results[1].status === 'fulfilled' ? results[1].value : null }
+      const album = results[0].status === 'fulfilled' ? record(results[0].value) : {}
+      return { id: albumId, favorite: String(album.id) === albumId ? boolean(album.is_favorite) : null,
+        liked: String(album.id) === albumId ? boolean(album.liked) : null, tracking: results[1].status === 'fulfilled' ? results[1].value as boolean | null : null }
     },
     notifications,
     async mutate(query: AlbumMutation): Promise<AlbumAccountState> {
       id(query.id)
-      if (!['favorite', 'tracking'].includes(query.kind) || typeof query.desired !== 'boolean') throw new AccountError('INVALID_INPUT')
+      if (!['favorite', 'tracking', 'liked'].includes(query.kind) || typeof query.desired !== 'boolean') throw new AccountError('INVALID_INPUT')
+      // Live /like rejects a second vote with “已經評價”; it does not undo it.
+      if (query.kind === 'liked' && !query.desired) throw new AccountError('UNAVAILABLE')
       return operate(query.generation, query.operationId, `${query.kind}:${query.id}`, JSON.stringify(query), async () => {
         const before = await readState(query.id, query.kind, query.generation)
         if (before === null) throw new AccountError('UNAVAILABLE')
         if (before !== query.desired) {
           let writeError: unknown
           try {
-            await service.request(query.kind === 'favorite' ? 'favorite' : 'trackingToggle', query.kind === 'favorite' ? { aid: query.id } : { id: query.id }, query.generation)
+            const reply = await service.request(query.kind === 'favorite' ? 'favorite' : query.kind === 'liked' ? 'like' : 'trackingToggle', query.kind === 'favorite' ? { aid: query.id } : { id: query.id }, query.generation)
+            if (query.kind === 'liked' && record(reply).status !== 'success') throw new AccountError('UNAVAILABLE')
           } catch (error) { writeError = error }
           scope(query.generation)
           let after: boolean | null
@@ -101,7 +81,7 @@ export function createAccountLibrary(service: AccountService) {
           if (after === null) throw new AccountError('OUTCOME_UNKNOWN')
           if (after !== query.desired) throw writeError instanceof AccountError ? writeError : new AccountError('CONFLICT')
         }
-        return { id: query.id, favorite: query.kind === 'favorite' ? query.desired : null, tracking: query.kind === 'tracking' ? query.desired : null }
+        return { id: query.id, favorite: query.kind === 'favorite' ? query.desired : null, tracking: query.kind === 'tracking' ? query.desired : null, liked: query.kind === 'liked' ? query.desired : null }
       })
     },
     async markRead(noticeId: string, generation: number, operationId: string): Promise<AccountNotifications> {

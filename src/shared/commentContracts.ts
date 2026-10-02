@@ -8,6 +8,7 @@ export interface ComicComment {
   replies: ComicComment[]
   albumId?: string
   repliesTruncated?: boolean
+  parentId?: string
 }
 
 export interface CommentPage {

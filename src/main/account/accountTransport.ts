@@ -9,7 +9,10 @@ export const ACCOUNT_ENDPOINTS = {
   history: ['GET', '/watch_list'], tracking: ['POST', '/album_tracking'],
   trackingState: ['GET', '/album_sertracking'], trackingToggle: ['POST', '/album_sertracking'],
   notifications: ['GET', '/notifications'], unread: ['GET', '/notifications/unreadCount'],
-  noticeRead: ['POST', '/notifications']
+  noticeRead: ['POST', '/notifications'],
+  myComments: ['GET', '/forum'], postComment: ['POST', '/comment'], like: ['POST', '/like'],
+  daily: ['GET', '/daily'], checkIn: ['POST', '/daily_chk'], dailyYears: ['GET', '/daily_list'],
+  dailyHistory: ['POST', '/daily_list/filter'], tasks: ['GET', '/tasks']
 } as const
 export type AccountEndpoint = keyof typeof ACCOUNT_ENDPOINTS
 export interface AccountTransport {

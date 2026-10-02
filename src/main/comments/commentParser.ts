@@ -36,6 +36,7 @@ function parseRows(rows: unknown[], depth = 0): ComicComment[] {
       spoiler: row.spoiler === '2' || row.spoiler === 2 || row.spoiler === true,
       likes: count(row.likes), albumId: /^\d+$/.test(String(row.AID)) ? String(row.AID) : undefined,
       repliesTruncated: Array.isArray(replies) && (replies.length > 100 || (depth >= 2 && replies.length > 0)),
+      parentId: /^\d+$/.test(String(row.parent_CID)) && String(row.parent_CID) !== '0' ? String(row.parent_CID) : undefined,
       replies: depth < 2 && Array.isArray(replies) ? parseRows(replies, depth + 1) : [] })
   }
   return result
