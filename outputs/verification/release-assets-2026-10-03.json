@@ -1,0 +1,74 @@
+{
+  "verifiedAtUtc": "2026-10-02T20:05:41.4982899Z",
+  "latest": "v1.3.4",
+  "latestDownloadHashVerified": true,
+  "latestLocalPath": "outputs\\releases\\github-v1.3.4\\JMComic.Desktop.Portable.1.3.4.exe",
+  "releases": [
+    {
+      "version": "1.1.0",
+      "commit": "a5b40e2fb76619ffeaf7de390160821a8fb17deb",
+      "releaseUrl": "https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.1.0",
+      "filename": "JMComic.Desktop.Portable.1.1.0.exe",
+      "bytes": 108338268,
+      "sha256": "ab64eb6f5a30d5bde5669adf125b827d933d92bb796a0127804d539e54fb8711",
+      "descriptionMatches": true,
+      "checksumMatches": true,
+      "downloadUrl": "https://github.com/wanna-code12138/JMcomic-desktop/releases/download/v1.1.0/JMComic.Desktop.Portable.1.1.0.exe"
+    },
+    {
+      "version": "1.2.0",
+      "commit": "190aff86a94466af43fa02703dbfc7007d218550",
+      "releaseUrl": "https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.2.0",
+      "filename": "JMComic.Desktop.Portable.1.2.0.exe",
+      "bytes": 108336279,
+      "sha256": "608d79856ab6389978249252700041e6bf41f4b8432a9e29faa8d31e31f27a4c",
+      "descriptionMatches": true,
+      "checksumMatches": true,
+      "downloadUrl": "https://github.com/wanna-code12138/JMcomic-desktop/releases/download/v1.2.0/JMComic.Desktop.Portable.1.2.0.exe"
+    },
+    {
+      "version": "1.3.1",
+      "commit": "0519a556093b821c378920c7ce62c4641713761e",
+      "releaseUrl": "https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.3.1",
+      "filename": "JMComic.Desktop.Portable.1.3.1.exe",
+      "bytes": 108352995,
+      "sha256": "d98133af669d895215e9b4ea7c11927f0d6e5f06b92379872eef2702d5d2ca36",
+      "descriptionMatches": true,
+      "checksumMatches": true,
+      "downloadUrl": "https://github.com/wanna-code12138/JMcomic-desktop/releases/download/v1.3.1/JMComic.Desktop.Portable.1.3.1.exe"
+    },
+    {
+      "version": "1.3.2",
+      "commit": "54ac93b76108da2ff0512c8940444868e3e4a0a5",
+      "releaseUrl": "https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.3.2",
+      "filename": "JMComic.Desktop.Portable.1.3.2.exe",
+      "bytes": 108360091,
+      "sha256": "0159129ed1aac5dc9cf48f94680b8ee9bc586a96fb22796109f3f7cb1d937ba0",
+      "descriptionMatches": true,
+      "checksumMatches": true,
+      "downloadUrl": "https://github.com/wanna-code12138/JMcomic-desktop/releases/download/v1.3.2/JMComic.Desktop.Portable.1.3.2.exe"
+    },
+    {
+      "version": "1.3.3",
+      "commit": "a5747025595a2c0c87ffcb6449a74261231f4932",
+      "releaseUrl": "https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.3.3",
+      "filename": "JMComic.Desktop.Portable.1.3.3.exe",
+      "bytes": 108741428,
+      "sha256": "d6ccb7c3ce7f62443d53040c335bdc93269125daf9fa1552fd9814582db352a8",
+      "descriptionMatches": true,
+      "checksumMatches": true,
+      "downloadUrl": "https://github.com/wanna-code12138/JMcomic-desktop/releases/download/v1.3.3/JMComic.Desktop.Portable.1.3.3.exe"
+    },
+    {
+      "version": "1.3.4",
+      "commit": "5fddf135f8e5367432195d21884fcbe386a72cf9",
+      "releaseUrl": "https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.3.4",
+      "filename": "JMComic.Desktop.Portable.1.3.4.exe",
+      "bytes": 108739971,
+      "sha256": "64a0be0961e7b5c0c016a8216449bbc67b7aa187f96523197376dbf74e1d3934",
+      "descriptionMatches": true,
+      "checksumMatches": true,
+      "downloadUrl": "https://github.com/wanna-code12138/JMcomic-desktop/releases/download/v1.3.4/JMComic.Desktop.Portable.1.3.4.exe"
+    }
+  ]
+}
