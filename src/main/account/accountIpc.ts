@@ -2,15 +2,16 @@ import type { IpcMain, WebContents } from 'electron'
 import type { AccountService } from './accountService'
 import type { createAccountLibrary } from './accountLibrary'
 import { AccountError, accountError } from './accountErrors'
-import type { AlbumMutation, LibraryQuery, CommentSubmission } from '../../shared/accountContracts'
+import type { AlbumMutation, LibraryQuery, CommentSubmission, FolderMutation, TagMutation, HistoryMutation, ProfileMutation } from '../../shared/accountContracts'
 import type { createAccountActivity } from './accountActivity'
+import type { createAccountManagement } from './accountManagement'
 
 export function isTrustedAccountSender(event: { sender: unknown; senderFrame: unknown }, contents: { mainFrame: unknown } | undefined): boolean {
   return Boolean(contents && event.sender === contents && event.senderFrame && event.senderFrame === contents.mainFrame)
 }
 
 export function registerAccountHandlers(ipc: Pick<IpcMain, 'handle'>, getContents: () => WebContents | undefined,
-  service: AccountService, library: ReturnType<typeof createAccountLibrary>, activity: ReturnType<typeof createAccountActivity>): void {
+  service: AccountService, library: ReturnType<typeof createAccountLibrary>, activity: ReturnType<typeof createAccountActivity>, management: ReturnType<typeof createAccountManagement>): void {
   const handle = (channel: string, action: (...args: any[]) => unknown): void => {
     ipc.handle(channel, async (event, ...args) => {
       try {
@@ -20,6 +21,7 @@ export function registerAccountHandlers(ipc: Pick<IpcMain, 'handle'>, getContent
     })
   }
   handle('account:state', service.getState)
+  handle('account:restore', service.restore)
   handle('account:login', (username: string, password: string, remember: boolean) => service.login(username, password, remember))
   handle('account:logout', service.logout)
   handle('account:verify', (generation: number) => service.verify(generation))
@@ -35,4 +37,11 @@ export function registerAccountHandlers(ipc: Pick<IpcMain, 'handle'>, getContent
   handle('account:dailyYears', (generation: number) => activity.years(generation))
   handle('account:dailyHistory', (year: string, generation: number) => activity.history(year, generation))
   handle('account:tasks', (generation: number) => activity.tasks(generation))
+  handle('account:folders', (generation: number) => management.folders(generation))
+  handle('account:folder', (query: FolderMutation) => management.folder(query))
+  handle('account:tags', (generation: number) => management.tags(generation))
+  handle('account:tag', (query: TagMutation) => management.tag(query))
+  handle('account:historyDelete', (query: HistoryMutation) => management.removeHistory(query))
+  handle('account:profile', (generation: number) => management.profile(generation))
+  handle('account:profileUpdate', (query: ProfileMutation) => management.editProfile(query))
 }

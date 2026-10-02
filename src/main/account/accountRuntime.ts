@@ -11,6 +11,7 @@ import { createAccountSessionFactory } from './accountSession'
 import { createAccountService, type AccountService } from './accountService'
 import { createAccountLibrary } from './accountLibrary'
 import { createAccountActivity } from './accountActivity'
+import { createAccountManagement } from './accountManagement'
 import { CREDENTIAL_ORIGINS } from './accountTransport'
 import { AccountError } from './accountErrors'
 import { registerAccountHandlers } from './accountIpc'
@@ -48,7 +49,7 @@ export function initializeAccount(getContents: () => WebContents | undefined): v
     if (contents && !contents.isDestroyed()) contents.send('account:changed', state)
   } })
   accountProxyRegistry.onPause(paused => account?.setNetworkPaused(paused))
-  registerAccountHandlers(ipcMain, getContents, account, createAccountLibrary(account), createAccountActivity(account))
+  registerAccountHandlers(ipcMain, getContents, account, createAccountLibrary(account), createAccountActivity(account), createAccountManagement(account))
   void account.restore().catch(() => {})
 }
 

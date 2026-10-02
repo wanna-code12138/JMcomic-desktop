@@ -11,6 +11,7 @@ import type { DownloadTaskIdentity } from '../shared/downloadContracts'
 import type { CommentReply, CommentPage } from '../shared/commentContracts'
 import type { AccountReply, AccountState, LibraryQuery, OnlineLibraryPage, AlbumAccountState, AlbumMutation, AccountNotifications } from '../shared/accountContracts'
 import type { CommentSubmission, DailyState, DailyResult, DailyMonth, AccountTask } from '../shared/accountContracts'
+import type { FavoriteFolder, FolderMutation, TagMutation, HistoryMutation, EditableProfile, ProfileMutation } from '../shared/accountContracts'
 
 const taskCommand = (command: string, target: DownloadTaskIdentity | number, deleteFiles?: boolean) => {
   const task = typeof target === 'number' ? { kind: 'images', id: target } : target
@@ -30,6 +31,7 @@ const api = {
   commentsGet: (albumId: string, page: number, refresh: boolean, requestId: string): Promise<CommentReply> => ipcRenderer.invoke('comments:get', { albumId, page, refresh, requestId }),
   commentsCancel: (requestId: string): Promise<void> => ipcRenderer.invoke('comments:cancel', requestId),
   accountState: (): Promise<AccountReply<AccountState>> => ipcRenderer.invoke('account:state'),
+  accountRestore: (): Promise<AccountReply<AccountState>> => ipcRenderer.invoke('account:restore'),
   accountLogin: (username: string, password: string, remember: boolean): Promise<AccountReply<AccountState>> => ipcRenderer.invoke('account:login', username, password, remember),
   accountLogout: (): Promise<AccountReply<AccountState>> => ipcRenderer.invoke('account:logout'),
   accountVerify: (generation: number): Promise<AccountReply<AccountState>> => ipcRenderer.invoke('account:verify', generation),
@@ -45,6 +47,13 @@ const api = {
   accountDailyYears: (generation: number): Promise<AccountReply<string[]>> => ipcRenderer.invoke('account:dailyYears', generation),
   accountDailyHistory: (year: string, generation: number): Promise<AccountReply<DailyMonth[]>> => ipcRenderer.invoke('account:dailyHistory', year, generation),
   accountTasks: (generation: number): Promise<AccountReply<AccountTask[]>> => ipcRenderer.invoke('account:tasks', generation),
+  accountFolders: (generation: number): Promise<AccountReply<FavoriteFolder[]>> => ipcRenderer.invoke('account:folders', generation),
+  accountFolder: (query: FolderMutation): Promise<AccountReply<FavoriteFolder[]>> => ipcRenderer.invoke('account:folder', query),
+  accountTags: (generation: number): Promise<AccountReply<string[]>> => ipcRenderer.invoke('account:tags', generation),
+  accountTag: (query: TagMutation): Promise<AccountReply<string[]>> => ipcRenderer.invoke('account:tag', query),
+  accountHistoryDelete: (query: HistoryMutation): Promise<AccountReply<{ removed: true }>> => ipcRenderer.invoke('account:historyDelete', query),
+  accountProfile: (generation: number): Promise<AccountReply<EditableProfile>> => ipcRenderer.invoke('account:profile', generation),
+  accountProfileUpdate: (query: ProfileMutation): Promise<AccountReply<EditableProfile>> => ipcRenderer.invoke('account:profileUpdate', query),
   onAccountChanged: (callback: (state: AccountState) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, state: AccountState): void => callback(state)
     ipcRenderer.on('account:changed', handler)

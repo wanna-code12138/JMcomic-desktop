@@ -19,7 +19,7 @@ export interface AccountState {
 }
 export type AccountErrorCode = 'AUTH_REQUIRED' | 'EXPIRED' | 'CANCELLED' | 'CHALLENGE' | 'RATE_LIMITED'
   | 'NETWORK' | 'PROTOCOL' | 'INVALID_INPUT' | 'INVALID_CREDENTIALS' | 'STORAGE' | 'UNAVAILABLE'
-  | 'OUTCOME_UNKNOWN' | 'CONFLICT' | 'BUSY' | 'FORBIDDEN'
+  | 'OUTCOME_UNKNOWN' | 'CONFLICT' | 'BUSY' | 'FORBIDDEN' | 'NOT_EMPTY'
 export type AccountReply<T> = { ok: true; data: T } | { ok: false; code: AccountErrorCode; error: string }
 export interface OnlineAlbum { id: string; title: string; coverUrl: string; author: string; date: string }
 export interface FavoriteFolder { id: string; name: string; count: number | null }
@@ -43,3 +43,11 @@ export interface DailyState { id: string; title: string; progress: string; days:
 export interface DailyResult { status: 'signed' | 'already'; calendar: DailyState | null }
 export interface DailyMonth { id: string; year: string; month: string; image: string }
 export interface AccountTask { id: string; name: string; text: string; done: boolean | null }
+export interface AccountIntent extends AccountScope { operationId: string }
+export type FolderMutation = AccountIntent & (
+  { action: 'add'; name: string } | { action: 'rename'; folderId: string; name: string } |
+  { action: 'move'; folderId: string; albumId: string } | { action: 'delete'; folderId: string; confirmed: boolean })
+export interface TagMutation extends AccountIntent { tag: string; desired: boolean }
+export interface HistoryMutation extends AccountIntent { albumId: string; confirmed: boolean }
+export interface EditableProfile { nickName: string; aboutMe: string; website: string }
+export interface ProfileMutation extends AccountIntent { expected: EditableProfile; value: EditableProfile }

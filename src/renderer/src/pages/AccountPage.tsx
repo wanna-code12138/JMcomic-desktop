@@ -7,6 +7,7 @@ import { useCommunityStyles } from '../components/communityStyles'
 import type { AccountNotifications } from '../../../shared/accountContracts'
 import MyCommentsPanel from '../components/MyCommentsPanel'
 import AccountActivityPanel from '../components/AccountActivityPanel'
+import { AccountTagsPanel, AccountProfilePanel } from '../components/AccountManagementPanels'
 
 export default function AccountPage(): JSX.Element {
   const styles = useCommunityStyles()
@@ -48,6 +49,11 @@ export default function AccountPage(): JSX.Element {
     <Text className={styles.hint}>登录后使用在线收藏、历史、追更和通知。公开评论无需登录。</Text>
     {(error || state.message) && <div role="alert" className={styles.error}>{error || state.message}</div>}
     {authenticating && <div className={styles.row}><Spinner size="small" label={state.phase === 'restoring' ? '正在恢复会话…' : '正在登录并验证会话…'} /><Button onClick={() => void logout()}>取消</Button></div>}
+    {!profile && !authenticating && state.remembered && <div className={styles.row}><Button disabled={busy} onClick={async () => {
+      setBusy(true); setError('')
+      try { const reply = await window.electronAPI!.accountRestore(); if (!reply.ok) setError(reply.error) }
+      catch { setError('会话恢复失败，请稍后重试。') } finally { setBusy(false) }
+    }}>重试恢复已保存会话</Button><Button disabled={busy} onClick={() => void logout()}>清除已保存会话</Button></div>}
     {!profile && !authenticating && <form className={`${styles.card} ${styles.stack}`} onSubmit={event => void submit(event)}>
       <Text weight="semibold" size={500}>登录</Text>
       <Field label="账号" required><Input autoComplete="username" value={username} maxLength={120} onChange={(_, data) => setUsername(data.value)} /></Field>
@@ -69,9 +75,12 @@ export default function AccountPage(): JSX.Element {
       <TabList selectedValue={tab} onTabSelect={(_, data) => setTab(String(data.value))}>
         <Tab value="overview">概览</Tab><Tab value="notifications">通知{data?.unread !== null && data?.unread !== undefined ? ` (${data.unread})` : ''}</Tab>
         <Tab value="comments">我的评论</Tab><Tab value="activity">活动</Tab>
+        <Tab value="tags">收藏标签</Tab><Tab value="profile">资料</Tab>
       </TabList>
       {tab === 'comments' && <MyCommentsPanel key={state.generation} visible={visible} />}
       {tab === 'activity' && <AccountActivityPanel key={state.generation} visible={visible} />}
+      {tab === 'tags' && <AccountTagsPanel key={state.generation} visible={visible} />}
+      {tab === 'profile' && <AccountProfilePanel key={state.generation} visible={visible} />}
       {tab === 'overview' && <div className={styles.card}>
         <Text weight="semibold">账户信息</Text>
         <div className={styles.metric}>{[['等级', profile.level], ['金币', profile.coins], ['经验', profile.experience], ['收藏数量', profile.favorites], ['收藏上限', profile.favoriteLimit]].map(([label, value]) =>

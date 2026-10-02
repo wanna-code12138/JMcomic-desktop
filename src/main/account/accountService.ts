@@ -112,7 +112,7 @@ export function createAccountService(deps: AccountServiceDeps) {
       try {
         const saved = await deps.vault.load()
         if (start !== epoch || closed) throw cancelled()
-        if (saved) return await establish(null, '', true, saved)
+        if (saved) { publish({ remembered: true }); return await establish(null, '', true, saved) }
         return getState()
       } catch (error) {
         const failure = accountError(error)
@@ -159,7 +159,7 @@ export function createAccountService(deps: AccountServiceDeps) {
         const failure = accountError(error)
         if (failure.code === 'AUTH_REQUIRED') {
           await verify(generation); check(generation, captured)
-          if (['favorites', 'history', 'tracking', 'album', 'trackingState', 'notifications', 'unread', 'profile', 'myComments', 'daily', 'dailyYears', 'dailyHistory', 'tasks'].includes(endpoint)) {
+          if (['favorites', 'history', 'tracking', 'album', 'trackingState', 'notifications', 'unread', 'profile', 'myComments', 'daily', 'dailyYears', 'dailyHistory', 'tasks', 'tags'].includes(endpoint)) {
             try {
               const result = await captured.session.request(endpoint, params, controller.signal)
               check(generation, captured); controller.signal.throwIfAborted(); return result

@@ -1,6 +1,7 @@
 import type { AccountErrorCode } from '../../shared/accountContracts'
 
 const messages: Record<AccountErrorCode, string> = {
+  NOT_EMPTY: '收藏夹内仍有作品，或尚未确认它为空。请先移出作品并刷新后再删除。',
   AUTH_REQUIRED: '请先登录在线账户。', EXPIRED: '在线会话已失效，请重新登录。', CANCELLED: '操作已取消，请刷新后重试。',
   CHALLENGE: '服务要求额外验证，当前功能暂不可用。', RATE_LIMITED: '请求过于频繁，请稍后重试。',
   NETWORK: '暂时无法连接在线服务，请检查网络后重试。', PROTOCOL: '服务返回的数据暂无法识别，请稍后重试。',

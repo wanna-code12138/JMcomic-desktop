@@ -12,7 +12,9 @@ export const ACCOUNT_ENDPOINTS = {
   noticeRead: ['POST', '/notifications'],
   myComments: ['GET', '/forum'], postComment: ['POST', '/comment'], like: ['POST', '/like'],
   daily: ['GET', '/daily'], checkIn: ['POST', '/daily_chk'], dailyYears: ['GET', '/daily_list'],
-  dailyHistory: ['POST', '/daily_list/filter'], tasks: ['GET', '/tasks']
+  dailyHistory: ['POST', '/daily_list/filter'], tasks: ['GET', '/tasks'],
+  folder: ['POST', '/favorite_folder'], tags: ['GET', '/tags_favorite'], tagsUpdate: ['POST', '/tags_favorite_update'],
+  historyDelete: ['POST', '/watch_list'], profileUpdate: ['POST', '/useredit/']
 } as const
 export type AccountEndpoint = keyof typeof ACCOUNT_ENDPOINTS
 export interface AccountTransport {
@@ -29,8 +31,9 @@ export function createAccountTransport(deps: {
     if (!spec) throw new AccountError('INVALID_INPUT')
     const [method, path] = spec
     const entries = { ...params }
-    const suffix = endpoint === 'profile' ? entries.uid : ''
-    if (endpoint === 'profile') {
+    const profileEndpoint = endpoint === 'profile' || endpoint === 'profileUpdate'
+    const suffix = profileEndpoint ? entries.uid : ''
+    if (profileEndpoint) {
       if (!/^\d{1,12}$/.test(suffix ?? '')) throw new AccountError('INVALID_INPUT')
       delete entries.uid
     }

@@ -14,6 +14,8 @@
 
 测试对真实账户 JM123456 增加了一次点赞，无法恢复；本报告明确保留该副作用，不声称已撤回。真实签到写入未执行，成功/已签到分支在隔离窗口验收。
 
+后续 1.3.3 最终重启验证发现同一作品的真实 GET 回读为 liked=false，与本轮写后 true 不一致；没有再次写入，也未能确认撤销。跨会话点赞显示的远端一致性不作保证，详见下一轮报告。
+
 ## 自动验证
 
 - 活动、草稿、会话清理、点赞等新增行为均先跑有意义的失败测试再实现通过。
@@ -22,3 +24,9 @@
 - accountMutation.test.ts 点赞语义回归通过。最终封版 `npm run check`：`TOTAL=100 PASSED=100 FAILED=0`，类型检查和构建成功；此前 CBZ 不稳定仍保留记录，不宣称已修复。
 
 源码参考：[JMComic-Api-Java 固定提交](https://github.com/JUKOMU/JMComic-Api-Java/blob/5a7a4bb4870edb512274dc2adeb4f7c157445321/jmcomic-core/src/main/java/io/github/jukomu/jmcomic/core/client/impl/JmApiClient.java)。接口行为以实际回读为准。
+
+## 成品
+
+便携包 SHA256：`1efa01501b8d1dd84742658bc5d917469d25c0ff8ab065bca76830a9d91da8c4`。依赖闭包 250 包、858 条依赖边、错误 0。实际便携 EXE 独立启动回归 7/7，通过下载、23 行像素校验、CBZ、阅读、PDF worker 和正常退出；报告见 outputs/reader-qa/1.3.2-portable-fixture。
+
+另行手动打开打包成品（app.isPackaged=true，version=1.3.2），正常登录、点击活动并逐屏目检 31 天日历，正常关闭。冷启动恢复遇到短暂网络失败，1.3.3 增加保留加密会话的无密码恢复重试按钮。
