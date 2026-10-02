@@ -6,14 +6,16 @@ import {
 import {
   ArrowPrevious20Regular, ArrowNext20Regular,
   Search20Regular, NumberSymbol20Regular,
-  Dismiss20Regular, History20Regular, Delete20Regular
+  Dismiss20Regular, History20Regular, Delete20Regular, Warning20Regular
 } from '@fluentui/react-icons'
 import { MangaCard, type MangaCardData } from '../components'
 import { useAppStore } from '../stores/appStore'
 import { usePageSnapshot } from '../navigation/pageStateCache'
+import { pageTitle, emptyState, sectionHeading } from '../theme/surfaceStyles'
 
 const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
+  title: { ...pageTitle, marginBottom: '20px' },
   searchBar: { display: 'flex', gap: '8px', maxWidth: '660px', marginBottom: '8px' },
   hint: {
     fontSize: '12px',
@@ -26,15 +28,7 @@ const useStyles = makeStyles({
     gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
     gap: '16px'
   },
-  statusMsg: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '60px 0',
-    color: 'var(--ui-text-tertiary)',
-    gap: '12px'
-  },
+  statusMsg: emptyState,
   pagination: {
     display: 'flex',
     alignItems: 'center',
@@ -69,12 +63,10 @@ const useStyles = makeStyles({
     marginBottom: '12px'
   },
   historyTitle: {
+    ...sectionHeading,
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    fontSize: '13px',
-    fontWeight: 600,
-    color: 'var(--ui-text-secondary)'
   },
   chipList: {
     display: 'flex',
@@ -87,7 +79,7 @@ const useStyles = makeStyles({
     gap: '4px',
     height: '32px',
     padding: '0 4px 0 12px',
-    borderRadius: 'var(--ui-radius-lg)',
+    borderRadius: 'var(--ui-radius-md)',
     backgroundColor: 'var(--ui-bg-card)',
     border: '1px solid var(--ui-stroke-card)',
     color: 'var(--ui-brand)',
@@ -276,7 +268,7 @@ export default function SearchPage(): JSX.Element {
 
   return (
     <div className={styles.root} ref={rootRef}>
-      <Text size={600} weight="semibold" style={{ marginBottom: '16px', display: 'block' }}>搜索漫画</Text>
+      <Text size={600} weight="semibold" className={`${styles.title} ui-page-title`}>搜索漫画</Text>
       <div className={styles.searchBar}>
         <SearchBox
           placeholder="输入关键词或 6-7 位车号搜索..."
@@ -289,7 +281,7 @@ export default function SearchPage(): JSX.Element {
             }
           }}
           size="large"
-          style={{ flex: 1 }}
+          style={{ flex: 1, minWidth: 0 }}
         />
         <Button appearance="primary" size="large" icon={<Search20Regular />} onClick={() => handleSubmit(query)}>
           搜索
@@ -351,14 +343,15 @@ export default function SearchPage(): JSX.Element {
 
       {hasQuery && !loading && error && (
         <div className={styles.statusMsg}>
-          <Text size={500} weight="semibold">⚠️ {jumpedCarPlate ? '正在跳转...' : '搜索出错'}</Text>
+          <Warning20Regular aria-hidden="true" />
+          <Text size={400} weight="semibold">{jumpedCarPlate ? '正在跳转...' : '搜索出错'}</Text>
           <Text size={300} style={{ maxWidth: '600px', textAlign: 'center' }}>{error}</Text>
         </div>
       )}
 
       {showEmpty && (
         <div className={styles.statusMsg}>
-          <Search20Regular style={{ width: '40px', height: '40px', opacity: 0.4 }} />
+          <Search20Regular aria-hidden="true" />
           <Text size={400}>未找到 "{submittedQuery}" 的相关漫画</Text>
         </div>
       )}

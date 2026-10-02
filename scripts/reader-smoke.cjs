@@ -300,6 +300,10 @@ async function run(win) {
   await wait(`Boolean([...document.images].find(e=>e.alt==='第 1 页' && e.naturalWidth>0))`, 'decoded first page')
   mark('real preload / IPC / encrypted API / jmimg / Chromium decode')
   await screenshot('reader-first')
+  if (process.env.JM_QA_VISUAL) {
+    await require('./visual-style-smoke.cjs')({win,js,wait,clickText,clickSelector,showTools,screenshot,mark,evidence,report})
+    assert.equal(report.errors.length,0,report.errors.join('\n'));finish(0);return
+  }
   if (process.env.JM_QA_CLOSE_RETRY) {
     await showTools()
     rejectPreferenceSaves = true
@@ -555,7 +559,7 @@ async function run(win) {
 app.on('browser-window-created', (_event, win) => {
   const showInactive = win.showInactive.bind(win)
   win.show = () => {}
-  win.showInactive = () => {}
+  win.showInactive = visible ? showInactive : () => {}
   win.setSkipTaskbar(true)
   win.webContents.setBackgroundThrottling(false)
   win.webContents.on('console-message', (event) => {

@@ -1,0 +1,22 @@
+{
+  "runId": "120-motion-window-on",
+  "mode": "visible Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "native window visibility changes true/false/true and interrupted motion settles after restore"
+    },
+    {
+      "name": "pages, tools, context menu and download popover enter/exit; progress uses transform; animation-off and system reduced-motion stop all motion"
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 7
+  },
+  "summaryQueries": 0
+}

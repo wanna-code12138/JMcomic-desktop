@@ -8,20 +8,21 @@ import {
   BookOpen20Regular, ArrowDownload20Regular,
   Heart20Regular, Heart20Filled, ArrowLeft20Regular,
   ChevronDown20Regular, ChevronUp20Regular,
-  FolderOpen20Regular, CheckmarkCircle20Regular, ArrowClockwise20Regular
+  FolderOpen20Regular, CheckmarkCircle20Regular, ArrowClockwise20Regular, Person20Regular, Warning20Regular
 } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
 import { toJmImg } from '../utils/image'
 import ChapterSelectDialog from '../components/ChapterSelectDialog'
 import { requestDownload } from '../downloads/downloadRequest'
+import { pageTitle, emptyState } from '../theme/surfaceStyles'
 
 const useStyles = makeStyles({
   root: { height: '100%', overflow: 'auto' },
-  backBtn: { padding: '12px 32px 0' },
+  backBtn: { padding: '12px 24px 0' },
   hero: {
     display: 'flex',
-    gap: '32px',
-    padding: '32px',
+    gap: '24px',
+    padding: '24px',
     backgroundColor: 'var(--ui-bg-card)',
     borderBottom: '1px solid var(--ui-stroke-card)'
   },
@@ -46,12 +47,7 @@ const useStyles = makeStyles({
     opacity: 1
   },
   info: { flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 },
-  title: {
-    fontSize: '28px',
-    fontWeight: 700,
-    color: 'var(--ui-text-primary)',
-    lineHeight: 1.3
-  },
+  title: pageTitle,
   carPlate: {
     fontSize: '13px',
     color: 'var(--ui-text-tertiary)',
@@ -59,11 +55,11 @@ const useStyles = makeStyles({
     userSelect: 'all',
     cursor: 'text'
   },
-  author: { fontSize: '15px', color: 'var(--ui-text-secondary)' },
+  author: { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', lineHeight: '20px', color: 'var(--ui-text-secondary)' },
   tags: { display: 'flex', flexWrap: 'wrap', gap: '6px' },
   tagBadge: {
-    backgroundColor: 'var(--ui-brand)',
-    color: '#ffffff',
+    backgroundColor: 'var(--ui-brand-fill)',
+    color: 'var(--ui-on-brand)',
     cursor: 'pointer',
     transition: 'opacity var(--ui-motion-fast) ease-out, background-color var(--ui-motion-fast) ease-out',
     ':hover': {
@@ -76,7 +72,7 @@ const useStyles = makeStyles({
     lineHeight: 1.6
   },
   actions: { display: 'flex', gap: '12px', marginTop: '8px' },
-  chaptersSection: { padding: '24px 32px' },
+  chaptersSection: { padding: '24px' },
   chapterHeader: {
     display: 'flex',
     alignItems: 'center',
@@ -121,15 +117,7 @@ const useStyles = makeStyles({
     color: 'var(--ui-text-primary)',
     flex: 1
   },
-  center: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '60px',
-    gap: '16px',
-    color: 'var(--ui-text-tertiary)'
-  }
+  center: { ...emptyState, padding: '60px 24px' }
 })
 
 interface DetailData {
@@ -252,7 +240,8 @@ export default function MangaDetailPage(): JSX.Element {
           <Button appearance="subtle" icon={<ArrowLeft20Regular />} onClick={() => setCurrentPage(previousPage || 'home')}>返回</Button>
         </div>
         <div className={styles.center}>
-          <Text size={500} weight="semibold">⚠️ 加载失败</Text>
+          <Warning20Regular aria-hidden="true" />
+          <Text size={400} weight="semibold">加载失败</Text>
           <Text size={300}>{error || '未找到漫画数据'}</Text>
           <Button appearance="primary" icon={<ArrowClockwise20Regular />}
             onClick={() => setLoadAttempt(attempt => attempt + 1)}>重新加载</Button>
@@ -342,7 +331,7 @@ export default function MangaDetailPage(): JSX.Element {
         <div className={styles.info}>
           <h1 className={`${styles.title} manga-detail-title`}>{manga.title}</h1>
           <div className={styles.carPlate}>车牌号: JM{manga.id}</div>
-          <div className={styles.author}>✍️ {manga.author || '未知作者'}</div>
+          <div className={styles.author}><Person20Regular aria-hidden="true" />{manga.author || '未知作者'}</div>
           {manga.tags.length > 0 && (
             <div className={styles.tags}>
               {manga.tags.map((tag) => (
@@ -400,7 +389,7 @@ export default function MangaDetailPage(): JSX.Element {
                 }}>选择格式…</Button>
                 <Tooltip content={liked ? '取消收藏' : '收藏'} relationship="label">
                   <Button size="large"
-                    icon={liked ? <Heart20Filled style={{ color: 'var(--ui-danger)' }} /> : <Heart20Regular />}
+                    icon={liked ? <Heart20Filled style={{ color: 'var(--ui-favorite)' }} /> : <Heart20Regular />}
                     onClick={async () => {
                       if (!window.electronAPI) return
                       const wasLiked = liked
@@ -435,7 +424,7 @@ export default function MangaDetailPage(): JSX.Element {
           <Divider />
           <div className={`${styles.chaptersSection} manga-detail-chapters`}>
             <div className={styles.chapterHeader}>
-              <Text size={500} weight="semibold">章节列表 ({manga.chapters.length})</Text>
+              <Text size={400} weight="semibold">章节列表 ({manga.chapters.length})</Text>
               <Button size="small" appearance="subtle"
                 icon={orderAsc ? <ChevronDown20Regular /> : <ChevronUp20Regular />}
                 onClick={() => setOrderAsc(!orderAsc)}

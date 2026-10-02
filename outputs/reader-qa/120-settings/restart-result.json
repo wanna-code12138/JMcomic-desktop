@@ -1,0 +1,55 @@
+{
+  "runId": "120-settings",
+  "mode": "visible Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "cold restart restores start/book tabs, pin, custom title and active selection; GPU preference applies at startup",
+      "details": {
+        "gpu": {
+          "requested": false,
+          "runningPreference": false,
+          "restartRequired": false,
+          "initialized": true,
+          "hardwareActive": false,
+          "compositor": "disabled_software"
+        },
+        "snapshot": {
+          "version": 1,
+          "tabs": [
+            {
+              "id": "online:101",
+              "pinned": true,
+              "customTitle": "跨进程恢复书签",
+              "kind": "book",
+              "contentKey": "online:101",
+              "reader": {
+                "mangaId": "101",
+                "mangaTitle": "山间来信 · 合成阅读样章",
+                "mangaCoverUrl": "https://cdn-msp.18comic.vip/media/albums/101.jpg",
+                "chapterIndex": 0,
+                "chapterTitle": "第一章 · 出发",
+                "chapterUrl": "/photo/202",
+                "local": false,
+                "resumePageIndex": 0,
+                "resumePageOffset": 0
+              }
+            },
+            {
+              "id": "start:2da3039e-940b-4275-b42d-49dfc561c1f5",
+              "pinned": false,
+              "kind": "start"
+            }
+          ],
+          "activeId": "start:2da3039e-940b-4275-b42d-49dfc561c1f5"
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 1,
+    "image": 0,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

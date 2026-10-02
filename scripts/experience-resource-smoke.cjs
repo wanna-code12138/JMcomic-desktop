@@ -35,7 +35,7 @@ module.exports=async({app,win,js,wait,clickSelector,screenshot,mark,evidence,rep
   assert.equal(after.renderer.readers,1);assert.equal(after.renderer.tabs,1)
   assert.ok(after.renderer.images<=7,'virtual reader retains only nearby pages')
   assert.equal(after.renderer.animations,0,'no decorative animation remains running at idle')
-  const result={scope:`Isolated hidden Electron, synthetic content, ${cycles} new/close/hide/show cycles and ${idleMs}ms idle. Includes test fixture memory; CPU is an instantaneous process sample, not a GPU utilization or presented-FPS measurement.`,cycles,idleMs,gpu,motion:animations,elapsedMs:Math.round(performance.now()-started),samples,
+  const result={scope:`Isolated ${process.env.JM_QA_VISIBLE==='1'?'visible':'hidden'} Electron, synthetic content, ${cycles} new/close/hide/show cycles and ${idleMs}ms idle. Includes test fixture memory; CPU is an instantaneous process sample, not a GPU utilization or presented-FPS measurement.`,cycles,idleMs,gpu,motion:animations,elapsedMs:Math.round(performance.now()-started),samples,
     peakPrivateMB:Math.max(...samples.map(s=>s.processes.reduce((n,p)=>n+p.privateKB,0)))/1024}
   report.resourceMatrix=result
   writeFileSync(join(evidence,'resource-matrix.json'),JSON.stringify(result,null,2))

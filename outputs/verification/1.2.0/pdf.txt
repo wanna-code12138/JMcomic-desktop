@@ -1,0 +1,8 @@
+
+(node:32592) electron: Failed to load URL: https://18comic.vip/ with error: ERR_BLOCKED_BY_CLIENT
+(Use `electron --trace-warnings ...` to show where the warning was created)
+QA PASS: real preload / IPC / encrypted API / jmimg / Chromium decode
+[download] starting task 1 images: 3 dir: D:\soft\Opencode\JMComic\work\120-pdf\downloads\JMComic\manga-101\chapter-202
+[download] task 1 completed
+QA PASS: format confirmation/default/override, two chapters in one root-level PDF, unique output, images retain chapter folders
+QA RESULT=0 evidence=D:\soft\Opencode\JMComic\outputs\reader-qa\120-pdf

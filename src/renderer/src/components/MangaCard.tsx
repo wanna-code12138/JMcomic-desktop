@@ -4,6 +4,7 @@ import { Heart20Regular, Heart20Filled } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
 import { useFavoritesStore, useIsFavorite } from '../stores/favoritesStore'
 import { toProxyUrl } from '../utils/image'
+import { caption } from '../theme/surfaceStyles'
 
 const useStyles = makeStyles({
   card: {
@@ -52,7 +53,7 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     backgroundColor: 'var(--ui-bg-dialog)',
     border: '1px solid var(--ui-stroke-card)',
-    color: 'var(--ui-danger)',
+    color: 'var(--ui-favorite)',
     cursor: 'pointer',
     zIndex: 2,
     ':hover': {
@@ -76,8 +77,7 @@ const useStyles = makeStyles({
     color: 'var(--ui-text-primary)'
   },
   cardMeta: {
-    fontSize: '12px',
-    color: 'var(--ui-text-tertiary)',
+    ...caption,
     marginTop: '4px'
   }
 })
@@ -150,7 +150,7 @@ export default function MangaCard({
             }
           }}
         >
-          {isFavorite ? <Heart20Filled style={{ color: '#ff4d4f' }} /> : <Heart20Regular />}
+          {isFavorite ? <Heart20Filled /> : <Heart20Regular />}
         </button>
       </div>
       <div className={styles.cardTitle}>{manga.title}</div>

@@ -10,6 +10,7 @@ import { installPackageFixture, testPackageFixture } from './package-fixture.mjs
 const original = resolve(process.argv[2] || 'dist-electron/win-unpacked/JMComic Desktop.exe')
 const runId = process.argv[3] || `package-launch-${Date.now()}`
 const fixture = process.argv[4] === '--fixture'
+const visible = process.env.JM_QA_VISIBLE === '1'
 const mangaId = fixture ? undefined : process.argv[4]
 const root = resolve('work',runId), evidence = resolve('outputs/reader-qa',runId), profile = join(root,'profile')
 mkdirSync(profile,{recursive:true}); mkdirSync(evidence,{recursive:true})
@@ -21,7 +22,7 @@ if (/Portable/i.test(basename(original))) {
 }
 const sha = createHash('sha256')
 for await (const chunk of createReadStream(original)) sha.update(chunk)
-const report = {executable:original,sha256:sha.digest('hex'),mode:`direct packaged EXE / ${fixture?'synthetic network and save dialog':'real network'}`,assertions:[],errors:[]}
+const report = {executable:original,sha256:sha.digest('hex'),mode:`direct packaged EXE / ${fixture?'synthetic network and save dialog':'real network'}`,fixtureWindow:fixture?(visible?'visible':'hidden'):undefined,assertions:[],errors:[]}
 const sleep = ms=>new Promise(resolve=>setTimeout(resolve,ms))
 async function freePort() {
   // Windows may assign low ephemeral ports that fetch deliberately rejects (e.g. 3659).
@@ -107,14 +108,14 @@ try {
     await main.call('Debugger.enable')
     await main.call('Runtime.runIfWaitingForDebugger')
     await waitFor(()=>main.paused,'packaged entrypoint pause')
-    await main.evaluate(`(${installPackageFixture.toString()})(${JSON.stringify(join(evidence,'sample.cbz'))})`)
+    await main.evaluate(`(${installPackageFixture.toString()})(${JSON.stringify(join(evidence,'sample.cbz'))},${visible})`)
     await main.call('Debugger.resume')
     await main.call('NodeWorker.enable',{waitForDebuggerOnStart:false})
   }
   renderer=await connect(rendererPort,target=>target.type==='page'&&target.url.includes('/out/renderer/index.html'))
   report.runtime=await main.evaluate(`(()=>{const app=process.mainModule.require('electron').app;return {packaged:app.isPackaged,version:app.getVersion(),appPath:app.getAppPath(),userData:app.getPath('userData'),electron:process.versions.electron,node:process.versions.node}})()`)
   assert.equal(report.runtime.packaged,true)
-  assert.equal(report.runtime.version,'1.1.0','the delivered EXE must expose the unified release version')
+  assert.equal(report.runtime.version,'1.2.0','the delivered EXE must expose the unified release version')
   assert.equal(resolve(report.runtime.userData),profile,'the real EXE must use the isolated profile')
   assert.ok(report.runtime.appPath.endsWith('app.asar'))
   const archiveSha=createHash('sha256')
@@ -141,7 +142,12 @@ try {
     await click('下载')
     await waitFor(()=>js(`document.querySelector('[data-browse-pane]').textContent.includes('PDF')`),'packaged PDF library')
     const capture=async name=>{
-      await js(`Promise.race([Promise.all(document.getAnimations().map(a=>a.finished.catch(()=>{}))),new Promise(resolve=>setTimeout(resolve,400))])`)
+      if (visible) {
+        await sleep(300)
+        await waitFor(()=>js(`document.getAnimations().every(a=>a.playState!=='running'||a.effect.getTiming().iterations===Infinity)`),`${name} visual transitions settled`)
+      } else {
+        await js(`Promise.race([Promise.all(document.getAnimations().map(a=>a.finished.catch(()=>{}))),new Promise(resolve=>setTimeout(resolve,400))])`)
+      }
       await main.evaluate(`(()=>{const wc=process.mainModule.require('electron').BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().includes('/out/renderer/index.html')).webContents;
         globalThis.__qaCapture={done:false};wc.invalidate();(async()=>{
           await wc.capturePage(undefined,{stayHidden:true,stayAwake:true});
@@ -149,7 +155,7 @@ try {
           const image=await wc.capturePage(undefined,{stayHidden:true,stayAwake:true});
           process.mainModule.require('node:fs').writeFileSync(${JSON.stringify(join(evidence,name+'.png'))},image.toPNG());globalThis.__qaCapture={done:true};
         })().catch(error=>{globalThis.__qaCapture={done:true,error:String(error)}})})()`)
-      await waitFor(()=>main.evaluate('globalThis.__qaCapture.done'),'hidden-window capture',10000)
+      await waitFor(()=>main.evaluate('globalThis.__qaCapture.done'),'packaged-window capture',10000)
       assert.equal(await main.evaluate('globalThis.__qaCapture.error'),undefined)
     }
     await capture('release-downloads')

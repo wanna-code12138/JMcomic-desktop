@@ -43,6 +43,14 @@ body {
   --ui-motion-standard: 160ms;
   --ui-motion-layout: 200ms;
   --ui-ease-out: cubic-bezier(.2,.8,.2,1);
+  --ui-font-title: 24px;
+  --ui-line-title: 32px;
+  --ui-font-section: 16px;
+  --ui-line-section: 22px;
+  --ui-font-body: 14px;
+  --ui-line-body: 20px;
+  --ui-font-caption: 12px;
+  --ui-line-caption: 18px;
 
   /* 阅读器沉浸深色（不随浅深主题切换） */
   --ac-reader-bg: #0b0b14;
@@ -52,27 +60,36 @@ body {
   --ac-reader-text-3: #8a8aa8;
 }
 
-/* WinUI light */
+/* Fluent is the color source for both custom surfaces and portalled controls. */
+.fui-FluentProvider, .ui-light, .ui-dark {
+  --ui-bg-app-solid: var(--colorNeutralBackground3);
+  --ui-bg-pane: var(--colorNeutralBackground2);
+  --ui-bg-canvas: var(--colorNeutralBackground4);
+  --ui-bg-card: var(--colorNeutralBackground1);
+  --ui-bg-toolbar: var(--colorNeutralBackground2);
+  --ui-bg-dialog: var(--colorNeutralBackground1);
+  --ui-bg-hover: var(--colorNeutralBackground1Hover);
+  --ui-bg-selected: var(--colorBrandBackground2);
+  --ui-stroke-card: var(--colorNeutralStroke2);
+  --ui-stroke-strong: var(--colorNeutralStroke1);
+  --ui-text-primary: var(--colorNeutralForeground1);
+  --ui-text-secondary: var(--colorNeutralForeground2);
+  --ui-text-tertiary: var(--colorNeutralForeground3);
+  --ui-brand: var(--colorBrandForeground1);
+  --ui-brand-hover: var(--colorBrandForeground2);
+  --ui-brand-fill: var(--colorBrandBackground);
+  --ui-brand-fill-hover: var(--colorBrandBackgroundHover);
+  --ui-on-brand: var(--colorNeutralForegroundOnBrand);
+  --ui-success: var(--colorPaletteGreenForeground1);
+  --ui-warning: var(--colorPaletteYellowForeground1);
+  --ui-danger: var(--colorPaletteRedForeground1);
+  --ui-favorite: var(--colorPaletteBerryForeground1);
+  --ui-shadow-popup: var(--shadow16);
+  --ui-shadow-dialog: var(--shadow64);
+}
+
 .ui-light {
-  --ui-bg-app: rgba(238, 242, 247, 0.94);
-  --ui-bg-app-solid: #eef2f7;
-  --ui-bg-pane: #f1f4f8;
-  --ui-bg-canvas: #f8fafc;
-  --ui-bg-card: #ffffff;
-  --ui-bg-toolbar: rgba(255, 255, 255, 0.94);
-  --ui-bg-dialog: #ffffff;
-  --ui-bg-hover: #e8edf4;
-  --ui-bg-selected: #e0edf9;
-  --ui-stroke-card: #dfe5ed;
-  --ui-stroke-strong: #bec9d7;
-  --ui-text-primary: #1c2838;
-  --ui-text-secondary: #536276;
-  --ui-text-tertiary: #657489;
-  --ui-brand: #0f6cbd;
-  --ui-brand-hover: #115ea3;
-  --ui-success: #107c10;
-  --ui-warning: #9d5d00;
-  --ui-danger: #c42b1c;
+  --ui-bg-app: rgba(243, 244, 246, 0.94);
   --ui-scrollbar-thumb: rgba(0, 0, 0, 0.28);
   --ui-scrollbar-thumb-hover: rgba(0, 0, 0, 0.42);
 
@@ -81,42 +98,35 @@ body {
 /* WinUI dark */
 .ui-dark {
   --ui-bg-app: rgba(21, 26, 33, 0.94);
-  --ui-bg-app-solid: #151a21;
-  --ui-bg-pane: #1b212b;
-  --ui-bg-canvas: #181e26;
-  --ui-bg-card: #202833;
-  --ui-bg-toolbar: #232c39;
-  --ui-bg-dialog: #252f3c;
-  --ui-bg-hover: #2d394a;
-  --ui-bg-selected: #193c5b;
-  --ui-stroke-card: #303c4c;
-  --ui-stroke-strong: #52647c;
-  --ui-text-primary: #e9edf4;
-  --ui-text-secondary: #b8c2d1;
-  --ui-text-tertiary: #98a5b5;
-  --ui-brand: #62abf5;
-  --ui-brand-hover: #83bff5;
-  --ui-success: #6ccb5f;
-  --ui-warning: #fce100;
-  --ui-danger: #ff99a4;
   --ui-scrollbar-thumb: rgba(255, 255, 255, 0.2);
   --ui-scrollbar-thumb-hover: rgba(255, 255, 255, 0.34);
 
 }
 
 /* Compact WinUI-style scrollbars */
-.settings-caption { color: var(--ui-text-secondary); font-size: 12px; line-height: 1.6; margin-top: 4px; }
+.settings-caption { color: var(--ui-text-secondary); font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); margin-top: 4px; }
+.settings-group { border: 1px solid var(--ui-stroke-card); border-radius: var(--ui-radius-lg); background: var(--ui-bg-card); overflow: hidden; }
+.settings-group > .fui-Card + .fui-Card { border-top: 1px solid var(--ui-stroke-card); }
 .settings-page .fui-Card { padding: 18px 20px; }
 .settings-page .fui-Switch { flex-shrink: 0; }
 .settings-page .fui-Button { white-space: nowrap; }
 .settings-page .fui-Select { max-width: 100%; }
+.settings-page .fui-Input { min-width: 0; max-width: 100%; }
+.settings-theme-options { display: flex; gap: 2px; padding: 2px; border: 1px solid var(--ui-stroke-card); border-radius: var(--ui-radius-md); background: var(--ui-bg-pane); }
+.settings-group > .settings-error { padding: 12px 20px; }
 .fui-Tooltip__content { pointer-events: none; }
+.fui-DialogSurface { background: var(--colorNeutralBackground1); border: 1px solid var(--colorNeutralStroke2); border-radius: 10px; box-shadow: var(--shadow64); }
 .diagnostics-content { max-width: 880px; margin-inline: auto; }
 @container browse (max-width: 580px) {
+  .ui-page-title { font-size: 20px !important; line-height: 28px !important; }
   .settings-page { padding: 20px 16px; }
   .settings-page .fui-Card { padding: 16px; }
   .diagnostics-header { flex-wrap: wrap; gap: 14px; }
   .diagnostics-header > div { flex-wrap: wrap; }
+}
+@container browse (max-width: 440px) {
+  .settings-theme-row { grid-template-columns: minmax(0, 1fr) !important; gap: 12px !important; }
+  .settings-theme-options { justify-self: start; }
 }
 .download-format-dialog { width: min(480px, calc(100vw - 32px)); }
 .download-format-title { overflow-wrap: anywhere; }
@@ -139,6 +149,14 @@ body {
 @container browse (max-width: 580px) { .download-task-row { flex-wrap: wrap; } .download-task-row > :first-child { flex-basis: 100%; } }
 .settings-restart { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ui-stroke-card); }
 .settings-error { color: var(--ui-danger); font-size: 13px; }
+.settings-network-icon { display: inline-flex; vertical-align: middle; margin-right: 4px; }
+.settings-network-icon[data-state=online] { color: var(--ui-success); }
+.settings-network-icon[data-state=degraded] { color: var(--ui-warning); }
+.settings-network-icon[data-state=offline] { color: var(--ui-danger); }
+@media (forced-colors: active) {
+  .settings-group, .settings-group > .fui-Card + .fui-Card, .fui-DialogSurface { border-color: CanvasText; }
+  .settings-theme-options .fui-Button[aria-pressed=true] { outline: 1px solid Highlight; }
+}
 .app-page-enter, .reader-start, .reader-root { animation: ui-content-in var(--ui-motion-standard) var(--ui-ease-out); }
 .app-page-stack { position: relative; height: 100%; overflow: hidden; isolation: isolate; }
 .app-page-surface { position: absolute; inset: 0; min-height: 0; overflow: hidden; opacity: 0; transform: translateY(-4px); pointer-events: none;

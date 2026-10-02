@@ -3,11 +3,13 @@ import { readFileSync } from 'node:fs'
 
 // Serialized into the actual EXE before its entrypoint. Only external I/O is substituted.
 // No project module loader or production implementation is installed in the EXE.
-export function installPackageFixture(exportPath) {
+export function installPackageFixture(exportPath, visible = false) {
   const { app, session, net, nativeImage, dialog } = process.mainModule.require('electron')
   app.on('browser-window-created', (_event, win) => {
-    win.show = () => {}
-    win.showInactive = () => {}
+    if (!visible) {
+      win.show = () => {}
+      win.showInactive = () => {}
+    }
     win.setSkipTaskbar(true)
     win.webContents.setBackgroundThrottling(false)
   })

@@ -35,7 +35,8 @@ const useStyles = makeStyles({
     gap: '6px'
   },
   statusVersion: {
-    marginLeft: 'auto'
+    marginLeft: 'auto',
+    fontVariantNumeric: 'tabular-nums'
   }
 })
 

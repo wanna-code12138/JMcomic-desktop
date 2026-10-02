@@ -5,12 +5,13 @@ import {
 } from '@fluentui/react-components'
 import {
   ArrowClockwise20Regular, Dismiss20Regular, FolderOpen20Regular,
-  BookOpen20Regular, Delete20Regular
+  BookOpen20Regular, Delete20Regular, ArrowDownload20Regular
 } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
 import { toJmImg } from '../utils/image'
 import { groupTasksByManga, type MangaDownloadGroup, type DownloadTaskRow, type DownloadProgress } from '../../../shared/downloadContracts'
 import type { PdfTask } from '../../../shared/pdfContracts'
+import { contentTabRow, emptyState, caption } from '../theme/surfaceStyles'
 
 type MainTab = 'manga' | 'tasks'
 
@@ -31,7 +32,7 @@ function missingFileMessage(reason?: DownloadedFileAvailability['availabilityRea
 
 const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
-  tabRow: { marginBottom: '16px' },
+  tabRow: contentTabRow,
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
@@ -91,19 +92,10 @@ const useStyles = makeStyles({
     color: 'var(--ui-text-primary)'
   },
   mangaMeta: {
-    fontSize: '12px',
-    color: 'var(--ui-text-tertiary)',
+    ...caption,
     marginTop: '4px'
   },
-  statusMsg: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '60px 0',
-    color: 'var(--ui-text-tertiary)',
-    gap: '12px'
-  },
+  statusMsg: emptyState,
   taskList: { display: 'flex', flexDirection: 'column', gap: '8px' },
   taskItem: {
     display: 'flex',
@@ -124,8 +116,8 @@ const useStyles = makeStyles({
     whiteSpace: 'nowrap'
   },
   taskMeta: {
-    fontSize: '12px',
-    color: 'var(--ui-text-tertiary)',
+    ...caption,
+    fontVariantNumeric: 'tabular-nums',
     marginTop: '4px'
   },
   taskProgress: {
@@ -135,7 +127,9 @@ const useStyles = makeStyles({
   taskActions: {
     display: 'flex',
     alignItems: 'center',
-    gap: '4px'
+    gap: '4px',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end'
   }
 })
 
@@ -311,7 +305,8 @@ export default function DownloadsPage(): JSX.Element {
       ) : mainTab === 'manga' ? (
         completedGroups.length === 0 ? pdfTasks.some(task => task.status === 'completed') ? null : (
           <div className={styles.statusMsg}>
-            <Text size={400}>📥 还没有下载完成的漫画</Text>
+            <ArrowDownload20Regular aria-hidden="true" />
+            <Text size={400}>还没有下载完成的漫画</Text>
             <Text size={200}>下载完成后会出现在这里，点击即可离线阅读</Text>
           </div>
         ) : (
@@ -365,6 +360,7 @@ export default function DownloadsPage(): JSX.Element {
         )
       ) : allTasks.length === 0 ? (
         <div className={styles.statusMsg}>
+          <ArrowDownload20Regular aria-hidden="true" />
           <Text size={400}>暂无下载任务</Text>
           <Text size={200}>开始下载后可以在这里查看进度和管理任务</Text>
         </div>

@@ -4,29 +4,22 @@ import {
   Tooltip
 } from '@fluentui/react-components'
 import {
-  Dismiss20Regular, Delete20Regular
+  Dismiss20Regular, Delete20Regular, Heart20Regular, History20Regular
 } from '@fluentui/react-icons'
 import { MangaCard } from '../components'
 import { useAppStore } from '../stores/appStore'
 import { toJmImg } from '../utils/image'
+import { contentTabRow, emptyState, caption } from '../theme/surfaceStyles'
 
 const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
-  tabRow: { marginBottom: '16px' },
+  tabRow: contentTabRow,
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
     gap: '16px'
   },
-  statusMsg: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '60px 0',
-    color: 'var(--ui-text-tertiary)',
-    gap: '12px'
-  },
+  statusMsg: emptyState,
   historyItem: {
     display: 'flex',
     gap: '12px',
@@ -60,8 +53,7 @@ const useStyles = makeStyles({
     whiteSpace: 'nowrap'
   },
   historyMeta: {
-    fontSize: '12px',
-    color: 'var(--ui-text-tertiary)',
+    ...caption,
     marginTop: '4px'
   },
   historyActions: {
@@ -165,6 +157,7 @@ export default function FavoritesPage(): JSX.Element {
       {mainTab === 'local-fav' && (
         localFav.length === 0 ? (
           <div className={styles.statusMsg}>
+            <Heart20Regular aria-hidden="true" />
             <Text>暂无本地收藏</Text>
             <Text size={200}>在漫画详情页点击爱心收藏</Text>
           </div>
@@ -180,7 +173,7 @@ export default function FavoritesPage(): JSX.Element {
       {/* 历史记录 */}
       {mainTab === 'history' && (
         localHistory.length === 0 ? (
-          <div className={styles.statusMsg}><Text>暂无阅读历史</Text></div>
+          <div className={styles.statusMsg}><History20Regular aria-hidden="true" /><Text>暂无阅读历史</Text></div>
         ) : (
           <>
             <div className={styles.sectionHeader}>

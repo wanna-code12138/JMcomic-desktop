@@ -4,7 +4,7 @@ import {
   Card, Input, Dialog, DialogSurface, DialogBody,
   DialogTitle, DialogContent, DialogActions
 } from '@fluentui/react-components'
-import { ArrowSync20Regular } from '@fluentui/react-icons'
+import { ArrowSync20Regular, Wifi3Regular, Wifi1Regular, WifiOff20Regular } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
 import { RECOMMENDATION_TAGS } from '../../../shared/recommendationCore'
 import ExperienceSettings from '../components/ExperienceSettings'
@@ -22,23 +22,24 @@ const useStyles = makeStyles({
     marginRight: 'auto'
   },
   sectionTitle: {
-    marginBottom: '16px',
+    marginBottom: '12px',
     display: 'block',
+    fontSize: 'var(--ui-font-section)',
+    lineHeight: 'var(--ui-line-section)',
     color: 'var(--ui-text-primary)'
   },
   card: {
-    marginBottom: '16px',
     backgroundColor: 'var(--ui-bg-card)',
-    border: '1px solid var(--ui-stroke-card)',
-    borderRadius: 'var(--ui-radius-lg)',
+    border: '0',
+    borderRadius: '0',
     boxShadow: 'none'
   },
   row: {
-    display: 'flex',
-    flexWrap: 'wrap',
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) auto',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '24px'
+    gap: '16px',
+    '& > :first-child': { minWidth: 0, overflowWrap: 'anywhere' }
   },
   buttonRow: {
     display: 'flex',
@@ -361,8 +362,9 @@ export default function SettingsPage(): JSX.Element {
       {/* Appearance */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>外观</Text>
+        <div className="settings-group">
         <Card className={styles.card}>
-          <div className={styles.row}>
+          <div className={`${styles.row} settings-theme-row`}>
             <div>
               <Text weight="semibold" style={{ color: 'var(--ui-text-primary)' }}>主题模式</Text>
               <div>
@@ -371,12 +373,13 @@ export default function SettingsPage(): JSX.Element {
                 </Text>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '6px' }}>
+            <div className="settings-theme-options">
               {(['system', 'light', 'dark'] as const).map((m) => (
                 <Button
                   key={m}
                   size="small"
                   appearance={themeMode === m ? 'primary' : 'subtle'}
+                  aria-pressed={themeMode === m}
                   onClick={() => {
                     setThemeMode(m)
                     window.electronAPI?.settingsSet({ themeMode: m })
@@ -394,7 +397,7 @@ export default function SettingsPage(): JSX.Element {
               <Text weight="semibold">Mica 云母材质</Text>
               <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>Windows 11 半透明背景效果</Text></div>
             </div>
-            <Switch checked={micaEnabled} onChange={(_e, d) => handleMicaChange(d.checked)} />
+            <Switch aria-label="Mica 云母材质" checked={micaEnabled} onChange={(_e, d) => handleMicaChange(d.checked)} />
           </div>
           {!micaEnabled && (
             <div className={styles.subPanel}>
@@ -403,20 +406,24 @@ export default function SettingsPage(): JSX.Element {
                   <Text weight="semibold">纯色不透明窗口</Text>
                   <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>关闭时为亚克力；打开此开关用纯色背景，节省 GPU</Text></div>
                 </div>
-                <Switch checked={solidWindow} onChange={(_e, d) => handleSolidChange(d.checked)} />
+                <Switch aria-label="纯色不透明窗口" checked={solidWindow} onChange={(_e, d) => handleSolidChange(d.checked)} />
               </div>
             </div>
           )}
         </Card>
+        </div>
       </div>
 
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>阅读与交互</Text>
+        <div className="settings-group">
         <ExperienceSettings cardClass={styles.card} rowClass={styles.row} />
+        </div>
       </div>
       {/* Recommendations */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>推荐</Text>
+        <div className="settings-group">
         <Card className={styles.card}>
           <div className={styles.row}>
             <div>
@@ -432,6 +439,7 @@ export default function SettingsPage(): JSX.Element {
             <Button size="small" appearance="secondary" onClick={openRecommendationDialog}>配置…</Button>
           </div>
         </Card>
+        </div>
       </div>
 
       <Dialog
@@ -482,13 +490,14 @@ export default function SettingsPage(): JSX.Element {
       {/* Network */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>网络</Text>
+        <div className="settings-group">
         <Card className={styles.card}>
           <div className={styles.row}>
             <div>
               <Text weight="semibold">手动代理</Text>
               <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>覆盖系统代理，填写 HTTP/SOCKS5 地址</Text></div>
             </div>
-            <Switch checked={proxyEnabled} onChange={(_e, d) => handleProxyToggle(d.checked)} />
+            <Switch aria-label="手动代理" checked={proxyEnabled} onChange={(_e, d) => handleProxyToggle(d.checked)} />
           </div>
           <div className={styles.buttonRow} style={{ marginTop: '12px' }}>
             <Input
@@ -516,9 +525,10 @@ export default function SettingsPage(): JSX.Element {
               <Text weight="semibold">当前网络状态</Text>
               <div>
                 <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>
-                  {networkStatus === 'online' ? '🟢 直连正常 — 可直接访问禁漫天堂'
-                    : networkStatus === 'degraded' ? '🟡 代理连接 — 通过代理访问中'
-                    : '🔴 无法访问 — 请检查代理或网络'}
+                  <span className="settings-network-icon" data-state={networkStatus} aria-hidden="true">{networkStatus === 'online' ? <Wifi3Regular /> : networkStatus === 'degraded' ? <Wifi1Regular /> : <WifiOff20Regular />}</span>
+                  {networkStatus === 'online' ? '直连正常 — 可直接访问禁漫天堂'
+                    : networkStatus === 'degraded' ? '代理连接 — 通过代理访问中'
+                    : '无法访问 — 请检查代理或网络'}
                 </Text>
               </div>
               {probeInfo && <Text size={200} className={styles.statusText}>{probeInfo}</Text>}
@@ -528,11 +538,13 @@ export default function SettingsPage(): JSX.Element {
             </Button>
           </div>
         </Card>
+        </div>
       </div>
 
       {/* Downloads */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>下载</Text>
+        <div className="settings-group">
         <Card className={styles.card}><div className={styles.row}>
           <div><Text weight="semibold">默认下载格式</Text><p className="settings-caption">未选择默认格式时，每次下载都会询问。</p></div>
           <Select aria-label="默认下载格式" value={downloadFormat} onChange={async (_event, data) => {
@@ -603,14 +615,16 @@ export default function SettingsPage(): JSX.Element {
                 </Text>
               </div>
             </div>
-            <Switch checked={downloadResumeOnStartup} onChange={(_e, d) => handleResumeChange(d.checked)} />
+            <Switch aria-label="启动时自动续传" checked={downloadResumeOnStartup} onChange={(_e, d) => handleResumeChange(d.checked)} />
           </div>
         </Card>
+        </div>
       </div>
 
       {/* Personal data */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>个人数据</Text>
+        <div className="settings-group">
         <Card className={styles.card}>
           <div style={{ marginBottom: '12px' }}>
             <Text weight="semibold">数据随程序文件存放</Text>
@@ -640,11 +654,13 @@ export default function SettingsPage(): JSX.Element {
             <Text size={200} className={styles.statusText}>{dataStatus}</Text>
           )}
         </Card>
+        </div>
       </div>
 
       {/* Cache */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>缓存</Text>
+        <div className="settings-group">
         <Card className={styles.card}>
           <div className={styles.row}>
             <div>
@@ -675,11 +691,13 @@ export default function SettingsPage(): JSX.Element {
             当前限制: {formatLimit(cacheLimitMb)}（超出后自动删除最旧的图片）
           </Text>
         </Card>
+        </div>
       </div>
 
       {/* Diagnostics */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>性能与诊断</Text>
+        <div className="settings-group">
         <Card className={styles.card}>
           <div className={styles.row}>
             <div>
@@ -691,15 +709,18 @@ export default function SettingsPage(): JSX.Element {
             </Button>
           </div>
         </Card>
+        </div>
       </div>
 
       {/* About */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>关于</Text>
+        <div className="settings-group">
         <Card className={styles.card}>
           <Text weight="semibold">JMComic Desktop</Text>
           <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>版本 {appVersion} · Electron + React + Fluent UI</Text></div>
         </Card>
+        </div>
       </div>
     </div>
   )

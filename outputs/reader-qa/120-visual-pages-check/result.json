@@ -1,0 +1,35 @@
+{
+  "runId": "120-visual-pages-check",
+  "mode": "visible Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "visual measurements and screenshots captured",
+      "details": {
+        "themes": 2,
+        "violations": [
+          "light/search/300: no horizontal overflow (64)",
+          "dark/search/300: no horizontal overflow (64)"
+        ]
+      }
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: Visual requirements must hold at all tested widths and themes\n+ actual - expected\n\n+ [\n+   'light/search/300: no horizontal overflow (64)',\n+   'dark/search/300: no horizontal overflow (64)'\n+ ]\n- []\n\n    at module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\visual-style-smoke.cjs:115:10)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:304:5)"
+  ],
+  "network": {
+    "api": 8,
+    "image": 5,
+    "blocked": 13
+  },
+  "summaryQueries": 2,
+  "visual": {
+    "observations": "visual-observations.json",
+    "violations": [
+      "light/search/300: no horizontal overflow (64)",
+      "dark/search/300: no horizontal overflow (64)"
+    ]
+  }
+}

@@ -44,7 +44,7 @@ const useStyles = makeStyles({
     fontSize: '12px',
     fontWeight: 600,
     color: 'var(--ui-text-secondary)',
-    marginLeft: '4px',
+    marginLeft: '8px',
     flex: 1
   },
   actions: {
@@ -88,7 +88,7 @@ const useStyles = makeStyles({
     borderRadius: 'var(--ui-radius-lg)',
     backgroundColor: 'var(--ui-bg-dialog)',
     border: '1px solid var(--ui-stroke-card)',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16)',
+    boxShadow: 'var(--ui-shadow-popup)',
     zIndex: 100,
     display: 'flex',
     flexDirection: 'column',
@@ -108,7 +108,9 @@ const useStyles = makeStyles({
     whiteSpace: 'nowrap'
   },
   popMeta: {
-    fontSize: '11px',
+    fontSize: '12px',
+    lineHeight: '18px',
+    fontVariantNumeric: 'tabular-nums',
     color: 'var(--ui-text-tertiary)'
   },
   popProgress: {

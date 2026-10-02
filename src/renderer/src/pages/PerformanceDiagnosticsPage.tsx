@@ -2,6 +2,7 @@ import React from 'react'
 import { makeStyles, Text, Button, Card } from '@fluentui/react-components'
 import { ArrowLeft20Regular, ArrowSync20Regular, Copy20Regular, Delete20Regular } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
+import { pageTitle, sectionHeading } from '../theme/surfaceStyles'
 
 const useStyles = makeStyles({
   root: {
@@ -24,6 +25,7 @@ const useStyles = makeStyles({
     marginBottom: '24px'
   },
   sectionTitle: {
+    ...sectionHeading,
     marginBottom: '12px',
     display: 'block',
     color: 'var(--ui-text-primary)'
@@ -51,6 +53,7 @@ const useStyles = makeStyles({
     color: 'var(--ui-text-tertiary)'
   },
   metricValue: {
+    fontVariantNumeric: 'tabular-nums',
     fontSize: '14px',
     fontWeight: 600,
     color: 'var(--ui-text-primary)'
@@ -59,7 +62,9 @@ const useStyles = makeStyles({
     width: '100%',
     borderCollapse: 'collapse',
     fontSize: '13px',
-    textAlign: 'left'
+    textAlign: 'left',
+    fontVariantNumeric: 'tabular-nums',
+    '& th:not(:first-child), & td:not(:first-child)': { textAlign: 'right', whiteSpace: 'nowrap' }
   },
   th: {
     padding: '8px 10px',
@@ -82,7 +87,8 @@ const useStyles = makeStyles({
     fontSize: '12px',
     color: 'var(--ui-text-secondary)',
     marginTop: '8px'
-  }
+  },
+  title: pageTitle
 })
 
 interface SnapshotState {
@@ -169,7 +175,7 @@ export default function PerformanceDiagnosticsPage(): JSX.Element {
           >
             返回设置
           </Button>
-          <Text size={600} weight="semibold">性能诊断</Text>
+          <Text size={600} weight="semibold" className={`${styles.title} ui-page-title`}>性能诊断</Text>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <Button size="small" icon={<ArrowSync20Regular />} onClick={fetchSnapshot}>

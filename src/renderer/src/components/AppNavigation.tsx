@@ -42,7 +42,7 @@ const useStyles = makeStyles({
     minHeight: '36px',
     padding: '0 10px',
     position: 'relative',
-    borderRadius: 'var(--ui-radius-lg)',
+    borderRadius: 'var(--ui-radius-md)',
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: 400,

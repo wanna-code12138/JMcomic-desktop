@@ -9,7 +9,8 @@ import {
   Spinner,
   Button
 } from '@fluentui/react-components'
-import { ArrowSync20Regular } from '@fluentui/react-icons'
+import { ArrowSync20Regular, Warning20Regular, Library20Regular } from '@fluentui/react-icons'
+import { contentTabRow, emptyState } from '../theme/surfaceStyles'
 import { MangaCard, type MangaCardData } from '../components'
 import { useAppStore } from '../stores/appStore'
 import { usePageSnapshot } from '../navigation/pageStateCache'
@@ -50,44 +51,19 @@ const useStyles = makeStyles({
     overflow: 'auto'
   },
   tabs: {
-    marginBottom: '24px',
+    ...contentTabRow,
     display: 'flex',
+    flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: '16px',
-    '& .fui-TabList': {
-      gap: '6px'
-    },
-    '& .fui-Tab': {
-      borderRadius: 'var(--ui-radius-lg)',
-      color: 'var(--ui-text-tertiary)',
-      fontSize: '14px',
-      padding: '6px 14px'
-    },
-    '& .fui-Tab:hover': {
-      backgroundColor: 'var(--ui-bg-hover)',
-      color: 'var(--ui-text-secondary)'
-    },
-    '& .fui-Tab--selected': {
-      backgroundColor: 'var(--ui-bg-selected)',
-      color: 'var(--ui-brand)',
-      fontWeight: 600
-    }
+    gap: '12px'
   },
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
     gap: '16px'
   },
-  statusMsg: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '60px 0',
-    color: 'var(--ui-text-tertiary)',
-    gap: '16px'
-  },
+  statusMsg: emptyState,
   shimmerGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
@@ -350,10 +326,10 @@ export default function HomePage(): JSX.Element {
         <div className={styles.statusMsg}>
           <Spinner size="large" />
           <Text size={500} weight="semibold">正在建立安全连接...</Text>
-          <Text size={300} style={{ opacity: 0.7, maxWidth: '420px', textAlign: 'center' }}>
+          <Text size={300} style={{ color: 'var(--ui-text-secondary)', maxWidth: '420px', textAlign: 'center' }}>
             请在上方完成安全验证
           </Text>
-          <Text size={200} style={{ opacity: 0.5 }}>
+          <Text size={200} style={{ color: 'var(--ui-text-secondary)' }}>
             验证成功后将自动开始加载内容
           </Text>
         </div>
@@ -394,7 +370,8 @@ export default function HomePage(): JSX.Element {
         </div>
       ) : error && visibleCards.length === 0 ? (
         <div className={styles.statusMsg}>
-          <Text size={500} weight="semibold">⚠️ 内容加载失败</Text>
+          <Warning20Regular aria-hidden="true" />
+          <Text size={400} weight="semibold">内容加载失败</Text>
           <pre style={{
             maxWidth: '600px', textAlign: 'left', fontSize: '12px',
             color: 'var(--ui-text-tertiary)', whiteSpace: 'pre-wrap',
@@ -403,14 +380,15 @@ export default function HomePage(): JSX.Element {
             border: '1px solid var(--ui-stroke-card)',
             maxHeight: '300px', overflow: 'auto'
           }}>{error}</pre>
-          <Text size={200} style={{ opacity: 0.5 }}>
+          <Text size={200} style={{ color: 'var(--ui-text-secondary)' }}>
             请确认：1. 网络已连接  2. 代理已开启  3. 在浏览器中能打开 18comic.vip
           </Text>
         </div>
       ) : !loading && !activeLoadingMore && visibleCards.length === 0 ? (
         <div className={styles.statusMsg}>
+          <Library20Regular aria-hidden="true" />
           <Text size={400}>暂无内容</Text>
-          <Text size={200} style={{ opacity: 0.6 }}>请尝试切换到其他分类或进行搜索</Text>
+          <Text size={200}>请尝试切换到其他分类或进行搜索</Text>
         </div>
       ) : (
         <>
@@ -421,7 +399,7 @@ export default function HomePage(): JSX.Element {
               padding: '8px 16px', marginBottom: '12px',
               color: 'var(--ui-text-tertiary)', fontSize: '13px'
             }}>
-              ⚠️ {error}
+              <Warning20Regular aria-hidden="true" style={{ verticalAlign: 'middle', marginRight: '6px' }} />{error}
             </div>
           )}
           <div className={styles.grid}>
