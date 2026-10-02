@@ -1,0 +1,54 @@
+{
+  "ref": "6fdc90a7d700480e12480c6bac2fe41380894aed",
+  "realAccountRequests": 0,
+  "synthetic": true,
+  "observations": [
+    {
+      "case": "upstream_replys_and_spoiler_2",
+      "expected": {
+        "replies": 1,
+        "spoiler": true
+      },
+      "observed": {
+        "replies": 0,
+        "spoiler": false
+      },
+      "finding": "historical_parser_defects_reproduced"
+    },
+    {
+      "case": "upstream_spoiler_1",
+      "expected": {
+        "spoiler": false
+      },
+      "observed": {
+        "spoiler": true
+      },
+      "finding": "historical_parser_marks_ordinary_comments_as_spoilers"
+    },
+    {
+      "case": "malformed_comment_envelope",
+      "expected": "schema_error",
+      "observed": "empty_page",
+      "finding": "schema_failure_can_appear_as_no_comments"
+    },
+    {
+      "case": "ensureSessionValidated",
+      "observed": {
+        "phase": "authenticated",
+        "additionalNetworkCalls": 0
+      },
+      "finding": "local_lease_check_only_not_remote_validation"
+    },
+    {
+      "case": "current_scope_auth_failure",
+      "observed": "whole_account_verification_required",
+      "finding": "no_endpoint_specific_degradation"
+    },
+    {
+      "case": "old_401_queued_during_reauthentication",
+      "iterations": 100,
+      "staleIgnored": 100,
+      "finding": "latest_historical_double_check_protects_this_interleaving"
+    }
+  ]
+}
