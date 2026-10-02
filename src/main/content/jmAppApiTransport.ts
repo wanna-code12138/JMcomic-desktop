@@ -3,7 +3,7 @@ import { versionPartFor } from './jmAppApiProfiles'
 import type { JmApiRoute } from './jmAppApiDomainResolver'
 
 export interface JmApiEndpoint {
-  key: 'setting' | 'search' | 'category' | 'detail' | 'pages'
+  key: 'setting' | 'search' | 'category' | 'detail' | 'pages' | 'comments'
   path: string
   method: 'GET'
   timeoutMs: number
@@ -11,6 +11,7 @@ export interface JmApiEndpoint {
 }
 
 export const JM_API_ENDPOINTS: Record<string, JmApiEndpoint> = {
+  comments: { key: 'comments', path: '/forum', method: 'GET', timeoutMs: 10_000, maxResponseBytes: 1024 * 1024 },
   setting: {
     key: 'setting',
     path: '/setting',

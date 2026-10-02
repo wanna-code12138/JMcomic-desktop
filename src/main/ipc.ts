@@ -8,6 +8,7 @@ import { getSettings, updateSettings } from './settingsStore'
 import { applyWindowBackground } from './windowChrome'
 import { invalidateLocalImageAllowedRoots } from './localImageProtocol'
 import { clearContentCache } from './contentApi'
+import { clearOnlineAccount } from './account/accountRuntime'
 import { readWorkspaceSnapshot, writeWorkspaceSnapshot } from './workspacePersistence'
 import { stopDownloadManager, resumeDownloadManager, clearStoppedDownloadQueue } from './downloadManager'
 import { stopDownloadExports, resumeDownloadExports } from './downloadExport'
@@ -233,6 +234,7 @@ export function registerIpcHandlers(): void {
     if (clearingPersonalData) return clearingPersonalData
     const operation = (async () => {
       try {
+        await clearOnlineAccount()
         await Promise.all([stopDownloadManager(), stopDownloadExports(), stopPdfDownloads()])
         clearStoppedDownloadQueue(); await clearStoppedPdfTasks()
         const db = await getDatabase()

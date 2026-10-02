@@ -8,7 +8,7 @@ test('the real application starts verification before online prewarm, after appl
   const calls: string[] = []
   const app = Object.assign(new EventEmitter(), { whenReady: () => Promise.resolve(), quit() {}, exit() {} })
   class Window extends EventEmitter {
-    webContents = { setWindowOpenHandler() {}, send() {}, isDestroyed: () => false }
+    webContents = { setWindowOpenHandler() {}, on() {}, send() {}, isDestroyed: () => false }
     constructor() { super(); calls.push('window') }
     loadFile() { calls.push('renderer') }
     show() {}
@@ -35,6 +35,9 @@ test('the real application starts verification before online prewarm, after appl
     './downloadExport': { registerDownloadExport:noop, stopDownloadExports:noop, resumeDownloadExports:noop },
     './pdfDownloadManager': { registerPdfDownloads:noop, initPdfDownloads:noop, stopPdfDownloads:noop, resumePdfDownloads:noop },
     './contentApi': { warmAnonymousContentProvider:async()=>{calls.push('prewarm')} },
+    './account/accountRuntime': { initializeAccount: () => calls.push('account'), closeOnlineAccount: async () => {} },
+    './account/accountInstance': { lockAccountDataDirectory: () => { calls.push('instance-lock'); return true } },
+    './comments/commentIpc': { registerCommentIpc: () => calls.push('comments') },
     './sessionWarmup': { warmupSession:()=>{ calls.push('verification'); return new Promise(()=>{}) } }
   }, 'const __dirname = "test-main"')
   await new Promise(resolve=>setImmediate(resolve))
@@ -42,6 +45,8 @@ test('the real application starts verification before online prewarm, after appl
   assert.ok(calls.indexOf('proxy') < calls.indexOf('window'), 'configure the network before rendering starts requests')
   assert.ok(calls.indexOf('verification') < calls.indexOf('prewarm'), 'verification must be scheduled before background online work')
   assert.ok(calls.includes('downloads'), 'local recovery must continue while startup verification is pending')
+  assert.ok(calls.indexOf('instance-lock') < calls.indexOf('account'), 'protect the shared data directory before account initialization')
+  assert.ok(calls.indexOf('proxy') < calls.indexOf('account'), 'restored account must inherit the configured proxy')
 })
 
 test('background fallbacks join startup verification but cannot open another dialog after failure', async () => {

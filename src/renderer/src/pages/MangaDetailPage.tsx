@@ -2,7 +2,7 @@ import type { MangaDownloadGroup } from '../../../shared/downloadContracts'
 import React from 'react'
 import {
   makeStyles, Text, Button, Badge, Skeleton, SkeletonItem,
-  Tooltip, Divider, Spinner
+  Tooltip, Divider, Spinner, Tab, TabList
 } from '@fluentui/react-components'
 import {
   BookOpen20Regular, ArrowDownload20Regular,
@@ -15,6 +15,8 @@ import { toJmImg } from '../utils/image'
 import ChapterSelectDialog from '../components/ChapterSelectDialog'
 import { requestDownload } from '../downloads/downloadRequest'
 import { pageTitle, emptyState } from '../theme/surfaceStyles'
+import CommentPanel from '../components/CommentPanel'
+import AccountAlbumActions from '../components/AccountAlbumActions'
 
 const useStyles = makeStyles({
   root: { height: '100%', overflow: 'auto' },
@@ -153,6 +155,9 @@ export default function MangaDetailPage(): JSX.Element {
   const [selectOpen, setSelectOpen] = React.useState(false)
   const [forceDownloadFormat, setForceDownloadFormat] = React.useState(false)
   const [addStatus, setAddStatus] = React.useState('')
+  const [detailTab, setDetailTab] = React.useState('chapters')
+  const visible = useAppStore(state => state.currentPage === 'detail')
+  React.useEffect(() => { setDetailTab('chapters') }, [currentMangaId])
 
   React.useEffect(() => {
     if (!currentMangaId) return
@@ -387,7 +392,7 @@ export default function MangaDetailPage(): JSX.Element {
                   if (manga.chapters.length > 1) setSelectOpen(true)
                   else if (manga.chapters.length) void downloadChapters([manga.chapters[0].index], true)
                 }}>选择格式…</Button>
-                <Tooltip content={liked ? '取消收藏' : '收藏'} relationship="label">
+                <Tooltip content={liked ? '取消本地收藏' : '本地收藏'} relationship="label">
                   <Button size="large"
                     icon={liked ? <Heart20Filled style={{ color: 'var(--ui-favorite)' }} /> : <Heart20Regular />}
                     onClick={async () => {
@@ -413,13 +418,18 @@ export default function MangaDetailPage(): JSX.Element {
               </>
             )}
           </div>
+          <AccountAlbumActions key={manga.id} id={manga.id} visible={visible && detailSource !== 'local'} />
           {addStatus && (
             <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>{addStatus}</Text>
           )}
         </div>
       </div>
 
-      {manga.chapters.length > 0 && (
+      <div style={{ padding: '12px 24px 0' }}><TabList selectedValue={detailTab} onTabSelect={(_, data) => setDetailTab(String(data.value))}>
+        <Tab value="chapters">章节</Tab><Tab value="comments">评论</Tab>
+      </TabList></div>
+      {detailTab === 'comments' && <div className={styles.chaptersSection}><CommentPanel key={manga.id} albumId={manga.id} title={manga.title} visible={visible} /></div>}
+      {detailTab === 'chapters' && manga.chapters.length > 0 && (
         <>
           <Divider />
           <div className={`${styles.chaptersSection} manga-detail-chapters`}>

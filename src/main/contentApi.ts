@@ -25,6 +25,7 @@ import {
 } from './contentGateway'
 import { createJmApiFetchPort } from './content/jmAppApiFetchPort'
 import { createAnonymousApiProvider } from './content/jmAppApiRuntime'
+import { createCommentService } from './comments/commentService'
 
 // Ensure session is ready (Cloudflare warmup)
 async function ensureReady(): Promise<void> {
@@ -112,6 +113,7 @@ const browserProvider: ContentProvider = {
 }
 
 const apiContentProvider = createAnonymousApiProvider(createJmApiFetchPort((url, init) => net.fetch(url, init)))
+export const publicComments = createCommentService((id, page, signal) => apiContentProvider.comments(id, page, signal))
 
 export async function warmAnonymousContentProvider(): Promise<void> {
   await apiContentProvider.prewarm().catch(() => {})

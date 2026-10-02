@@ -4,10 +4,11 @@ import { createJmAppApiProvider } from './jmAppApiProvider'
 import { JM_API_ORIGINS, validateApiOrigin } from './jmAppApiDomainResolver'
 import { BUILTIN_JM_API_PROFILES, withRuntimeVersion } from './jmAppApiProfiles'
 import { parseSettingPayload } from './jmAppApiSchemas'
-import { createJmAppApiTransport, JM_API_ENDPOINTS, type JmApiFetchPort } from './jmAppApiTransport'
+import { createJmAppApiTransport, JM_API_ENDPOINTS, type JmApiFetchPort, type JmAppApiTransport } from './jmAppApiTransport'
 
 export interface AnonymousApiProvider extends ContentProvider {
   prewarm(): Promise<void>
+  comments(albumId: string, page: number, signal?: AbortSignal): Promise<unknown>
 }
 
 export function createAnonymousApiProvider(fetchPort: JmApiFetchPort): AnonymousApiProvider {
@@ -15,6 +16,7 @@ export function createAnonymousApiProvider(fetchPort: JmApiFetchPort): Anonymous
   let selectedUntil = 0
   let unavailableUntil = 0
   let pending: Promise<ContentProvider> | null = null
+  let selectedTransport: JmAppApiTransport | null = null
 
   async function discover(): Promise<ContentProvider> {
     for (const candidate of JM_API_ORIGINS) {
@@ -35,7 +37,9 @@ export function createAnonymousApiProvider(fetchPort: JmApiFetchPort): Anonymous
         if (!imageUrl) continue
         route.imageOrigin = new URL(imageUrl).origin
         route.profile = withRuntimeVersion(route.profile, setting.jm3Version)
-        const provider = createJmAppApiProvider(createJmAppApiTransport({ route, fetchPort }), route.imageOrigin)
+        const transport = createJmAppApiTransport({ route, fetchPort })
+        const provider = createJmAppApiProvider(transport, route.imageOrigin)
+        selectedTransport = transport
         selected = provider
         selectedUntil = Date.now() + 10 * 60_000
         return provider
@@ -56,6 +60,12 @@ export function createAnonymousApiProvider(fetchPort: JmApiFetchPort): Anonymous
 
   return {
     async prewarm() { await getProvider() },
+    async comments(albumId, page, signal) {
+      if (!/^\d{1,12}$/.test(albumId) || !Number.isSafeInteger(page) || page < 1 || page > 10_000) throw new Error('INVALID_COMMENTS_QUERY')
+      signal?.throwIfAborted()
+      await getProvider()
+      return selectedTransport!.request('comments', { aid: albumId, page: String(page), mode: 'all' }, signal)
+    },
     async homepage(category) {
       if (category === 'recommended') throw new Error('api-homepage-recommendation-unsupported')
       return (await getProvider()).homepage(category)

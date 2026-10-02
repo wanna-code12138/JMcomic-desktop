@@ -5,6 +5,7 @@ import { promisify } from 'util'
 import { updateSettings } from './settingsStore'
 import { validateProxyUrl } from './settingsCore'
 import { beginIoPerfSpan } from './ioMetrics'
+import { accountProxyRegistry } from './account/sessionProxyRegistry'
 
 const execAsync = promisify(exec)
 
@@ -61,18 +62,13 @@ export async function applyManualProxy(
     }
   }
 
-  manualProxyUrl = normalized
   try {
-    if (manualProxyUrl) {
-      await session.defaultSession.setProxy({ mode: 'fixed_servers', proxyRules: manualProxyUrl })
-    } else {
-      await session.defaultSession.setProxy({ mode: 'system' })
-    }
-    await session.defaultSession.closeAllConnections().catch(() => {})
+    await accountProxyRegistry.apply(normalized ? { mode: 'fixed_servers', proxyRules: normalized } : { mode: 'system' }, session.defaultSession)
   } catch (err) {
     return { ok: false, error: `设置代理失败：${err instanceof Error ? err.message : String(err)}` }
   }
 
+  manualProxyUrl = normalized
   await updateSettings({ proxyEnabled: enabled, proxyUrl: manualProxyUrl ?? '' })
   return { ok: true, proxyUrl: manualProxyUrl ?? undefined }
 }

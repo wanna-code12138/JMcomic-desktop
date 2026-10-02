@@ -11,13 +11,14 @@ import { installWorkspaceShortcuts } from './reader/workspaceShortcuts'
 import { installWorkspacePersistence } from './reader/workspacePersistence'
 import DownloadFormatDialog from './downloads/DownloadFormatDialog'
 import { useExitPresence } from './motion/motion'
+import { installAccountState } from './stores/accountStore'
 
 import { touchPage, createPageCacheState, type PrimaryPageId } from './navigation/pageStateCache'
 
-type PrimaryNavPageId = 'home' | 'categories' | 'search' | 'favorites' | 'downloads' | 'settings'
+type PrimaryNavPageId = 'home' | 'categories' | 'search' | 'favorites' | 'downloads' | 'account' | 'settings'
 
 const primaryPageIds: readonly PrimaryNavPageId[] = [
-  'home', 'categories', 'search', 'favorites', 'downloads', 'settings'
+  'home', 'categories', 'search', 'favorites', 'downloads', 'account', 'settings'
 ]
 
 function isPrimaryPage(page: string): page is PrimaryNavPageId {
@@ -46,6 +47,7 @@ export default function App({ darkMode, onToggleDarkMode }: AppProps): JSX.Eleme
   const [pageCache, setPageCache] = React.useState(() => createPageCacheState('home'))
   const visitedPrimaryPages = pageCache.mounted as readonly PrimaryNavPageId[]
   React.useEffect(installWorkspaceShortcuts, [])
+  React.useEffect(installAccountState, [])
   React.useEffect(() => restoreWorkspace ? installWorkspacePersistence() : undefined, [restoreWorkspace])
 
   React.useEffect(() => {

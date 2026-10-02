@@ -1,7 +1,7 @@
 // Launch the delivered EXE without a project loader. Default: real network; --fixture: synthetic external I/O.
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
-import { mkdirSync, copyFileSync, writeFileSync, createReadStream } from 'node:fs'
+import { mkdirSync, copyFileSync, writeFileSync, createReadStream, readFileSync } from 'node:fs'
 import { resolve, join, basename } from 'node:path'
 import { createHash, randomInt } from 'node:crypto'
 import { createServer } from 'node:net'
@@ -115,8 +115,9 @@ try {
   renderer=await connect(rendererPort,target=>target.type==='page'&&target.url.includes('/out/renderer/index.html'))
   report.runtime=await main.evaluate(`(()=>{const app=process.mainModule.require('electron').app;return {packaged:app.isPackaged,version:app.getVersion(),appPath:app.getAppPath(),userData:app.getPath('userData'),electron:process.versions.electron,node:process.versions.node}})()`)
   assert.equal(report.runtime.packaged,true)
-  assert.equal(report.runtime.version,'1.2.0','the delivered EXE must expose the unified release version')
-  assert.equal(resolve(report.runtime.userData),profile,'the real EXE must use the isolated profile')
+  assert.equal(report.runtime.version,JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8')).version,'the delivered EXE must expose the unified release version')
+  const expectedDataDir=/Portable/i.test(basename(original))?join(root,'portable','JMComicData'):profile
+  assert.equal(resolve(report.runtime.userData),expectedDataDir,'the real EXE must use its isolated canonical data directory')
   assert.ok(report.runtime.appPath.endsWith('app.asar'))
   const archiveSha=createHash('sha256')
   for await (const chunk of createReadStream(report.runtime.appPath))archiveSha.update(chunk)

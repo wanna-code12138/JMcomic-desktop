@@ -13,6 +13,8 @@ import {
   ArrowDownload20Filled,
   Settings20Regular,
   Settings20Filled,
+  Person20Regular,
+  Person20Filled,
   PanelLeftContract20Regular,
   PanelLeftExpand20Regular
 } from '@fluentui/react-icons'
@@ -91,7 +93,7 @@ const useStyles = makeStyles({
   }
 })
 
-type PrimaryNavPageId = 'home' | 'categories' | 'search' | 'favorites' | 'downloads' | 'settings'
+type PrimaryNavPageId = 'home' | 'categories' | 'search' | 'favorites' | 'downloads' | 'account' | 'settings'
 
 interface NavItemDef {
   id: PrimaryNavPageId
@@ -106,6 +108,7 @@ const navItems: NavItemDef[] = [
   { id: 'search', icon: <Search20Regular />, iconActive: <Search20Filled />, label: '搜索' },
   { id: 'favorites', icon: <Heart20Regular />, iconActive: <Heart20Filled />, label: '收藏' },
   { id: 'downloads', icon: <ArrowDownload20Regular />, iconActive: <ArrowDownload20Filled />, label: '下载' },
+  { id: 'account', icon: <Person20Regular />, iconActive: <Person20Filled />, label: '账户' },
   { id: 'settings', icon: <Settings20Regular />, iconActive: <Settings20Filled />, label: '设置' }
 ]
 
@@ -129,6 +132,7 @@ function AppNavigation(): JSX.Element {
           <button
             key={item.id}
             type="button"
+            style={item.id === 'account' ? { marginTop: 'auto' } : undefined}
             className={mergeClasses(styles.navItem, active && styles.navItemActive, collapsed && styles.collapsedItem)}
             aria-label={item.label} aria-current={active ? 'page' : undefined} title={collapsed ? item.label : undefined}
             onClick={() => setCurrentPage(item.id)}

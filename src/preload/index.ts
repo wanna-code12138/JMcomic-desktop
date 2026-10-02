@@ -8,6 +8,8 @@ import type { WorkspaceSnapshot } from '../shared/workspaceSnapshot'
 import type { GraphicsStatus } from '../shared/graphicsContracts'
 import type { PdfDownloadRequest, PdfTask } from '../shared/pdfContracts'
 import type { DownloadTaskIdentity } from '../shared/downloadContracts'
+import type { CommentReply } from '../shared/commentContracts'
+import type { AccountReply, AccountState, LibraryQuery, OnlineLibraryPage, AlbumAccountState, AlbumMutation, AccountNotifications } from '../shared/accountContracts'
 
 const taskCommand = (command: string, target: DownloadTaskIdentity | number, deleteFiles?: boolean) => {
   const task = typeof target === 'number' ? { kind: 'images', id: target } : target
@@ -24,6 +26,22 @@ ipcRenderer.on('window:prepare-close', async (_event, id: string) => {
 })
 
 const api = {
+  commentsGet: (albumId: string, page: number, refresh: boolean, requestId: string): Promise<CommentReply> => ipcRenderer.invoke('comments:get', { albumId, page, refresh, requestId }),
+  commentsCancel: (requestId: string): Promise<void> => ipcRenderer.invoke('comments:cancel', requestId),
+  accountState: (): Promise<AccountReply<AccountState>> => ipcRenderer.invoke('account:state'),
+  accountLogin: (username: string, password: string, remember: boolean): Promise<AccountReply<AccountState>> => ipcRenderer.invoke('account:login', username, password, remember),
+  accountLogout: (): Promise<AccountReply<AccountState>> => ipcRenderer.invoke('account:logout'),
+  accountVerify: (generation: number): Promise<AccountReply<AccountState>> => ipcRenderer.invoke('account:verify', generation),
+  accountLibrary: (query: LibraryQuery): Promise<AccountReply<OnlineLibraryPage>> => ipcRenderer.invoke('account:library', query),
+  accountAlbum: (id: string, generation: number): Promise<AccountReply<AlbumAccountState>> => ipcRenderer.invoke('account:album', id, generation),
+  accountMutate: (query: AlbumMutation): Promise<AccountReply<AlbumAccountState>> => ipcRenderer.invoke('account:mutate', query),
+  accountNotifications: (generation: number): Promise<AccountReply<AccountNotifications>> => ipcRenderer.invoke('account:notifications', generation),
+  accountNoticeRead: (id: string, generation: number, operationId: string): Promise<AccountReply<AccountNotifications>> => ipcRenderer.invoke('account:noticeRead', id, generation, operationId),
+  onAccountChanged: (callback: (state: AccountState) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, state: AccountState): void => callback(state)
+    ipcRenderer.on('account:changed', handler)
+    return () => { ipcRenderer.removeListener('account:changed', handler) }
+  },
   onBeforeClose: (handler: () => Promise<void>) => {
     closeHandlers.add(handler)
     return () => { closeHandlers.delete(handler) }

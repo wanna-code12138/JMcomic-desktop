@@ -10,6 +10,7 @@ import { MangaCard } from '../components'
 import { useAppStore } from '../stores/appStore'
 import { toJmImg } from '../utils/image'
 import { contentTabRow, emptyState, caption } from '../theme/surfaceStyles'
+import OnlineLibraryPanel from '../components/OnlineLibraryPanel'
 
 const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
@@ -69,7 +70,7 @@ const useStyles = makeStyles({
   }
 })
 
-type MainTab = 'local-fav' | 'history'
+type MainTab = 'local-fav' | 'history' | 'tracking'
 
 interface LocalFavorite {
   manga_id: string; title: string; cover_url: string; added_at: number
@@ -89,6 +90,13 @@ export default function FavoritesPage(): JSX.Element {
   const setFavoritesTab = useAppStore((s) => s.setFavoritesTab)
 
   const [mainTab, setMainTab] = React.useState<MainTab>((savedTab as MainTab) || 'local-fav')
+  const visible = useAppStore(state => state.currentPage === 'favorites')
+  const [sources, setSources] = React.useState<Record<string, string>>({ 'local-fav': 'local', history: 'local' })
+  const source = mainTab === 'tracking' ? 'online' : sources[mainTab]
+  const scrollRef = React.useRef<HTMLDivElement>(null)
+  const scrollPositions = React.useRef<Record<string, number>>({})
+  const scrollKey = `${mainTab}:${source}`
+  React.useLayoutEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollPositions.current[scrollKey] ?? 0 }, [scrollKey])
 
   // 本地收藏
   const [localFav, setLocalFav] = React.useState<LocalFavorite[]>([])
@@ -144,17 +152,26 @@ export default function FavoritesPage(): JSX.Element {
   }
 
   return (
-    <div className={styles.root}>
+    <div ref={scrollRef} className={styles.root} onScroll={event => { scrollPositions.current[scrollKey] = event.currentTarget.scrollTop }}>
       {/* Tab */}
       <div className={styles.tabRow}>
         <TabList selectedValue={mainTab} onTabSelect={(_e, d) => { const tab = d.value as MainTab; setMainTab(tab); setFavoritesTab(tab) }}>
-          <Tab value="local-fav">本地收藏</Tab>
-          <Tab value="history">历史记录</Tab>
+          <Tab value="local-fav">收藏</Tab>
+          <Tab value="history">历史</Tab>
+          <Tab value="tracking">追更</Tab>
         </TabList>
       </div>
+      {mainTab !== 'tracking' && <TabList size="small" selectedValue={source} style={{ marginBottom: '16px' }}
+        onTabSelect={(_, data) => setSources(previous => ({ ...previous, [mainTab]: String(data.value) }))}>
+        <Tab value="local">本地</Tab><Tab value="online">在线</Tab>
+      </TabList>}
+      {(['favorites', 'history', 'tracking'] as const).map(kind => {
+        const selected = source === 'online' && (mainTab === 'local-fav' ? kind === 'favorites' : mainTab === kind)
+        return <div key={kind} hidden={!selected}><OnlineLibraryPanel kind={kind} visible={visible && selected} /></div>
+      })}
 
       {/* 本地收藏 */}
-      {mainTab === 'local-fav' && (
+      {mainTab === 'local-fav' && source === 'local' && (
         localFav.length === 0 ? (
           <div className={styles.statusMsg}>
             <Heart20Regular aria-hidden="true" />
@@ -171,7 +188,7 @@ export default function FavoritesPage(): JSX.Element {
       )}
 
       {/* 历史记录 */}
-      {mainTab === 'history' && (
+      {mainTab === 'history' && source === 'local' && (
         localHistory.length === 0 ? (
           <div className={styles.statusMsg}><History20Regular aria-hidden="true" /><Text>暂无阅读历史</Text></div>
         ) : (

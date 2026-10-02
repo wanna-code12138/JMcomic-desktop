@@ -623,6 +623,13 @@ export default function SettingsPage(): JSX.Element {
 
       {/* Personal data */}
       <div className={styles.section}>
+        <Text size={500} weight="semibold" className={styles.sectionTitle}>账户与隐私</Text>
+        <div className="settings-group"><Card className={styles.card}><div className={styles.row}>
+          <div><Text weight="semibold">在线账户</Text><div><Text size={200}>管理登录、记住会话及通知。个人数据导出不包含登录会话。</Text></div></div>
+          <Button onClick={() => useAppStore.getState().setCurrentPage('account')}>管理账户</Button>
+        </div></Card></div>
+      </div>
+      <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>个人数据</Text>
         <div className="settings-group">
         <Card className={styles.card}>

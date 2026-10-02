@@ -22,6 +22,11 @@ import { getAppDataDir, getPortableDir } from './dataPaths'
 import { readStartupPreferences, writeStartupPreferences } from './startupPreferences'
 import type { GraphicsStatus } from '../shared/graphicsContracts'
 import { registerPdfDownloads, initPdfDownloads, stopPdfDownloads, resumePdfDownloads } from './pdfDownloadManager'
+import { initializeAccount, closeOnlineAccount } from './account/accountRuntime'
+import { registerCommentIpc } from './comments/commentIpc'
+import { lockAccountDataDirectory } from './account/accountInstance'
+
+if (!lockAccountDataDirectory(app, getAppDataDir())) app.exit(0)
 
 const startupFile = join(getAppDataDir(), 'startup-preferences.json')
 const runningGraphics = readStartupPreferences(startupFile).hardwareAcceleration
@@ -38,6 +43,10 @@ const graphicsStatus = (): GraphicsStatus => ({ requested: requestedGraphics, ru
   compositor: gpuInitialized ? app.getGPUFeatureStatus().gpu_compositing : 'initializing' })
 
 let mainWindow: BrowserWindow | null = null
+app.on('second-instance', () => {
+  if (mainWindow?.isMinimized()) mainWindow.restore()
+  mainWindow?.focus()
+})
 let shutdownComplete = false
 let shutdownRunning = false
 let restartRequested = false
@@ -119,6 +128,9 @@ function createWindow(settings: AppSettings): void {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (url !== mainWindow?.webContents.getURL()) event.preventDefault()
+  })
 
   // Dev or production
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -142,6 +154,8 @@ app.whenReady().then(async () => {
   await applyManualProxy(settings.proxyEnabled, settings.proxyUrl)
 
   createWindow(settings)
+  initializeAccount(() => mainWindow?.webContents)
+  registerCommentIpc(() => mainWindow?.webContents)
   if (mainWindow) void warmupSession(mainWindow).catch(error => console.error('[startup] verification failed:', error))
   const recoveryNotice = getDatabaseRecoveryNotice()
   if (recoveryNotice) void dialog.showMessageBox({ type: 'info', title: '个人数据已恢复', message: recoveryNotice })
@@ -166,7 +180,8 @@ app.on('before-quit', (event) => {
   event.preventDefault()
   if (shutdownRunning) return
   shutdownRunning = true
-  void shutdown.prepare().then(() => {
+  void shutdown.prepare().then(async () => {
+    await closeOnlineAccount().catch(() => {})
     shutdownComplete = true
     if (restartRequested) {
       const portableFile = process.env.PORTABLE_EXECUTABLE_FILE

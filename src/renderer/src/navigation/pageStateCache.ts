@@ -6,6 +6,7 @@ export type PrimaryPageId =
   | 'history'
   | 'downloads'
   | 'settings'
+  | 'account'
 
 export interface PageSnapshot {
   scrollTop?: number
