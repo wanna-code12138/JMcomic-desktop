@@ -1,0 +1,31 @@
+{
+  "executable": "D:\\soft\\Opencode\\JMComic\\dist-electron\\1.0.6\\win-unpacked\\JMComic Desktop.exe",
+  "sha256": "ccb51c91eed1f79a839ddf536f77908007c2f21f1a65966f86a21e202606f96b",
+  "mode": "direct packaged EXE / real network",
+  "assertions": [
+    "delivered EXE loads packaged main, preload, renderer and isolated data without a development loader"
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: complete the real startup verification before testing reader visibility\n+ actual - expected\n\n+ 'failed'\n- 'verified'\n\n    at file:///D:/soft/Opencode/JMComic/scripts/package-launch-smoke.mjs:117:12"
+  ],
+  "runtime": {
+    "packaged": true,
+    "version": "1.0.6",
+    "appPath": "D:\\soft\\Opencode\\JMComic\\dist-electron\\1.0.6\\win-unpacked\\resources\\app.asar",
+    "userData": "D:\\soft\\Opencode\\JMComic\\work\\unpacked-exe-live-20260929\\profile",
+    "electron": "43.2.0",
+    "node": "24.18.0"
+  },
+  "appArchiveSha256": "09cc66b487c6ef64a46d30016638cc92914410029461d2bcee10776e038ff5fb",
+  "warmupAtStartup": {
+    "phase": "verifying",
+    "attempt": 1,
+    "reason": "startup",
+    "startedAt": 1790660443473
+  },
+  "warmupBeforeReading": {
+    "phase": "failed",
+    "reason": "timeout",
+    "retryable": true
+  }
+}

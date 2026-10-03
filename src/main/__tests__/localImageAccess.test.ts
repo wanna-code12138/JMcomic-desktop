@@ -95,7 +95,7 @@ await test('local image protocol uses cached roots and no synchronous file read'
   const ipc = readFileSync(resolve(process.cwd(), 'src/main/ipc.ts'), 'utf-8')
   assert.doesNotMatch(protocol, /readFileSync/)
   assert.match(protocol, /allowedRootsCache\.get\(\)/)
-  assert.match(protocol, /await openLocalImage\(filepath\)/)
+  assert.match(protocol, /await openLocalImage\(filepath, roots\)/)
   assert.match(ipc, /invalidateLocalImageAllowedRoots\(\)/)
 })
 

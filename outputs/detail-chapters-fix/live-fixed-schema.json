@@ -1,0 +1,107 @@
+{
+  "timestamp": "2026-09-29T11:25:14.887Z",
+  "bootstrap": [
+    {
+      "apiOrigin": "https://www.cdnhjk.net",
+      "ok": true
+    }
+  ],
+  "albums": [
+    {
+      "id": "1477646",
+      "source": "category-0-latest",
+      "shape": {
+        "id": 1477646,
+        "titlePresent": true,
+        "seriesType": "array",
+        "seriesCount": 0
+      },
+      "detail": {
+        "ok": true,
+        "chapterCount": 1,
+        "firstChapter": "/photo/1477646"
+      },
+      "albumIdRead": {
+        "ok": true,
+        "pages": 34,
+        "scrambleId": 220980
+      }
+    },
+    {
+      "id": "1477645",
+      "source": "category-0-latest",
+      "shape": {
+        "id": 1477645,
+        "titlePresent": true,
+        "seriesType": "array",
+        "seriesCount": 0
+      },
+      "detail": {
+        "ok": true,
+        "chapterCount": 1,
+        "firstChapter": "/photo/1477645"
+      },
+      "albumIdRead": {
+        "ok": true,
+        "pages": 22,
+        "scrambleId": 220980
+      }
+    },
+    {
+      "id": "1477644",
+      "source": "category-0-latest",
+      "shape": {
+        "id": 1477644,
+        "titlePresent": true,
+        "seriesType": "array",
+        "seriesCount": 0
+      },
+      "detail": {
+        "ok": true,
+        "chapterCount": 1,
+        "firstChapter": "/photo/1477644"
+      },
+      "albumIdRead": {
+        "ok": true,
+        "pages": 16,
+        "scrambleId": 220980
+      }
+    },
+    {
+      "id": "1477642",
+      "source": "category-0-latest",
+      "shape": {
+        "id": 1477642,
+        "titlePresent": true,
+        "seriesType": "array",
+        "seriesCount": 0
+      },
+      "detail": {
+        "ok": true,
+        "chapterCount": 1,
+        "firstChapter": "/photo/1477642"
+      },
+      "albumIdRead": {
+        "ok": true,
+        "pages": 27,
+        "scrambleId": 220980
+      }
+    },
+    {
+      "id": "1215915",
+      "source": "control",
+      "shape": {
+        "id": 1215915,
+        "titlePresent": true,
+        "seriesType": "array",
+        "seriesCount": 63
+      },
+      "detail": {
+        "ok": true,
+        "chapterCount": 63,
+        "firstChapter": "/photo/1215915"
+      }
+    }
+  ],
+  "web": []
+}

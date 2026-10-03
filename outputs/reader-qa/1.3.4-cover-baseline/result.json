@@ -1,0 +1,41 @@
+{
+  "executable": "D:\\soft\\Opencode\\JMComic\\dist-electron\\JMComic Desktop Portable 1.3.3.exe",
+  "sha256": "65c3e67bde9028837f584c0a0366691e349ac3ef85ca7f6c853be00abcda8247",
+  "mode": "direct packaged EXE / synthetic network and save dialog",
+  "fixtureWindow": "hidden",
+  "assertions": [
+    "delivered EXE loads packaged main, preload, renderer and isolated data without a development loader",
+    "actual EXE accepts empty-series standalone albums and opens their detail from the category card",
+    "actual EXE downloads, descrambles all 23 golden rows, decodes jmlocal and exports CBZ with packaged archiver",
+    "actual pointer input opens the downloaded chapter and its first page is visible in the production reader",
+    "actual EXE has manual docked tools, preserves its book while hidden and closes its last tab with X",
+    "actual EXE launches its packaged PDF worker, restores scrambled pixels, and publishes a root-level PDF with packaged PDFKit"
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: 收藏: online covers must decode, not just render blank card slots\n+ actual - expected\n\n  {\n+   height: 0,\n+   width: 0\n-   height: 23,\n-   width: 16\n  }\n\n    at testPackageFixture (file:///D:/soft/Opencode/JMComic/scripts/package-fixture.mjs:137:12)\n    at async file:///D:/soft/Opencode/JMComic/scripts/package-launch-smoke.mjs:141:14"
+  ],
+  "runtime": {
+    "packaged": true,
+    "version": "1.3.3",
+    "appPath": "C:\\Users\\David\\AppData\\Local\\Temp\\3K9M4oOtaCyvF19nGEUXRhE8iP1\\resources\\app.asar",
+    "userData": "D:\\soft\\Opencode\\JMComic\\work\\1.3.4-cover-baseline\\portable\\JMComicData",
+    "electron": "43.2.0",
+    "node": "24.18.0"
+  },
+  "appArchiveSha256": "79b4399cf20e1233c876ce2931a9d32d7da75ea1441ffd991ff4fa9395ebad25",
+  "warmupAtStartup": {
+    "phase": "verifying",
+    "attempt": 1,
+    "reason": "startup",
+    "startedAt": 1790968061876
+  },
+  "workerInspections": [
+    {
+      "workerId": "1",
+      "type": "worker",
+      "title": "[worker 1] WorkerThread",
+      "url": "file:///C:/Users/David/AppData/Local/Temp/3K9M4oOtaCyvF19nGEUXRhE8iP1/resources/app.asar/out/main/pdfWorker.js"
+    }
+  ],
+  "onlineCoverImages": {}
+}

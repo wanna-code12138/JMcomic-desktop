@@ -1,0 +1,18 @@
+
+(node:2892) electron: Failed to load URL: https://18comic.vip/ with error: ERR_BLOCKED_BY_CLIENT
+(Use `electron --trace-warnings ...` to show where the warning was created)
+QA PASS: real preload / IPC / encrypted API / jmimg / Chromium decode
+QA PASS: manual docked tools reclaim space; sidebar visibility preserves tabs, session, focus and reading position
+QA PASS: three panes, source-aware tabs, independent anchors, deduplication and background unmount
+Error occurred in handler for 'settings:set': Error: Synthetic preference write failure
+    at D:\soft\Opencode\JMComic\scripts\reader-smoke.cjs:51:101
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:120546)
+    at Session.emit (node:events:509:28)
+Error occurred in handler for 'settings:set': Error: Synthetic preference write failure
+    at D:\soft\Opencode\JMComic\scripts\reader-smoke.cjs:51:101
+    at Session.<anonymous> (node:electron/js2c/browser_init:2:120546)
+    at Session.emit (node:events:509:28)
+QA PASS: failed saving retains the active tab; explicit retry completes the intended switch
+QA PASS: expand, fullscreen, restore and compact responsive controls preserve the active session
+QA PASS: rapid tab requests serialize; background close preserves active session; final close restores navigation
+QA RESULT=0 evidence=D:\soft\Opencode\JMComic\outputs\reader-qa\120-workspace

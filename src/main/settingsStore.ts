@@ -3,8 +3,10 @@ import { normalizeSettings, type AppSettings } from './settingsCore'
 import { getDefaultDownloadDir } from './dataPaths'
 
 let cached: AppSettings | null = null
+let pendingUpdate: Promise<unknown> = Promise.resolve()
 
 function serialize(value: unknown): string {
+  if (Array.isArray(value)) return JSON.stringify(value)
   if (typeof value === 'boolean') return value ? 'true' : 'false'
   if (typeof value === 'number') return String(value)
   return String(value ?? '')
@@ -27,14 +29,20 @@ export async function getSettings(): Promise<AppSettings> {
   return cached
 }
 
-export async function updateSettings(patch: Record<string, unknown>): Promise<AppSettings> {
+export function updateSettings(patch: Record<string, unknown>): Promise<AppSettings> {
+  const result = pendingUpdate.then(() => persistSettings(patch))
+  pendingUpdate = result.catch(() => {})
+  return result
+}
+
+async function persistSettings(patch: Record<string, unknown>): Promise<AppSettings> {
   const current = await getSettings()
   const merged = normalizeSettings({ ...current, ...patch })
   const db = await getDatabase()
   for (const [key, value] of Object.entries(merged)) {
     db.run('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', [key, serialize(value)])
   }
-  saveDatabase()
+  await saveDatabase()
   cached = merged
   return merged
 }

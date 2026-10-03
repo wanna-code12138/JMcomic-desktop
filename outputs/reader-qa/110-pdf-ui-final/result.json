@@ -1,0 +1,18 @@
+{
+  "runId": "110-pdf-ui-final",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: pointer target must be visible and unobscured\n\nfalse !== true\n\n    at pointerClick (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:172:12)\n    at async clickSelector (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:180:5)\n    at async showTools (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:183:74)\n    at async module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\pdf-download-smoke.cjs:28:3)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:310:5)"
+  ],
+  "network": {
+    "api": 8,
+    "image": 8,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

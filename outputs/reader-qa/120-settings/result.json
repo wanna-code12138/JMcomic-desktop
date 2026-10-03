@@ -1,0 +1,19 @@
+{
+  "runId": "120-settings",
+  "mode": "visible Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "independent animation/GPU controls, restart state, persistent workspace, accessible divider"
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 7
+  },
+  "summaryQueries": 0
+}

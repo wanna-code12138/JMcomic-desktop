@@ -1,0 +1,676 @@
+{
+  "timestamp": "2026-09-28T19:07:24.115Z",
+  "scope": "Three-pane reader. Visible Chromium, 80ms latency and shared 4MiB/s synthetic transport; unique cold URLs bypass decoded-image cache. rAF is not compositor presentation timing.",
+  "notes": [
+    "Exploration uses 10 repetitions per option; confirmation uses 50 per option. Warm repetition uses fixed URLs in one process.",
+    "Exploration preceded the final in-place close-save retry repair; confirmation and warm tests include that repair. Build hashes record the exact variants.",
+    "Only a work/ build transform exposes overscan to the benchmark. Production is rebuilt afterwards with overscan=2 and no experiment switch.",
+    "A prior confirmation run stopped on an UNKNOWN filesystem open error while checkpointing sample 79; its incomplete data is excluded. The fresh confirmation directory contains the full 100 trials.",
+    "Process memory includes encoded fixtures, Chromium decoded-image caches and retained measurement events; these short tests do not establish long-term production memory usage."
+  ],
+  "experiments": [
+    {
+      "name": "prefetch-explore",
+      "run": "workspace-prefetch-explore-20260929",
+      "sampleCount": 30,
+      "errors": [],
+      "rawFile": "workspace-prefetch-explore.raw.json.gz",
+      "rawSha256": "bc14adcc4b39d729c9292c6f4845a5348f2c6ac29387f988e87594b198e69913",
+      "rawBytes": 3210987,
+      "compressedBytes": 125095,
+      "versions": {
+        "node": "24.18.0",
+        "acorn": "8.16.0",
+        "ada": "3.4.4",
+        "amaro": "1.1.9",
+        "ares": "1.34.6",
+        "brotli": "1.2.0",
+        "cldr": "48.0",
+        "icu": "78.2",
+        "llhttp": "9.4.2",
+        "merve": "1.2.2",
+        "modules": "148",
+        "napi": "10",
+        "nbytes": "0.1.4",
+        "ncrypto": "0.0.1",
+        "nghttp2": "1.69.0",
+        "nghttp3": "",
+        "ngtcp2": "",
+        "openssl": "0.0.0",
+        "simdjson": "4.6.4",
+        "simdutf": "7.7.0",
+        "sqlite": "3.53.1",
+        "tz": "2025c",
+        "undici": "7.28.0",
+        "unicode": "17.0",
+        "uv": "1.52.1",
+        "uvwasi": "0.0.23",
+        "v8": "15.0.1240245-electron.0",
+        "zlib": "1.3.2.1-motley",
+        "zstd": "1.6.0",
+        "electron": "43.2.0",
+        "chrome": "150.0.7871.129"
+      },
+      "environment": {
+        "cpu": "AMD Ryzen AI 7 H 350 w/ Radeon 860M ",
+        "logicalCores": 16,
+        "totalMemoryBytes": 33413771264,
+        "platform": "win32",
+        "release": "10.0.26100",
+        "windowBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 752
+        }
+      },
+      "gpu": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "buildHash": "3f3730e7f5f29559e5cfa431ab9d8f1e365ba6808e26ad5df0753717d2ea7a98",
+      "rendererHashes": {
+        "Badge-D9PE9y25.js": "0d3d17877e2487944038476e07e5dc55af577e64fd482013507ea680e1e02eee",
+        "DialogContent-Du7pQYlA.js": "1204e80bfa4d979842a526cee936f9d21dea53d610b4bfd19e7fddc916fad0db",
+        "DownloadsPage-BfhGG-DO.js": "7dc11429d2a4a7b29da66be0b4a09c86ecaa4b7262dafe4ce7a07258f5bd49cb",
+        "MangaDetailPage-CL39EujK.js": "b4362aa749fadec71df92a327d92881ad3d3611e3674ec71e31239b092aca596",
+        "ReaderPage-CkbghANH.js": "8c5e10ac7bd19ca23db0a9c7ab413dbb6dbf52b95f72aca69544885dee6c690c",
+        "ReaderPage-jY9vIDPe.css": "e02597798d07b9372d3179ab9294a36cc4dd2b479acf815f1e88e71d3fd008a6",
+        "SettingsPage-iHCZvkrm.js": "0ab69c196356bc52a28a6d486eaff23dc0bb08e68f32f7f32734ad225520f284",
+        "chunk-16-EPi3kc_O.js": "1c3c63a95aa39cbfbc4ffdb89377fc658cae9dc5bcb30e5f63c4466b6e965e89",
+        "index-9hWoKaSR.js": "09e6cc17c2931766669b2abe37c96eb93217fa0e52dbc001a2dd4283fe80069a",
+        "index-BmUGgLgF.css": "9394985350a7a36470541c2ebe574005ccf28fd8bb1c4514e63fb4fc68edd110"
+      },
+      "fixture": {
+        "latencyMs": 80,
+        "sharedBytesPerSecond": 4194304,
+        "encodedBytes": [
+          401333,
+          464639,
+          536889,
+          400339,
+          465713,
+          106113,
+          215235
+        ],
+        "scrambled": true
+      },
+      "summary": {
+        "overscan0": {
+          "firstVisible": {
+            "n": 10,
+            "p50": 316,
+            "p95": 335.7,
+            "max": 335.7
+          },
+          "pageDemand": {
+            "n": 20,
+            "p50": 236.9,
+            "p95": 270.4,
+            "max": 270.8
+          },
+          "frameP95PerTrial": {
+            "n": 10,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 10,
+            "p50": 0.4,
+            "p95": 0.5,
+            "max": 0.5
+          },
+          "bytes": {
+            "n": 10,
+            "p50": 2268913,
+            "p95": 2268913,
+            "max": 2268913
+          },
+          "peakPrivateKb": {
+            "n": 10,
+            "p50": 1059156,
+            "p95": 1095172,
+            "max": 1095172
+          },
+          "residualPrivateKb": {
+            "n": 10,
+            "p50": 1031500,
+            "p95": 1069716,
+            "max": 1069716
+          },
+          "allFrameIntervals": {
+            "n": 4677,
+            "p50": 6.1,
+            "p95": 6.2,
+            "max": 7.5
+          },
+          "frameIntervalsOver25Ms": 0,
+          "frameIntervalsOver50Ms": 0,
+          "zeroImageTransferTrials": 0
+        },
+        "overscan1": {
+          "firstVisible": {
+            "n": 10,
+            "p50": 409.9,
+            "p95": 424.5,
+            "max": 424.5
+          },
+          "pageDemand": {
+            "n": 20,
+            "p50": 15.7,
+            "p95": 17.7,
+            "max": 17.7
+          },
+          "frameP95PerTrial": {
+            "n": 10,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 10,
+            "p50": 0.4,
+            "p95": 0.8,
+            "max": 0.8
+          },
+          "bytes": {
+            "n": 10,
+            "p50": 2375026,
+            "p95": 2375026,
+            "max": 2375026
+          },
+          "peakPrivateKb": {
+            "n": 10,
+            "p50": 1059916,
+            "p95": 1116804,
+            "max": 1116804
+          },
+          "residualPrivateKb": {
+            "n": 10,
+            "p50": 1040396,
+            "p95": 1073028,
+            "max": 1073028
+          },
+          "allFrameIntervals": {
+            "n": 4077,
+            "p50": 6.1,
+            "p95": 6.2,
+            "max": 6.9
+          },
+          "frameIntervalsOver25Ms": 0,
+          "frameIntervalsOver50Ms": 0,
+          "zeroImageTransferTrials": 0
+        },
+        "overscan2": {
+          "firstVisible": {
+            "n": 10,
+            "p50": 499.4,
+            "p95": 515.5,
+            "max": 515.5
+          },
+          "pageDemand": {
+            "n": 20,
+            "p50": 15.4,
+            "p95": 17.1,
+            "max": 18
+          },
+          "frameP95PerTrial": {
+            "n": 10,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 10,
+            "p50": 0.5,
+            "p95": 1.1,
+            "max": 1.1
+          },
+          "bytes": {
+            "n": 10,
+            "p50": 2776359,
+            "p95": 2776359,
+            "max": 2776359
+          },
+          "peakPrivateKb": {
+            "n": 10,
+            "p50": 1052972,
+            "p95": 1084804,
+            "max": 1084804
+          },
+          "residualPrivateKb": {
+            "n": 10,
+            "p50": 1044572,
+            "p95": 1078380,
+            "max": 1078380
+          },
+          "allFrameIntervals": {
+            "n": 4228,
+            "p50": 6.1,
+            "p95": 6.2,
+            "max": 7.3
+          },
+          "frameIntervalsOver25Ms": 0,
+          "frameIntervalsOver50Ms": 0,
+          "zeroImageTransferTrials": 0
+        }
+      },
+      "residualMemory": {
+        "unit": "MiB, all application processes including the fixture and retained measurement events",
+        "first10Mean": 867.25,
+        "last10Mean": 1026,
+        "last": 1021.59,
+        "tenTrialMeans": [
+          867.25,
+          1024.04,
+          1026
+        ]
+      }
+    },
+    {
+      "name": "prefetch-confirm",
+      "run": "workspace-prefetch-confirm-final-20260929",
+      "sampleCount": 100,
+      "errors": [],
+      "rawFile": "workspace-prefetch-confirm.raw.json.gz",
+      "rawSha256": "0dcde7903de64e58e8ab85f6b8d721affaffa733022a5d47acf4bbe21abbb245",
+      "rawBytes": 9230308,
+      "compressedBytes": 368125,
+      "versions": {
+        "node": "24.18.0",
+        "acorn": "8.16.0",
+        "ada": "3.4.4",
+        "amaro": "1.1.9",
+        "ares": "1.34.6",
+        "brotli": "1.2.0",
+        "cldr": "48.0",
+        "icu": "78.2",
+        "llhttp": "9.4.2",
+        "merve": "1.2.2",
+        "modules": "148",
+        "napi": "10",
+        "nbytes": "0.1.4",
+        "ncrypto": "0.0.1",
+        "nghttp2": "1.69.0",
+        "nghttp3": "",
+        "ngtcp2": "",
+        "openssl": "0.0.0",
+        "simdjson": "4.6.4",
+        "simdutf": "7.7.0",
+        "sqlite": "3.53.1",
+        "tz": "2025c",
+        "undici": "7.28.0",
+        "unicode": "17.0",
+        "uv": "1.52.1",
+        "uvwasi": "0.0.23",
+        "v8": "15.0.1240245-electron.0",
+        "zlib": "1.3.2.1-motley",
+        "zstd": "1.6.0",
+        "electron": "43.2.0",
+        "chrome": "150.0.7871.129"
+      },
+      "environment": {
+        "cpu": "AMD Ryzen AI 7 H 350 w/ Radeon 860M ",
+        "logicalCores": 16,
+        "totalMemoryBytes": 33413771264,
+        "platform": "win32",
+        "release": "10.0.26100",
+        "windowBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 752
+        }
+      },
+      "gpu": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "buildHash": "3f3730e7f5f29559e5cfa431ab9d8f1e365ba6808e26ad5df0753717d2ea7a98",
+      "rendererHashes": {
+        "Badge-CrCnwPiK.js": "8fe6880b3e818ac7dd8452729c62f1691eb28a8fd66bcbd041c912df312e762e",
+        "DialogContent-DYm8fzXT.js": "dd1090689041c402f94ba2b262d42fd3d7c353bc521956befeeca4890fd4bb2b",
+        "DownloadsPage-DZnmpdLx.js": "902a2d7eb41371398cf73971325952589f06c7356d753a9d1a656b332ceee7ad",
+        "MangaDetailPage-B99EOYo6.js": "0b400fdbefa6ce4c3e1e45ee91c72802eb3b6c282cd139b5f9c34e732a70dd93",
+        "ReaderPage-DLF5rK-W.js": "c082ec0e9f345facde336eec55c3af77b55bc6ac8b0aafba63fc3e65027e1a4e",
+        "ReaderPage-jY9vIDPe.css": "e02597798d07b9372d3179ab9294a36cc4dd2b479acf815f1e88e71d3fd008a6",
+        "SettingsPage-DrJUOAsm.js": "0516b49589769edc9f3fd964dadde3f6033a7941df473d1398c7d399c4624744",
+        "chunk-16-BlvDQtoc.js": "09cdf747c7d1b5cb751c44abbc66ef5ddfb9a72bca5c93de90a3bee50199697b",
+        "index-B-CG5Pjf.js": "840ddad94a868193f662bdb2e7fdde8acf3aaf4500f0c21c393f170dda7afd72",
+        "index-BmUGgLgF.css": "9394985350a7a36470541c2ebe574005ccf28fd8bb1c4514e63fb4fc68edd110"
+      },
+      "fixture": {
+        "latencyMs": 80,
+        "sharedBytesPerSecond": 4194304,
+        "encodedBytes": [
+          401333,
+          464639,
+          536889,
+          400339,
+          465713,
+          106113,
+          215235
+        ],
+        "scrambled": true
+      },
+      "summary": {
+        "overscan1-fast": {
+          "firstVisible": {
+            "n": 50,
+            "p50": 417.8,
+            "p95": 426.2,
+            "max": 426.7
+          },
+          "pageDemand": {
+            "n": 100,
+            "p50": 17.9,
+            "p95": 255.7,
+            "max": 271.6
+          },
+          "frameP95PerTrial": {
+            "n": 50,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 50,
+            "p50": 0.5,
+            "p95": 0.7,
+            "max": 1
+          },
+          "bytes": {
+            "n": 50,
+            "p50": 2375026,
+            "p95": 2375026,
+            "max": 2375026
+          },
+          "peakPrivateKb": {
+            "n": 50,
+            "p50": 1020288,
+            "p95": 1050568,
+            "max": 1055832
+          },
+          "residualPrivateKb": {
+            "n": 50,
+            "p50": 1009840,
+            "p95": 1037440,
+            "max": 1043676
+          },
+          "allFrameIntervals": {
+            "n": 18765,
+            "p50": 6.1,
+            "p95": 6.2,
+            "max": 12.1
+          },
+          "frameIntervalsOver25Ms": 0,
+          "frameIntervalsOver50Ms": 0,
+          "zeroImageTransferTrials": 0
+        },
+        "overscan2-fast": {
+          "firstVisible": {
+            "n": 50,
+            "p50": 510.7,
+            "p95": 518.8,
+            "max": 522
+          },
+          "pageDemand": {
+            "n": 100,
+            "p50": 15.2,
+            "p95": 17.9,
+            "max": 18.3
+          },
+          "frameP95PerTrial": {
+            "n": 50,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 50,
+            "p50": 0.6,
+            "p95": 1.1,
+            "max": 1.6
+          },
+          "bytes": {
+            "n": 50,
+            "p50": 2776359,
+            "p95": 2776359,
+            "max": 2776359
+          },
+          "peakPrivateKb": {
+            "n": 50,
+            "p50": 1020960,
+            "p95": 1042788,
+            "max": 1043676
+          },
+          "residualPrivateKb": {
+            "n": 50,
+            "p50": 1008544,
+            "p95": 1034304,
+            "max": 1038004
+          },
+          "allFrameIntervals": {
+            "n": 17851,
+            "p50": 6.1,
+            "p95": 6.2,
+            "max": 8.3
+          },
+          "frameIntervalsOver25Ms": 0,
+          "frameIntervalsOver50Ms": 0,
+          "zeroImageTransferTrials": 0
+        }
+      },
+      "residualMemory": {
+        "unit": "MiB, all application processes including the fixture and retained measurement events",
+        "first10Mean": 874.06,
+        "last10Mean": 1000.95,
+        "last": 997.8,
+        "tenTrialMeans": [
+          874.06,
+          968.02,
+          966.37,
+          992.77,
+          978.97,
+          987.33,
+          1002.65,
+          989.3,
+          990.58,
+          1000.95
+        ]
+      }
+    },
+    {
+      "name": "warm",
+      "run": "workspace-warm-20260929",
+      "sampleCount": 50,
+      "errors": [],
+      "rawFile": "workspace-warm.raw.json.gz",
+      "rawSha256": "394dd6161008abd9ae8f547f3cf45183a47f1db7b1ba41b93d00f01b8e612127",
+      "rawBytes": 4356277,
+      "compressedBytes": 169372,
+      "versions": {
+        "node": "24.18.0",
+        "acorn": "8.16.0",
+        "ada": "3.4.4",
+        "amaro": "1.1.9",
+        "ares": "1.34.6",
+        "brotli": "1.2.0",
+        "cldr": "48.0",
+        "icu": "78.2",
+        "llhttp": "9.4.2",
+        "merve": "1.2.2",
+        "modules": "148",
+        "napi": "10",
+        "nbytes": "0.1.4",
+        "ncrypto": "0.0.1",
+        "nghttp2": "1.69.0",
+        "nghttp3": "",
+        "ngtcp2": "",
+        "openssl": "0.0.0",
+        "simdjson": "4.6.4",
+        "simdutf": "7.7.0",
+        "sqlite": "3.53.1",
+        "tz": "2025c",
+        "undici": "7.28.0",
+        "unicode": "17.0",
+        "uv": "1.52.1",
+        "uvwasi": "0.0.23",
+        "v8": "15.0.1240245-electron.0",
+        "zlib": "1.3.2.1-motley",
+        "zstd": "1.6.0",
+        "electron": "43.2.0",
+        "chrome": "150.0.7871.129"
+      },
+      "environment": {
+        "cpu": "AMD Ryzen AI 7 H 350 w/ Radeon 860M ",
+        "logicalCores": 16,
+        "totalMemoryBytes": 33413771264,
+        "platform": "win32",
+        "release": "10.0.26100",
+        "windowBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 752
+        }
+      },
+      "gpu": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "buildHash": "3f3730e7f5f29559e5cfa431ab9d8f1e365ba6808e26ad5df0753717d2ea7a98",
+      "rendererHashes": {
+        "Badge-BEW4HVO9.js": "73394cd9d220c39d9899cf11f3579d296c7371ef4ac09e74b02fc15b5c297944",
+        "DialogContent-B5I91le4.js": "feca58e6d84fa7e5d9da294fd295a4f4987c050e7fb9dd6f20f04133e67d4a80",
+        "DownloadsPage-BqhRmFoY.js": "dd6e8e7d2436eff5d067d343f4ec31e5ee6bbc8ad0ea9ce77c6832ab995f4d2e",
+        "MangaDetailPage-DGlRBMez.js": "0017a9a56e4a0d949bf3aa37b67b1f9cb39a50cf9557dd933fe0d0cf80464352",
+        "ReaderPage-Bjo7gSe7.css": "f177b733816180fcfe868a2a9de773502c0a9a6751aeea1335e989aac7a830ee",
+        "ReaderPage-bYoBFJ-d.js": "7c974f4841ab848d554af175f2fa3ee8bab2ac78be06ccbd1cda43e0b98d4dd2",
+        "SettingsPage-CzcGs4Re.js": "cbd68d42cb16e79fa4869f89f456fd4eeed9f6fd3d786dc7434b5302462ea589",
+        "chunk-16-B4e-5gzI.js": "d62fd7c19905cbf5af83b81613e4cb6ea7e5259812d3e7f5143580f20c3abb71",
+        "index-BmUGgLgF.css": "9394985350a7a36470541c2ebe574005ccf28fd8bb1c4514e63fb4fc68edd110",
+        "index-CNl5L374.js": "71647498e43c17e81492452593cd0fdd7aeab7207a382dbde8a6908d04175a96"
+      },
+      "fixture": {
+        "latencyMs": 80,
+        "sharedBytesPerSecond": 4194304,
+        "encodedBytes": [
+          401333,
+          464639,
+          536889,
+          400339,
+          465713,
+          106113,
+          215235
+        ],
+        "scrambled": true
+      },
+      "summary": {
+        "warm": {
+          "firstVisible": {
+            "n": 50,
+            "p50": 26.2,
+            "p95": 36.5,
+            "max": 48.2
+          },
+          "pageDemand": {
+            "n": 100,
+            "p50": 15.1,
+            "p95": 17.8,
+            "max": 22.3
+          },
+          "frameP95PerTrial": {
+            "n": 50,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 50,
+            "p50": 0.7,
+            "p95": 1,
+            "max": 1.4
+          },
+          "bytes": {
+            "n": 50,
+            "p50": 0,
+            "p95": 0,
+            "max": 1373498
+          },
+          "peakPrivateKb": {
+            "n": 50,
+            "p50": 880704,
+            "p95": 990128,
+            "max": 1001932
+          },
+          "residualPrivateKb": {
+            "n": 50,
+            "p50": 864756,
+            "p95": 980660,
+            "max": 993396
+          },
+          "allFrameIntervals": {
+            "n": 17174,
+            "p50": 6.1,
+            "p95": 6.2,
+            "max": 12.3
+          },
+          "frameIntervalsOver25Ms": 0,
+          "frameIntervalsOver50Ms": 0,
+          "zeroImageTransferTrials": 49
+        }
+      },
+      "residualMemory": {
+        "unit": "MiB, all application processes including the fixture and retained measurement events",
+        "first10Mean": 746.81,
+        "last10Mean": 840.76,
+        "last": 856.02,
+        "tenTrialMeans": [
+          746.81,
+          840.13,
+          919.57,
+          905.36,
+          840.76
+        ]
+      }
+    }
+  ]
+}

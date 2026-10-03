@@ -1,0 +1,9 @@
+{
+  "executable": "D:\\soft\\Opencode\\JMComic\\dist-electron\\1.0.6\\win-unpacked\\JMComic Desktop.exe",
+  "sha256": "56ff7afb25ae1094a2d48d654581ea0e38ae93b774db6a2001bf23dcf2d94d10",
+  "mode": "direct packaged EXE / real network",
+  "assertions": [],
+  "errors": [
+    "Error: {\"code\":-32000,\"message\":\"Promise was collected\"}\n    at socket.onmessage (file:///D:/soft/Opencode/JMComic/scripts/package-launch-smoke.mjs:69:32)\n    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:843:20)\n    at WebSocket.dispatchEvent (node:internal/event_target:776:26)\n    at fireEvent (node:internal/deps/undici/undici:14387:14)\n    at #onMessage (node:internal/deps/undici/undici:15710:9)\n    at Object.onMessage (node:internal/deps/undici/undici:15417:76)\n    at websocketMessageReceived (node:internal/deps/undici/undici:14391:15)\n    at ByteParser.run (node:internal/deps/undici/undici:15093:19)\n    at ByteParser._write (node:internal/deps/undici/undici:14969:14)\n    at writeOrBuffer (node:internal/streams/writable:570:12)"
+  ]
+}

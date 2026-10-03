@@ -1,0 +1,48 @@
+✔ hiding the reader preserves tabs and the active session; opening the same book reveals it without reloading (2.3171ms)
+✔ manual tools keep the user choice across chapters, books and side-pane visibility (0.5235ms)
+✔ reading keeps browsing independent and reuses a book tab without resetting its chapter (0.346ms)
+✔ switch waits for saving and restores each tab anchor; closing selects neighbor then restores navigation (4.6883ms)
+✔ save failure holds the active tab, cancels already queued transitions and supports explicit retry (1.3355ms)
+✔ background close and repeated activation do not save or remount the active session (0.3458ms)
+✔ a stale session cleanup cannot remove the current saver and shutdown propagates failure (0.5056ms)
+✔ shutdown freezes new tab admission until a failed close explicitly resumes the workspace (0.3ms)
+✔ retrying a failed close save clears the recovered error (0.2204ms)
+✔ new tabs are independent start pages and a book replaces the active start page (0.6624ms)
+✔ tab metadata and reorder do not save, replace the reader object, or lose concurrent updates (0.526ms)
+✔ batch close protects pinned tabs and undo restores the saved anchor without duplication (0.3527ms)
+✔ failed closing does not alter the closed stack and the stack is bounded (0.7245ms)
+✔ hiding undoes automatic navigation collapse but preserves explicit user choices (0.321ms)
+✖ optional workspace persistence saves the final anchor without remounting and propagates disk failure (3.6224ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 14
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22.8434
+
+✖ failing tests:
+
+test at src\main\__tests__\readerWorkspace.test.ts:2:15312
+✖ optional workspace persistence saves the final anchor without remounting and propagates disk failure (3.6224ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at TestContext.<anonymous> (D:\soft\Opencode\JMComic\src\main\__tests__\readerWorkspace.test.ts:303:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

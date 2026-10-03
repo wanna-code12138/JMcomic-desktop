@@ -215,6 +215,40 @@ async function main(): Promise<void> {
     assert.equal(browserCalls, 0)
   })
 
+  await test('recommendation category rejects poisoned random-card cache and falls back', async () => {
+    const poisoned: GatewayResult<GatewayListResult> = {
+      data: {
+        results: [{ id: '226080', title: '隨便看', coverUrl: 'https://cdn.example.com/random.jpg' }],
+        totalPages: 1
+      },
+      provider: 'direct',
+      fallback: false
+    }
+    const persistentCache: ContentCache = {
+      async resolve<T>(_key: string, load: () => Promise<T>, validate: (value: unknown) => value is T) {
+        assert.equal(validate(poisoned), false)
+        return { value: await load(), state: 'miss' }
+      },
+      async clear() {},
+      async waitForIdle() {}
+    }
+    const gateway = createContentGateway({
+      direct: provider({ category: async () => poisoned.data }),
+      browser: provider({
+        category: async () => ({
+          results: [{ id: '1215916', title: '算法漫画', coverUrl: 'https://cdn.example.com/algorithm.jpg' }],
+          totalPages: 1
+        })
+      }),
+      ttlMs: 60_000,
+      persistentCache
+    })
+
+    const result = await gateway.category({ recommendation: true, page: 1 })
+    assert.equal(result.provider, 'browser')
+    assert.equal(result.data.results[0].title, '算法漫画')
+  })
+
   await test('clear invalidates the gateway memory cache', async () => {
     let directCalls = 0
     const gateway = createContentGateway({
@@ -229,6 +263,79 @@ async function main(): Promise<void> {
     const refreshed = await gateway.detail('1215915')
     assert.equal(directCalls, 2)
     assert.equal(refreshed.data.title, '结果2')
+  })
+
+  await test('api provider success avoids direct and browser', async () => {
+    let apiCalls = 0
+    let directCalls = 0
+    let browserCalls = 0
+    const apiValue = detail('API结果')
+    const gateway = createContentGateway({
+      api: provider({ detail: async () => { apiCalls++; return apiValue } }),
+      direct: provider({ detail: async () => { directCalls++; return detail('直连') } }),
+      browser: provider({ detail: async () => { browserCalls++; return detail('浏览器') } }),
+      ttlMs: 60_000
+    })
+
+    const result = await gateway.detail('1215915')
+    assert.strictEqual(result.data, apiValue)
+    assert.equal(result.provider, 'api')
+    assert.equal(result.fallback, false)
+    assert.equal(apiCalls, 1)
+    assert.equal(directCalls, 0)
+    assert.equal(browserCalls, 0)
+  })
+
+  await test('api error falls back to direct, and direct error falls back to browser', async () => {
+    let directCalls = 0
+    let browserCalls = 0
+    const browserValue = detail('浏览器三级回退')
+    const gateway = createContentGateway({
+      api: provider({ detail: async () => { throw new Error('api-timeout') } }),
+      direct: provider({ detail: async () => { directCalls++; throw new Error('direct-blocked') } }),
+      browser: provider({ detail: async () => { browserCalls++; return browserValue } }),
+      ttlMs: 60_000
+    })
+
+    const result = await gateway.detail('1215915')
+    assert.strictEqual(result.data, browserValue)
+    assert.equal(result.provider, 'browser')
+    assert.equal(result.fallback, true)
+    assert.equal(result.fallbackReason, 'direct-error')
+    assert.equal(directCalls, 1)
+    assert.equal(browserCalls, 1)
+  })
+
+  await test('circuit breaker disables api provider when fallback rate exceeds 10% in last 100 calls', async () => {
+    let apiCalls = 0
+    let directCalls = 0
+    const directValue = detail('直连保底')
+
+    const gateway = createContentGateway({
+      api: provider({
+        detail: async () => {
+          apiCalls++
+          // 模拟失败
+          throw new Error('api-drift')
+        }
+      }),
+      direct: provider({ detail: async () => { directCalls++; return directValue } }),
+      browser: provider(),
+      ttlMs: 0 // 禁用内存缓存以测试单请求穿透
+    })
+
+    // 触发 10 次连续失败（达到 >=10 且失败率 100% > 10%）
+    for (let i = 0; i < 10; i++) {
+      await gateway.detail(`id-${i}`)
+    }
+    assert.equal(apiCalls, 10)
+    assert.equal(directCalls, 10)
+
+    // 第 11 次请求该 endpoint 应处于熔断暂停期，直接走 direct，不调用 api
+    const call11 = await gateway.detail('id-11')
+    assert.equal(call11.provider, 'direct')
+    assert.equal(apiCalls, 10) // apiCalls 未增加
+    assert.equal(directCalls, 11)
   })
 
   if (process.exitCode) console.log('Some tests failed.')

@@ -1,0 +1,76 @@
+{
+  "timestamp": "2026-09-28T19:17:05.174Z",
+  "automatedTestFiles": {
+    "total": 72,
+    "passed": 72,
+    "failed": 0
+  },
+  "typecheckExit": 0,
+  "buildExit": 0,
+  "packageExit": 0,
+  "compiledFilesMatchArchive": 13,
+  "finalProductHasExperimentSwitch": false,
+  "documentFiles": 6,
+  "checkedLocalLinks": 69,
+  "portable": {
+    "path": "dist-electron/JMComic Desktop Portable 1.0.5.exe",
+    "bytes": 108243031,
+    "sha256": "563c5f00c5d6cf11e14c366658732147d92022d62f7aaa1cfefb0fc478298b01",
+    "signed": false,
+    "published": false
+  },
+  "artifacts": {
+    "out/main/index.js": {
+      "bytes": 219725,
+      "sha256": "3f3730e7f5f29559e5cfa431ab9d8f1e365ba6808e26ad5df0753717d2ea7a98"
+    },
+    "out/preload/index.js": {
+      "bytes": 7807,
+      "sha256": "df6cbd89f4745819c2613a16b33d36951ff61145af2c6ced44d684f15c0253a4"
+    },
+    "out/renderer/index.html": {
+      "bytes": 619,
+      "sha256": "acd5e205aefd40b213dc22117cef85665fbf66241b48815f8a58fe1c00b13687"
+    },
+    "out/renderer/assets/Badge-BEW4HVO9.js": {
+      "bytes": 16417,
+      "sha256": "73394cd9d220c39d9899cf11f3579d296c7371ef4ac09e74b02fc15b5c297944"
+    },
+    "out/renderer/assets/chunk-16-B4e-5gzI.js": {
+      "bytes": 213,
+      "sha256": "d62fd7c19905cbf5af83b81613e4cb6ea7e5259812d3e7f5143580f20c3abb71"
+    },
+    "out/renderer/assets/DialogContent-B5I91le4.js": {
+      "bytes": 80532,
+      "sha256": "feca58e6d84fa7e5d9da294fd295a4f4987c050e7fb9dd6f20f04133e67d4a80"
+    },
+    "out/renderer/assets/DownloadsPage-BqhRmFoY.js": {
+      "bytes": 23438,
+      "sha256": "dd6e8e7d2436eff5d067d343f4ec31e5ee6bbc8ad0ea9ce77c6832ab995f4d2e"
+    },
+    "out/renderer/assets/index-BmUGgLgF.css": {
+      "bytes": 19806,
+      "sha256": "9394985350a7a36470541c2ebe574005ccf28fd8bb1c4514e63fb4fc68edd110"
+    },
+    "out/renderer/assets/index-CNl5L374.js": {
+      "bytes": 1022383,
+      "sha256": "71647498e43c17e81492452593cd0fdd7aeab7207a382dbde8a6908d04175a96"
+    },
+    "out/renderer/assets/MangaDetailPage-DGlRBMez.js": {
+      "bytes": 49955,
+      "sha256": "0017a9a56e4a0d949bf3aa37b67b1f9cb39a50cf9557dd933fe0d0cf80464352"
+    },
+    "out/renderer/assets/ReaderPage-Bjo7gSe7.css": {
+      "bytes": 7602,
+      "sha256": "f177b733816180fcfe868a2a9de773502c0a9a6751aeea1335e989aac7a830ee"
+    },
+    "out/renderer/assets/ReaderPage-bYoBFJ-d.js": {
+      "bytes": 96967,
+      "sha256": "7c974f4841ab848d554af175f2fa3ee8bab2ac78be06ccbd1cda43e0b98d4dd2"
+    },
+    "out/renderer/assets/SettingsPage-CzcGs4Re.js": {
+      "bytes": 69022,
+      "sha256": "cbd68d42cb16e79fa4869f89f456fd4eeed9f6fd3d786dc7434b5302462ea589"
+    }
+  }
+}

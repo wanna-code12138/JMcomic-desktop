@@ -1,0 +1,130 @@
+[
+  {
+    "repo": "JUKOMU/JMComic-Api-Java",
+    "commit": "5a7a4bb4870edb512274dc2adeb4f7c157445321",
+    "path": "jmcomic-core/src/main/java/io/github/jukomu/jmcomic/core/client/impl/JmApiClient.java",
+    "url": "https://github.com/JUKOMU/JMComic-Api-Java/blob/5a7a4bb4870edb512274dc2adeb4f7c157445321/jmcomic-core/src/main/java/io/github/jukomu/jmcomic/core/client/impl/JmApiClient.java",
+    "bytes": 71009,
+    "sha256": "71e1496585ed61661983dcebe67aa8bf443526b89e232122b1c59c9f5ffc1dea"
+  },
+  {
+    "repo": "JUKOMU/JMComic-Api-Java",
+    "commit": "5a7a4bb4870edb512274dc2adeb4f7c157445321",
+    "path": "jmcomic-api/src/main/java/io/github/jukomu/jmcomic/api/model/ForumQuery.java",
+    "url": "https://github.com/JUKOMU/JMComic-Api-Java/blob/5a7a4bb4870edb512274dc2adeb4f7c157445321/jmcomic-api/src/main/java/io/github/jukomu/jmcomic/api/model/ForumQuery.java",
+    "bytes": 4435,
+    "sha256": "1964b815e3ec57bfb0941bf92388254fddd5629c61b6e756a124202eb08e2652"
+  },
+  {
+    "repo": "JUKOMU/JMComic-Api-Java",
+    "commit": "5a7a4bb4870edb512274dc2adeb4f7c157445321",
+    "path": "jmcomic-api/src/main/java/io/github/jukomu/jmcomic/api/model/FavoriteQuery.java",
+    "url": "https://github.com/JUKOMU/JMComic-Api-Java/blob/5a7a4bb4870edb512274dc2adeb4f7c157445321/jmcomic-api/src/main/java/io/github/jukomu/jmcomic/api/model/FavoriteQuery.java",
+    "bytes": 1758,
+    "sha256": "1db2918ed21e23368c788900fbadb4b71adbdd3527c4dd3a3fe7d16601f45d29"
+  },
+  {
+    "repo": "JUKOMU/JMComic-Api-Java",
+    "commit": "5a7a4bb4870edb512274dc2adeb4f7c157445321",
+    "path": "jmcomic-core/src/main/java/io/github/jukomu/jmcomic/core/constant/JmConstants.java",
+    "url": "https://github.com/JUKOMU/JMComic-Api-Java/blob/5a7a4bb4870edb512274dc2adeb4f7c157445321/jmcomic-core/src/main/java/io/github/jukomu/jmcomic/core/constant/JmConstants.java",
+    "bytes": 8688,
+    "sha256": "fae77ea19839bec16a2f1d8a4f6460ef94d68bce44de1bf79766f8821b41c3ae"
+  },
+  {
+    "repo": "JUKOMU/JMComic-Api-Java",
+    "commit": "5a7a4bb4870edb512274dc2adeb4f7c157445321",
+    "path": "jmcomic-core/src/main/java/io/github/jukomu/jmcomic/core/parser/ApiParser.java",
+    "url": "https://github.com/JUKOMU/JMComic-Api-Java/blob/5a7a4bb4870edb512274dc2adeb4f7c157445321/jmcomic-core/src/main/java/io/github/jukomu/jmcomic/core/parser/ApiParser.java",
+    "bytes": 100552,
+    "sha256": "9faccf3614160cd01ae7a10eb64355d14d53bacc16dbedf8819830b6be824650"
+  },
+  {
+    "repo": "JUKOMU/JMComic-Api-Java",
+    "commit": "5a7a4bb4870edb512274dc2adeb4f7c157445321",
+    "path": "jmcomic-core/src/main/java/io/github/jukomu/jmcomic/core/client/AbstractJmClient.java",
+    "url": "https://github.com/JUKOMU/JMComic-Api-Java/blob/5a7a4bb4870edb512274dc2adeb4f7c157445321/jmcomic-core/src/main/java/io/github/jukomu/jmcomic/core/client/AbstractJmClient.java",
+    "bytes": 53130,
+    "sha256": "532e1592c036d42597382afac28d0a3707082cd4a98db399622f4118a0ce50d8"
+  },
+  {
+    "repo": "JUKOMU/JMComic-Api-Java",
+    "commit": "5a7a4bb4870edb512274dc2adeb4f7c157445321",
+    "path": "jmcomic-api/src/main/java/io/github/jukomu/jmcomic/api/client/JmClient.java",
+    "url": "https://github.com/JUKOMU/JMComic-Api-Java/blob/5a7a4bb4870edb512274dc2adeb4f7c157445321/jmcomic-api/src/main/java/io/github/jukomu/jmcomic/api/client/JmClient.java",
+    "bytes": 12409,
+    "sha256": "c7ab79a9cb873af840fc0caccb13caa94d96b3b8ea16b8cf479926db735d3df7"
+  },
+  {
+    "repo": "JUKOMU/JMComic-Api-Java",
+    "commit": "5a7a4bb4870edb512274dc2adeb4f7c157445321",
+    "path": "jmcomic-api/src/main/java/io/github/jukomu/jmcomic/api/model/JmComment.java",
+    "url": "https://github.com/JUKOMU/JMComic-Api-Java/blob/5a7a4bb4870edb512274dc2adeb4f7c157445321/jmcomic-api/src/main/java/io/github/jukomu/jmcomic/api/model/JmComment.java",
+    "bytes": 6455,
+    "sha256": "068c60ff27ce92e8baf3a3fc9b26e0a4cf2184e25f6011149a25e37236f77f45"
+  },
+  {
+    "repo": "JUKOMU/JMComic-Api-Java",
+    "commit": "5a7a4bb4870edb512274dc2adeb4f7c157445321",
+    "path": "jmcomic-api/src/main/java/io/github/jukomu/jmcomic/api/model/JmCommentList.java",
+    "url": "https://github.com/JUKOMU/JMComic-Api-Java/blob/5a7a4bb4870edb512274dc2adeb4f7c157445321/jmcomic-api/src/main/java/io/github/jukomu/jmcomic/api/model/JmCommentList.java",
+    "bytes": 668,
+    "sha256": "08ba0f681d9f85db5cfbd8ee12668e29a02f9e92b007d1c32d1e89e6061c1155"
+  },
+  {
+    "repo": "JUKOMU/JMComic-Api-Java",
+    "commit": "5a7a4bb4870edb512274dc2adeb4f7c157445321",
+    "path": "jmcomic-api/src/main/java/io/github/jukomu/jmcomic/api/enums/ForumMode.java",
+    "url": "https://github.com/JUKOMU/JMComic-Api-Java/blob/5a7a4bb4870edb512274dc2adeb4f7c157445321/jmcomic-api/src/main/java/io/github/jukomu/jmcomic/api/enums/ForumMode.java",
+    "bytes": 552,
+    "sha256": "bd76ed99b48b5f52a01211266b0c616b7bb2c4adafaab7c05ca282a0e89df33c"
+  },
+  {
+    "repo": "JUKOMU/JMComic-Api-Java",
+    "commit": "5a7a4bb4870edb512274dc2adeb4f7c157445321",
+    "path": "jmcomic-api/src/main/java/io/github/jukomu/jmcomic/api/enums/FavoriteFolderType.java",
+    "url": "https://github.com/JUKOMU/JMComic-Api-Java/blob/5a7a4bb4870edb512274dc2adeb4f7c157445321/jmcomic-api/src/main/java/io/github/jukomu/jmcomic/api/enums/FavoriteFolderType.java",
+    "bytes": 615,
+    "sha256": "08a956d29dc8f5a12696143f500cbd9e65e7ece177cf54d3ba87b782332b167e"
+  },
+  {
+    "repo": "JUKOMU/JMComic-Api-Java",
+    "commit": "5a7a4bb4870edb512274dc2adeb4f7c157445321",
+    "path": "LICENSE",
+    "url": "https://github.com/JUKOMU/JMComic-Api-Java/blob/5a7a4bb4870edb512274dc2adeb4f7c157445321/LICENSE",
+    "bytes": 1063,
+    "sha256": "de8f52a96943c342c1d92e79f93820a9f833db23377e6279986b280b549012dc"
+  },
+  {
+    "repo": "hect0x7/JMComic-Crawler-Python",
+    "commit": "5a3f627cea76030886f3da452ffb8ec7a540a0bb",
+    "path": "src/jmcomic/jm_client_impl.py",
+    "url": "https://github.com/hect0x7/JMComic-Crawler-Python/blob/5a3f627cea76030886f3da452ffb8ec7a540a0bb/src/jmcomic/jm_client_impl.py",
+    "bytes": 53948,
+    "sha256": "8788985a131a9ddbf7c5dc2cb5b502746ed58773c47f515587557f040911ede8"
+  },
+  {
+    "repo": "hect0x7/JMComic-Crawler-Python",
+    "commit": "5a3f627cea76030886f3da452ffb8ec7a540a0bb",
+    "path": "src/jmcomic/jm_toolkit.py",
+    "url": "https://github.com/hect0x7/JMComic-Crawler-Python/blob/5a3f627cea76030886f3da452ffb8ec7a540a0bb/src/jmcomic/jm_toolkit.py",
+    "bytes": 41591,
+    "sha256": "f9bbb20354eba367a8ee25e8f39cd7bbe410207b0cf1e02dd510026bbfd6ae48"
+  },
+  {
+    "repo": "hect0x7/JMComic-Crawler-Python",
+    "commit": "5a3f627cea76030886f3da452ffb8ec7a540a0bb",
+    "path": "src/jmcomic/jm_entity.py",
+    "url": "https://github.com/hect0x7/JMComic-Crawler-Python/blob/5a3f627cea76030886f3da452ffb8ec7a540a0bb/src/jmcomic/jm_entity.py",
+    "bytes": 24660,
+    "sha256": "22c50d14a41f80caef7c1bcefa4f601417dc0a78850e79495a21d6d38853f026"
+  },
+  {
+    "repo": "hect0x7/JMComic-Crawler-Python",
+    "commit": "5a3f627cea76030886f3da452ffb8ec7a540a0bb",
+    "path": "LICENSE",
+    "url": "https://github.com/hect0x7/JMComic-Crawler-Python/blob/5a3f627cea76030886f3da452ffb8ec7a540a0bb/LICENSE",
+    "bytes": 1064,
+    "sha256": "933e1ca13c59c6e1b18ac2b75b4d2d8cae7b661dd170c1aaf849db5eb2bbfb10"
+  }
+]

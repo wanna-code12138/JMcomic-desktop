@@ -1,0 +1,1366 @@
+{
+  "themes": [
+    {
+      "theme": "light",
+      "widths": [
+        {
+          "width": 672,
+          "overflow": 0,
+          "switches": [
+            {
+              "text": {
+                "x": 109,
+                "y": 190,
+                "right": 611,
+                "bottom": 230,
+                "width": 502,
+                "height": 40
+              },
+              "control": {
+                "x": 627,
+                "y": 192,
+                "right": 683,
+                "bottom": 228,
+                "width": 56,
+                "height": 36
+              },
+              "label": "Mica 云母材质Windows 11 半透明背景效果"
+            },
+            {
+              "text": {
+                "x": 109,
+                "y": 334,
+                "right": 611,
+                "bottom": 376,
+                "width": 502,
+                "height": 42
+              },
+              "control": {
+                "x": 627,
+                "y": 337,
+                "right": 683,
+                "bottom": 373,
+                "width": 56,
+                "height": 36
+              },
+              "label": "界面动画页面、标签、分栏和控件的轻量过渡；遵循系统的减少动态效果设置。"
+            },
+            {
+              "text": {
+                "x": 109,
+                "y": 413,
+                "right": 611,
+                "bottom": 455,
+                "width": 502,
+                "height": 42
+              },
+              "control": {
+                "x": 627,
+                "y": 416,
+                "right": 683,
+                "bottom": 452,
+                "width": 56,
+                "height": 36
+              },
+              "label": "GPU 硬件加速让可用的图形硬件辅助渲染，兼容集成与独立显卡。驱动不支持时自动回退。"
+            },
+            {
+              "text": {
+                "x": 109,
+                "y": 526,
+                "right": 611,
+                "bottom": 568,
+                "width": 502,
+                "height": 42
+              },
+              "control": {
+                "x": 627,
+                "y": 529,
+                "right": 683,
+                "bottom": 565,
+                "width": 56,
+                "height": 36
+              },
+              "label": "下次启动恢复阅读标签恢复打开的漫画、标签名称、顺序和阅读位置。"
+            },
+            {
+              "text": {
+                "x": 109,
+                "y": 816,
+                "right": 611,
+                "bottom": 856,
+                "width": 502,
+                "height": 40
+              },
+              "control": {
+                "x": 627,
+                "y": 818,
+                "right": 683,
+                "bottom": 854,
+                "width": 56,
+                "height": 36
+              },
+              "label": "手动代理覆盖系统代理，填写 HTTP/SOCKS5 地址"
+            },
+            {
+              "text": {
+                "x": 109,
+                "y": 1587.5,
+                "right": 611,
+                "bottom": 1627.5,
+                "width": 502,
+                "height": 40
+              },
+              "control": {
+                "x": 627,
+                "y": 1589.5,
+                "right": 683,
+                "bottom": 1625.5,
+                "width": 56,
+                "height": 36
+              },
+              "label": "启动时自动续传打开应用后自动继续未完成（含上次中断）的下载任务"
+            }
+          ],
+          "cards": [
+            {
+              "x": 89,
+              "y": 95,
+              "right": 703,
+              "bottom": 171,
+              "width": 614,
+              "height": 76
+            },
+            {
+              "x": 89,
+              "y": 171,
+              "right": 703,
+              "bottom": 248,
+              "width": 614,
+              "height": 77
+            }
+          ]
+        },
+        {
+          "width": 480,
+          "overflow": 0,
+          "switches": [
+            {
+              "text": {
+                "x": 105,
+                "y": 184,
+                "right": 423,
+                "bottom": 224,
+                "width": 318,
+                "height": 40
+              },
+              "control": {
+                "x": 439,
+                "y": 186,
+                "right": 495,
+                "bottom": 222,
+                "width": 56,
+                "height": 36
+              },
+              "label": "Mica 云母材质Windows 11 半透明背景效果"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 324,
+                "right": 423,
+                "bottom": 384,
+                "width": 318,
+                "height": 60
+              },
+              "control": {
+                "x": 439,
+                "y": 336,
+                "right": 495,
+                "bottom": 372,
+                "width": 56,
+                "height": 36
+              },
+              "label": "界面动画页面、标签、分栏和控件的轻量过渡；遵循系统的减少动态效果设置。"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 417,
+                "right": 423,
+                "bottom": 477,
+                "width": 318,
+                "height": 60
+              },
+              "control": {
+                "x": 439,
+                "y": 429,
+                "right": 495,
+                "bottom": 465,
+                "width": 56,
+                "height": 36
+              },
+              "label": "GPU 硬件加速让可用的图形硬件辅助渲染，兼容集成与独立显卡。驱动不支持时自动回退。"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 544,
+                "right": 423,
+                "bottom": 586,
+                "width": 318,
+                "height": 42
+              },
+              "control": {
+                "x": 439,
+                "y": 547,
+                "right": 495,
+                "bottom": 583,
+                "width": 56,
+                "height": 36
+              },
+              "label": "下次启动恢复阅读标签恢复打开的漫画、标签名称、顺序和阅读位置。"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 826,
+                "right": 423,
+                "bottom": 866,
+                "width": 318,
+                "height": 40
+              },
+              "control": {
+                "x": 439,
+                "y": 828,
+                "right": 495,
+                "bottom": 864,
+                "width": 56,
+                "height": 36
+              },
+              "label": "手动代理覆盖系统代理，填写 HTTP/SOCKS5 地址"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 1573.5,
+                "right": 423,
+                "bottom": 1613.5,
+                "width": 318,
+                "height": 40
+              },
+              "control": {
+                "x": 439,
+                "y": 1575.5,
+                "right": 495,
+                "bottom": 1611.5,
+                "width": 56,
+                "height": 36
+              },
+              "label": "启动时自动续传打开应用后自动继续未完成（含上次中断）的下载任务"
+            }
+          ],
+          "cards": [
+            {
+              "x": 89,
+              "y": 95,
+              "right": 511,
+              "bottom": 167,
+              "width": 422,
+              "height": 72
+            },
+            {
+              "x": 89,
+              "y": 167,
+              "right": 511,
+              "bottom": 240,
+              "width": 422,
+              "height": 73
+            }
+          ]
+        },
+        {
+          "width": 300,
+          "overflow": 0,
+          "switches": [
+            {
+              "text": {
+                "x": 105,
+                "y": 226,
+                "right": 243,
+                "bottom": 286,
+                "width": 138,
+                "height": 60
+              },
+              "control": {
+                "x": 259,
+                "y": 238,
+                "right": 315,
+                "bottom": 274,
+                "width": 56,
+                "height": 36
+              },
+              "label": "Mica 云母材质Windows 11 半透明背景效果"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 386,
+                "right": 243,
+                "bottom": 464,
+                "width": 138,
+                "height": 78
+              },
+              "control": {
+                "x": 259,
+                "y": 407,
+                "right": 315,
+                "bottom": 443,
+                "width": 56,
+                "height": 36
+              },
+              "label": "界面动画页面、标签、分栏和控件的轻量过渡；遵循系统的减少动态效果设置。"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 497,
+                "right": 243,
+                "bottom": 593,
+                "width": 138,
+                "height": 96
+              },
+              "control": {
+                "x": 259,
+                "y": 527,
+                "right": 315,
+                "bottom": 563,
+                "width": 56,
+                "height": 36
+              },
+              "label": "GPU 硬件加速让可用的图形硬件辅助渲染，兼容集成与独立显卡。驱动不支持时自动回退。"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 660,
+                "right": 243,
+                "bottom": 740,
+                "width": 138,
+                "height": 80
+              },
+              "control": {
+                "x": 259,
+                "y": 682,
+                "right": 315,
+                "bottom": 718,
+                "width": 56,
+                "height": 36
+              },
+              "label": "下次启动恢复阅读标签恢复打开的漫画、标签名称、顺序和阅读位置。"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 1020,
+                "right": 243,
+                "bottom": 1080,
+                "width": 138,
+                "height": 60
+              },
+              "control": {
+                "x": 259,
+                "y": 1032,
+                "right": 315,
+                "bottom": 1068,
+                "width": 56,
+                "height": 36
+              },
+              "label": "手动代理覆盖系统代理，填写 HTTP/SOCKS5 地址"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 1953.5,
+                "right": 243,
+                "bottom": 2033.5,
+                "width": 138,
+                "height": 80
+              },
+              "control": {
+                "x": 259,
+                "y": 1975.5,
+                "right": 315,
+                "bottom": 2011.5,
+                "width": 56,
+                "height": 36
+              },
+              "label": "启动时自动续传打开应用后自动继续未完成（含上次中断）的下载任务"
+            }
+          ],
+          "cards": [
+            {
+              "x": 89,
+              "y": 95,
+              "right": 331,
+              "bottom": 209,
+              "width": 242,
+              "height": 114
+            },
+            {
+              "x": 89,
+              "y": 209,
+              "right": 331,
+              "bottom": 302,
+              "width": 242,
+              "height": 93
+            }
+          ]
+        }
+      ],
+      "contrast": [
+        {
+          "text": "风景",
+          "ratio": 5.384393013373572,
+          "foreground": "rgb(255, 255, 255)",
+          "background": "rgb(15, 108, 189)"
+        },
+        {
+          "text": "旅途",
+          "ratio": 5.384393013373572,
+          "foreground": "rgb(255, 255, 255)",
+          "background": "rgb(15, 108, 189)"
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "widths": [
+        {
+          "width": 672,
+          "overflow": 0,
+          "switches": [
+            {
+              "text": {
+                "x": 109,
+                "y": 190,
+                "right": 611,
+                "bottom": 230,
+                "width": 502,
+                "height": 40
+              },
+              "control": {
+                "x": 627,
+                "y": 192,
+                "right": 683,
+                "bottom": 228,
+                "width": 56,
+                "height": 36
+              },
+              "label": "Mica 云母材质Windows 11 半透明背景效果"
+            },
+            {
+              "text": {
+                "x": 109,
+                "y": 334,
+                "right": 611,
+                "bottom": 376,
+                "width": 502,
+                "height": 42
+              },
+              "control": {
+                "x": 627,
+                "y": 337,
+                "right": 683,
+                "bottom": 373,
+                "width": 56,
+                "height": 36
+              },
+              "label": "界面动画页面、标签、分栏和控件的轻量过渡；遵循系统的减少动态效果设置。"
+            },
+            {
+              "text": {
+                "x": 109,
+                "y": 413,
+                "right": 611,
+                "bottom": 455,
+                "width": 502,
+                "height": 42
+              },
+              "control": {
+                "x": 627,
+                "y": 416,
+                "right": 683,
+                "bottom": 452,
+                "width": 56,
+                "height": 36
+              },
+              "label": "GPU 硬件加速让可用的图形硬件辅助渲染，兼容集成与独立显卡。驱动不支持时自动回退。"
+            },
+            {
+              "text": {
+                "x": 109,
+                "y": 526,
+                "right": 611,
+                "bottom": 568,
+                "width": 502,
+                "height": 42
+              },
+              "control": {
+                "x": 627,
+                "y": 529,
+                "right": 683,
+                "bottom": 565,
+                "width": 56,
+                "height": 36
+              },
+              "label": "下次启动恢复阅读标签恢复打开的漫画、标签名称、顺序和阅读位置。"
+            },
+            {
+              "text": {
+                "x": 109,
+                "y": 816,
+                "right": 611,
+                "bottom": 856,
+                "width": 502,
+                "height": 40
+              },
+              "control": {
+                "x": 627,
+                "y": 818,
+                "right": 683,
+                "bottom": 854,
+                "width": 56,
+                "height": 36
+              },
+              "label": "手动代理覆盖系统代理，填写 HTTP/SOCKS5 地址"
+            },
+            {
+              "text": {
+                "x": 109,
+                "y": 1587.5,
+                "right": 611,
+                "bottom": 1627.5,
+                "width": 502,
+                "height": 40
+              },
+              "control": {
+                "x": 627,
+                "y": 1589.5,
+                "right": 683,
+                "bottom": 1625.5,
+                "width": 56,
+                "height": 36
+              },
+              "label": "启动时自动续传打开应用后自动继续未完成（含上次中断）的下载任务"
+            }
+          ],
+          "cards": [
+            {
+              "x": 89,
+              "y": 95,
+              "right": 703,
+              "bottom": 171,
+              "width": 614,
+              "height": 76
+            },
+            {
+              "x": 89,
+              "y": 171,
+              "right": 703,
+              "bottom": 248,
+              "width": 614,
+              "height": 77
+            }
+          ]
+        },
+        {
+          "width": 480,
+          "overflow": 0,
+          "switches": [
+            {
+              "text": {
+                "x": 105,
+                "y": 184,
+                "right": 423,
+                "bottom": 224,
+                "width": 318,
+                "height": 40
+              },
+              "control": {
+                "x": 439,
+                "y": 186,
+                "right": 495,
+                "bottom": 222,
+                "width": 56,
+                "height": 36
+              },
+              "label": "Mica 云母材质Windows 11 半透明背景效果"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 324,
+                "right": 423,
+                "bottom": 384,
+                "width": 318,
+                "height": 60
+              },
+              "control": {
+                "x": 439,
+                "y": 336,
+                "right": 495,
+                "bottom": 372,
+                "width": 56,
+                "height": 36
+              },
+              "label": "界面动画页面、标签、分栏和控件的轻量过渡；遵循系统的减少动态效果设置。"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 417,
+                "right": 423,
+                "bottom": 477,
+                "width": 318,
+                "height": 60
+              },
+              "control": {
+                "x": 439,
+                "y": 429,
+                "right": 495,
+                "bottom": 465,
+                "width": 56,
+                "height": 36
+              },
+              "label": "GPU 硬件加速让可用的图形硬件辅助渲染，兼容集成与独立显卡。驱动不支持时自动回退。"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 544,
+                "right": 423,
+                "bottom": 586,
+                "width": 318,
+                "height": 42
+              },
+              "control": {
+                "x": 439,
+                "y": 547,
+                "right": 495,
+                "bottom": 583,
+                "width": 56,
+                "height": 36
+              },
+              "label": "下次启动恢复阅读标签恢复打开的漫画、标签名称、顺序和阅读位置。"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 826,
+                "right": 423,
+                "bottom": 866,
+                "width": 318,
+                "height": 40
+              },
+              "control": {
+                "x": 439,
+                "y": 828,
+                "right": 495,
+                "bottom": 864,
+                "width": 56,
+                "height": 36
+              },
+              "label": "手动代理覆盖系统代理，填写 HTTP/SOCKS5 地址"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 1573.5,
+                "right": 423,
+                "bottom": 1613.5,
+                "width": 318,
+                "height": 40
+              },
+              "control": {
+                "x": 439,
+                "y": 1575.5,
+                "right": 495,
+                "bottom": 1611.5,
+                "width": 56,
+                "height": 36
+              },
+              "label": "启动时自动续传打开应用后自动继续未完成（含上次中断）的下载任务"
+            }
+          ],
+          "cards": [
+            {
+              "x": 89,
+              "y": 95,
+              "right": 511,
+              "bottom": 167,
+              "width": 422,
+              "height": 72
+            },
+            {
+              "x": 89,
+              "y": 167,
+              "right": 511,
+              "bottom": 240,
+              "width": 422,
+              "height": 73
+            }
+          ]
+        },
+        {
+          "width": 300,
+          "overflow": 0,
+          "switches": [
+            {
+              "text": {
+                "x": 105,
+                "y": 226,
+                "right": 243,
+                "bottom": 286,
+                "width": 138,
+                "height": 60
+              },
+              "control": {
+                "x": 259,
+                "y": 238,
+                "right": 315,
+                "bottom": 274,
+                "width": 56,
+                "height": 36
+              },
+              "label": "Mica 云母材质Windows 11 半透明背景效果"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 386,
+                "right": 243,
+                "bottom": 464,
+                "width": 138,
+                "height": 78
+              },
+              "control": {
+                "x": 259,
+                "y": 407,
+                "right": 315,
+                "bottom": 443,
+                "width": 56,
+                "height": 36
+              },
+              "label": "界面动画页面、标签、分栏和控件的轻量过渡；遵循系统的减少动态效果设置。"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 497,
+                "right": 243,
+                "bottom": 593,
+                "width": 138,
+                "height": 96
+              },
+              "control": {
+                "x": 259,
+                "y": 527,
+                "right": 315,
+                "bottom": 563,
+                "width": 56,
+                "height": 36
+              },
+              "label": "GPU 硬件加速让可用的图形硬件辅助渲染，兼容集成与独立显卡。驱动不支持时自动回退。"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 660,
+                "right": 243,
+                "bottom": 740,
+                "width": 138,
+                "height": 80
+              },
+              "control": {
+                "x": 259,
+                "y": 682,
+                "right": 315,
+                "bottom": 718,
+                "width": 56,
+                "height": 36
+              },
+              "label": "下次启动恢复阅读标签恢复打开的漫画、标签名称、顺序和阅读位置。"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 1020,
+                "right": 243,
+                "bottom": 1080,
+                "width": 138,
+                "height": 60
+              },
+              "control": {
+                "x": 259,
+                "y": 1032,
+                "right": 315,
+                "bottom": 1068,
+                "width": 56,
+                "height": 36
+              },
+              "label": "手动代理覆盖系统代理，填写 HTTP/SOCKS5 地址"
+            },
+            {
+              "text": {
+                "x": 105,
+                "y": 1953.5,
+                "right": 243,
+                "bottom": 2033.5,
+                "width": 138,
+                "height": 80
+              },
+              "control": {
+                "x": 259,
+                "y": 1975.5,
+                "right": 315,
+                "bottom": 2011.5,
+                "width": 56,
+                "height": 36
+              },
+              "label": "启动时自动续传打开应用后自动继续未完成（含上次中断）的下载任务"
+            }
+          ],
+          "cards": [
+            {
+              "x": 89,
+              "y": 95,
+              "right": 331,
+              "bottom": 209,
+              "width": 242,
+              "height": 114
+            },
+            {
+              "x": 89,
+              "y": 209,
+              "right": 331,
+              "bottom": 302,
+              "width": 242,
+              "height": 93
+            }
+          ]
+        }
+      ],
+      "contrast": [
+        {
+          "text": "风景",
+          "ratio": 6.506268495111936,
+          "foreground": "rgb(16, 36, 56)",
+          "background": "rgb(98, 171, 245)"
+        },
+        {
+          "text": "旅途",
+          "ratio": 6.506268495111936,
+          "foreground": "rgb(16, 36, 56)",
+          "background": "rgb(98, 171, 245)"
+        }
+      ]
+    }
+  ],
+  "motion": {
+    "geometry": {
+      "header": 44,
+      "toolbar": 40,
+      "tabsPadding": "5px"
+    },
+    "toolsOut": [
+      {
+        "kind": "ui-surface-out",
+        "target": "reader-toolbar",
+        "timing": {
+          "duration": 140,
+          "delay": 0,
+          "easing": "linear",
+          "fill": "both",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": 0,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "composite": "replace",
+            "opacity": "1",
+            "transform": "none"
+          },
+          {
+            "offset": 1,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "composite": "auto",
+            "opacity": "0",
+            "transform": "translateY(-5px)"
+          }
+        ]
+      }
+    ],
+    "toolsIn": [
+      {
+        "kind": "ui-surface-in",
+        "target": "reader-toolbar",
+        "timing": {
+          "duration": 160,
+          "delay": 0,
+          "easing": "linear",
+          "fill": "none",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": 0,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "composite": "auto",
+            "opacity": "0",
+            "transform": "translateY(-5px)"
+          },
+          {
+            "offset": 1,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "composite": "auto",
+            "opacity": "1",
+            "transform": "none"
+          }
+        ]
+      }
+    ],
+    "menuIn": [
+      {
+        "kind": "ui-surface-in",
+        "target": "workspace-menu",
+        "timing": {
+          "duration": 160,
+          "delay": 0,
+          "easing": "linear",
+          "fill": "none",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": 0,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "composite": "auto",
+            "opacity": "0",
+            "transform": "translateY(-5px)"
+          },
+          {
+            "offset": 1,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "composite": "auto",
+            "opacity": "1",
+            "transform": "none"
+          }
+        ]
+      }
+    ],
+    "menuOut": [
+      {
+        "kind": "ui-surface-out",
+        "target": "workspace-menu",
+        "timing": {
+          "duration": 140,
+          "delay": 0,
+          "easing": "linear",
+          "fill": "both",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": 0,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "composite": "replace",
+            "opacity": "1",
+            "transform": "none"
+          },
+          {
+            "offset": 1,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "composite": "auto",
+            "opacity": "0",
+            "transform": "translateY(-5px)"
+          }
+        ]
+      }
+    ],
+    "pageSwitch": [
+      {
+        "kind": "display",
+        "target": "settings",
+        "timing": {
+          "duration": 160,
+          "delay": 0,
+          "easing": "ease",
+          "fill": "backwards",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": 0,
+            "easing": "linear",
+            "composite": "auto"
+          },
+          {
+            "offset": 1,
+            "easing": "linear",
+            "composite": "auto"
+          }
+        ]
+      },
+      {
+        "kind": "opacity",
+        "target": "favorites",
+        "timing": {
+          "duration": 140,
+          "delay": 0,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "fill": "backwards",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": 0,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "0.25"
+          },
+          {
+            "offset": 1,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "1"
+          }
+        ]
+      },
+      {
+        "kind": "opacity",
+        "target": "settings",
+        "timing": {
+          "duration": 140,
+          "delay": 0,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "fill": "backwards",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": 0,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "1"
+          },
+          {
+            "offset": 1,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "0"
+          }
+        ]
+      },
+      {
+        "kind": "transform",
+        "target": "favorites",
+        "timing": {
+          "duration": 160,
+          "delay": 0,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "fill": "backwards",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": 0,
+            "easing": "linear",
+            "composite": "auto",
+            "transform": "translateY(12px)"
+          },
+          {
+            "offset": 1,
+            "easing": "linear",
+            "composite": "auto",
+            "transform": "none"
+          }
+        ]
+      },
+      {
+        "kind": "transform",
+        "target": "settings",
+        "timing": {
+          "duration": 160,
+          "delay": 0,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "fill": "backwards",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": 0,
+            "easing": "linear",
+            "composite": "auto",
+            "transform": "none"
+          },
+          {
+            "offset": 1,
+            "easing": "linear",
+            "composite": "auto",
+            "transform": "translateY(-8px)"
+          }
+        ]
+      }
+    ],
+    "readerHide": [
+      {
+        "kind": "ui-surface-out",
+        "target": "DIV",
+        "timing": {
+          "duration": 140,
+          "delay": 0,
+          "easing": "linear",
+          "fill": "both",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": 0,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "composite": "replace",
+            "opacity": "1",
+            "transform": "none"
+          },
+          {
+            "offset": 1,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "composite": "auto",
+            "opacity": "0",
+            "transform": "translateY(-5px)"
+          }
+        ]
+      },
+      {
+        "kind": "WAAPI",
+        "target": "DIV",
+        "timing": {
+          "duration": 200,
+          "delay": 0,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "fill": "auto",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": null,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "0.85",
+            "transform": "translateX(-144px)"
+          },
+          {
+            "offset": null,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "1",
+            "transform": "translateX(0px)"
+          }
+        ]
+      },
+      {
+        "kind": "WAAPI",
+        "target": "DIV",
+        "timing": {
+          "duration": 200,
+          "delay": 0,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "fill": "auto",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": null,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "0.85",
+            "transform": "translateX(0px)"
+          },
+          {
+            "offset": null,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "1",
+            "transform": "translateX(0px)"
+          }
+        ]
+      }
+    ],
+    "readerShow": [
+      {
+        "kind": "ui-surface-in",
+        "target": "reader-toolbar",
+        "timing": {
+          "duration": 160,
+          "delay": 0,
+          "easing": "linear",
+          "fill": "none",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": 0,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "composite": "auto",
+            "opacity": "0",
+            "transform": "translateY(-5px)"
+          },
+          {
+            "offset": 1,
+            "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+            "composite": "auto",
+            "opacity": "1",
+            "transform": "none"
+          }
+        ]
+      },
+      {
+        "kind": "WAAPI",
+        "target": "DIV",
+        "timing": {
+          "duration": 200,
+          "delay": 0,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "fill": "auto",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": null,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "0.85",
+            "transform": "translateX(-57.5938px)"
+          },
+          {
+            "offset": null,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "1",
+            "transform": "translateX(0px)"
+          }
+        ]
+      },
+      {
+        "kind": "WAAPI",
+        "target": "DIV",
+        "timing": {
+          "duration": 200,
+          "delay": 0,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "fill": "auto",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": null,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "0.85",
+            "transform": "translateX(0px)"
+          },
+          {
+            "offset": null,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "1",
+            "transform": "translateX(0px)"
+          }
+        ]
+      },
+      {
+        "kind": "WAAPI",
+        "target": "DIV",
+        "timing": {
+          "duration": 200,
+          "delay": 0,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "fill": "auto",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": null,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "0.85",
+            "transform": "translateX(0px)"
+          },
+          {
+            "offset": null,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "1",
+            "transform": "translateX(0px)"
+          }
+        ]
+      },
+      {
+        "kind": "WAAPI",
+        "target": "DIV",
+        "timing": {
+          "duration": 200,
+          "delay": 0,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "fill": "auto",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": null,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "0.85",
+            "transform": "translateX(144px)"
+          },
+          {
+            "offset": null,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "1",
+            "transform": "translateX(0px)"
+          }
+        ]
+      },
+      {
+        "kind": "WAAPI",
+        "target": "DIV",
+        "timing": {
+          "duration": 200,
+          "delay": 0,
+          "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+          "fill": "auto",
+          "iterations": 1
+        },
+        "frames": [
+          {
+            "offset": null,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "0.85",
+            "transform": "translateX(57.5938px)"
+          },
+          {
+            "offset": null,
+            "easing": "linear",
+            "composite": "auto",
+            "opacity": "1",
+            "transform": "translateX(0px)"
+          }
+        ]
+      }
+    ]
+  },
+  "violations": []
+}

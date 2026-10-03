@@ -1,0 +1,27 @@
+{
+  "runId": "120-visual-complete",
+  "mode": "visible Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "visual measurements and screenshots captured",
+      "details": {
+        "themes": 2,
+        "violations": []
+      }
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 8,
+    "image": 5,
+    "blocked": 13
+  },
+  "summaryQueries": 2,
+  "visual": {
+    "observations": "visual-observations.json",
+    "violations": []
+  }
+}

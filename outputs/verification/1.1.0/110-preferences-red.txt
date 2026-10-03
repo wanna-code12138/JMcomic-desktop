@@ -1,0 +1,24 @@
+node:internal/modules/cjs/loader:1517
+  const err = new Error(message);
+              ^
+
+Error: Cannot find module '../../shared/workspaceSnapshot'
+Require stack:
+- D:\soft\Opencode\JMComic\src\main\__tests__\experiencePreferences.test.ts
+    at node:internal/modules/cjs/loader:1517:15
+    at T._resolveFilename (file:///D:/soft/Opencode/JMComic/node_modules/tsx/dist/register-zZ7SWseA.mjs:2:15301)
+    at nextResolveSimple (D:\soft\Opencode\JMComic\node_modules\tsx\dist\register-BoI6-WNn.cjs:10:1017)
+    at D:\soft\Opencode\JMComic\node_modules\tsx\dist\register-BoI6-WNn.cjs:9:4613
+    at D:\soft\Opencode\JMComic\node_modules\tsx\dist\register-BoI6-WNn.cjs:9:3894
+    at resolveTsPaths (D:\soft\Opencode\JMComic\node_modules\tsx\dist\register-BoI6-WNn.cjs:10:770)
+    at Module._resolveFilename (D:\soft\Opencode\JMComic\node_modules\tsx\dist\register-BoI6-WNn.cjs:10:1171)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)
+    at defaultResolve (node:internal/modules/cjs/loader:1152:20) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'D:\\soft\\Opencode\\JMComic\\src\\main\\__tests__\\experiencePreferences.test.ts'
+  ]
+}
+
+Node.js v24.18.0

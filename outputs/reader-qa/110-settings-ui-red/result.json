@@ -1,0 +1,18 @@
+{
+  "runId": "110-settings-ui-red",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: animation has an independent switch\n    at module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\experience-settings-smoke.cjs:5:10)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:308:5)"
+  ],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

@@ -1,0 +1,18 @@
+{
+  "runId": "110-menu-exit-red",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    }
+  ],
+  "errors": [
+    "Error: Timed out: tab menu exit motion\nFocus: <button role=\"tab\" data-reader-tab=\"online:101\" aria-selected=\"true\" tabindex=\"0\" draggable=\"true\" aria-controls=\"active-reader-panel\" title=\"山间来信 · 合成阅读样章 · 在线 · 第一章 · 出发\"><svg fill=\"currentColor\" class=\"___9ctc0p0 f1w7gpdv fez10in f1dd5bof\" aria-hidden=\"true\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M2.5 2C1.67 2 1 2.67 1 3.5v9c0 .83.67 1.5 1.5 1.5H6c.82 0 1.54-.4 2-1 .46.6 1.18 1 2 1h3.5c.83 0 1.5-.67 1.5-1.5v-9c0-.83-.67-1.5-1.5-1.5H10c-.82 0-1.5\nTrace: undefined\nJMComic Desktop\n本地收藏\n历史记录\n山间来信 · 合成阅读样章\n山间来信 · 合成阅读样章\n1 / 36\n[{\"src\":\"jmimg://img/aHR0cHM6Ly9jZG4tbXNwLjE4Y29taWMudmlwL21lZGlhL3Bob3Rvcy8yMDIvMC5wbmc?p=critical\",\"complete\":true,\"width\":720,\"status\":\"ready\"},{\"src\":\"jmimg://img/aHR0cHM6Ly9jZG4tbXNwLjE4Y29taWMudmlwL21lZGlhL3Bob3Rvcy8yMDIvMS5wbmc?p=near\",\"complete\":true,\"width\":720,\"status\":\"ready\"},{\"src\":\"jmimg://img/aHR0cHM6Ly9jZG4tbXNwLjE4Y29taWMudmlwL21lZGlhL3Bob3Rvcy8yMDIvMi5wbmc?p=near\",\"complete\":true,\"width\":720,\"status\":\"ready\"}]\n    at wait (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:170:11)\n    at async module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\experience-motion-smoke.cjs:19:3)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:336:5)"
+  ],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 7
+  },
+  "summaryQueries": 0
+}

@@ -1,75 +1,49 @@
-import { ipcMain, net, session } from 'electron'
-import { getActiveDomain } from './networkProbe'
-import { existsSync, mkdirSync, writeFileSync, readdirSync, statSync, unlinkSync } from 'fs'
+import { ipcMain } from 'electron'
+import { existsSync } from 'fs'
 import { mkdir, readFile, readdir, rename, stat, unlink, writeFile } from 'fs/promises'
 import { join } from 'path'
 import * as crypto from 'crypto'
 import { selectEvictionCandidates } from './imageCacheCore'
 import { getAppDataDir } from './dataPaths'
 import { createCacheMaintenanceScheduler } from './imageCacheMaintenance'
+import { beginIoPerfSpan } from './ioMetrics'
+import { requestImage } from './imageNetwork'
+import { isImage } from './imageStreamFetch'
 
 // ─── Image Loader Pipeline ────────────────────────────────────
 
-interface ImageTask {
-  url: string
-  filename: string
-  retryCount: number
-}
-
-interface ImageResult {
+export interface ImageResult {
   url: string
   localPath: string | null
   cached: boolean
+  buffer?: Buffer
   error?: string
 }
 
-interface ImageLoaderOptions {
+export interface ImageLoaderOptions {
   concurrency?: number
-  timeout?: number
   maxRetries?: number
-  cacheDir?: string
+  signal?: AbortSignal
+  onImage?: (result: ImageResult, index: number) => Promise<void>
 }
 
-const DEFAULT_OPTIONS: Required<ImageLoaderOptions> = {
+const DEFAULT_OPTIONS = {
   concurrency: 6,
-  timeout: 15000,
   maxRetries: 3,
   // 图片缓存跟随便携数据目录，与数据库一起随 exe 走
   cacheDir: join(getAppDataDir(), 'jmcomic-images')
 }
 
-// In-memory URL → local path cache
-const urlToPathCache = new Map<string, string>()
 let imageCacheLimitBytes = 1000 * 1024 * 1024
 
-function getCacheDir(): string {
-  const dir = DEFAULT_OPTIONS.cacheDir
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true })
-  }
-  return dir
-}
 
-function urlToFilename(url: string, contentType?: string): string {
+function urlToFilename(url: string): string {
   const hash = crypto.createHash('md5').update(url).digest('hex')
   const urlExt = url.match(/\.(jpg|jpeg|png|webp|gif|bmp)/i)?.[1]
-  const ctExt = contentType?.match(/^image\/(jpeg|png|webp|gif|bmp)/i)?.[1]
-  const ext = urlExt ?? (ctExt === 'jpeg' ? 'jpg' : ctExt) ?? 'jpg'
+  const ext = urlExt ?? 'jpg'
   return `${hash}.${ext}`
 }
 
-function getCachedPath(url: string): string | null {
-  const filename = urlToFilename(url)
-  const fullPath = join(getCacheDir(), filename)
-  if (existsSync(fullPath)) {
-    return fullPath
-  }
-  return null
-}
-
-export function getCachedImagePath(url: string): string | null {
-  return getCachedPath(url)
-}
 
 export interface CachedImage {
   buffer: Buffer
@@ -79,7 +53,12 @@ export interface CachedImage {
 export async function readCachedImage(url: string): Promise<CachedImage | null> {
   const filepath = join(DEFAULT_OPTIONS.cacheDir, urlToFilename(url))
   try {
-    return { buffer: await readFile(filepath), filepath }
+    const buffer = await readFile(filepath)
+    if (!isImage(buffer)) {
+      await unlink(filepath).catch(() => {})
+      return null
+    }
+    return { buffer, filepath }
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
       console.warn('[image-cache] read failed:', error)
@@ -96,9 +75,9 @@ let temporaryFileCounter = 0
 export async function storeImage(
   url: string,
   buffer: Buffer,
-  contentType?: string
+  _contentType?: string
 ): Promise<string> {
-  const filename = urlToFilename(url, contentType)
+  const filename = urlToFilename(url)
   await mkdir(DEFAULT_OPTIONS.cacheDir, { recursive: true })
   const filepath = join(DEFAULT_OPTIONS.cacheDir, filename)
   const temporaryPath = `${filepath}.${process.pid}.${++temporaryFileCounter}.tmp`
@@ -109,7 +88,6 @@ export async function storeImage(
     await unlink(temporaryPath).catch(() => {})
     throw error
   }
-  urlToPathCache.set(url, filepath)
   void scheduleCacheMaintenance()
   return filepath
 }
@@ -118,48 +96,20 @@ export function setImageCacheLimit(bytes: number): void {
   imageCacheLimitBytes = Math.max(1, Math.floor(bytes))
 }
 
-export function getImageCacheLimitBytes(): number {
-  return imageCacheLimitBytes
-}
-
-function enforceCacheLimit(cacheDir: string): void {
-  if (imageCacheLimitBytes <= 0) return
-  let files: { name: string; size: number; mtimeMs: number }[] = []
-  try {
-    files = readdirSync(cacheDir)
-      .map((name) => {
-        const full = join(cacheDir, name)
-        try {
-          const st = statSync(full)
-          return st.isFile() ? { name, size: st.size, mtimeMs: st.mtimeMs } : null
-        } catch {
-          return null
-        }
-      })
-      .filter((f): f is { name: string; size: number; mtimeMs: number } => f !== null)
-  } catch {
-    return
-  }
-  for (const name of selectEvictionCandidates(files, imageCacheLimitBytes)) {
-    try {
-      unlinkSync(join(cacheDir, name))
-    } catch {
-      /* skip */
-    }
-  }
-}
 
 async function enforceCacheLimitAsync(cacheDir: string): Promise<void> {
   if (imageCacheLimitBytes <= 0) return
+  const span = beginIoPerfSpan('image-cache.scan')
   let names: string[]
   try {
     names = await readdir(cacheDir)
   } catch {
+    span.finish('error')
     return
   }
 
   const entries = await Promise.all(
-    names.map(async (name) => {
+    names.filter(name => !name.endsWith('.tmp')).map(async (name) => {
       try {
         const fileStat = await stat(join(cacheDir, name))
         return fileStat.isFile()
@@ -173,6 +123,7 @@ async function enforceCacheLimitAsync(cacheDir: string): Promise<void> {
   const files = entries.filter(
     (entry): entry is { name: string; size: number; mtimeMs: number } => entry !== null
   )
+  span.finish('ok', { itemCount: files.length })
   for (const name of selectEvictionCandidates(files, imageCacheLimitBytes)) {
     await unlink(join(cacheDir, name)).catch(() => {})
   }
@@ -186,225 +137,140 @@ export function scheduleCacheMaintenance(): Promise<void> {
   return cacheMaintenanceScheduler.schedule()
 }
 
-async function downloadImage(url: string, filepath: string, timeout: number): Promise<void> {
-  // Get cookies from default session to pass to image CDN
-  const cookies = await session.defaultSession.cookies.get({ url })
-  const cookieHeader = cookies.map((c) => `${c.name}=${c.value}`).join('; ')
-
-  return new Promise((resolve, reject) => {
-    const req = net.request({
-      method: 'GET',
-      url: url
-    })
-
-    req.setHeader('Referer', `https://${getActiveDomain()}/`)
-    req.setHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-    req.setHeader('Accept', 'image/avif,image/webp,image/*,*/*')
-    req.setHeader('Accept-Language', 'zh-CN,zh;q=0.9,en;q=0.8')
-    if (cookieHeader) {
-      req.setHeader('Cookie', cookieHeader)
-    }
-
-    const timer = setTimeout(() => {
-      req.abort()
-      reject(new Error(`timeout: ${url}`))
-    }, timeout)
-
-    const chunks: Buffer[] = []
-
-    req.on('response', (response) => {
-      if (response.statusCode >= 400) {
-        clearTimeout(timer)
-        reject(new Error(`HTTP ${response.statusCode}: ${url}`))
-        return
-      }
-
-      response.on('data', (chunk: Buffer) => {
-        chunks.push(chunk)
-      })
-
-      response.on('end', () => {
-        clearTimeout(timer)
-        writeFileSync(filepath, Buffer.concat(chunks))
-        resolve()
-      })
-
-      response.on('error', (err) => {
-        clearTimeout(timer)
-        reject(err)
-      })
-    })
-
-    req.on('error', (err) => {
-      clearTimeout(timer)
-      reject(new Error(`${err.message}: ${url}`))
-    })
-
-    req.end()
-  })
-}
-
-/**
- * Load images with concurrency control, caching, and retry.
- */
-export async function loadImages(
-  urls: string[],
-  options?: ImageLoaderOptions
-): Promise<ImageResult[]> {
-  const opts = { ...DEFAULT_OPTIONS, ...options }
-  const cacheDir = getCacheDir()
-
-  // Separate cached and uncached
+export async function loadImages(urls: string[], options: ImageLoaderOptions = {}): Promise<ImageResult[]> {
   const results: ImageResult[] = new Array(urls.length)
-  const pending: { index: number; url: string }[] = []
-
-  for (let i = 0; i < urls.length; i++) {
-    const url = urls[i]
-    // Check in-memory cache
-    if (urlToPathCache.has(url)) {
-      results[i] = { url, localPath: urlToPathCache.get(url)!, cached: true }
-      continue
-    }
-    // Check disk cache
-    const cached = getCachedPath(url)
-    if (cached) {
-      urlToPathCache.set(url, cached)
-      results[i] = { url, localPath: cached, cached: true }
-      continue
-    }
-    pending.push({ index: i, url })
-  }
-
-  if (pending.length === 0) return results
-
-  // Download with concurrency limit
-  const queue = [...pending]
-  let active = 0
-  let resolveAll: () => void
-  const done = new Promise<void>((r) => { resolveAll = r })
-
-  function processNext(): void {
-    while (active < opts.concurrency && queue.length > 0) {
-      const task = queue.shift()!
-      active++
-      downloadSingle(task.index, task.url, opts).finally(() => {
-        active--
-        if (queue.length === 0 && active === 0) {
-          resolveAll()
-        } else {
-          processNext()
-        }
-      })
-    }
-    if (queue.length === 0 && active === 0) {
-      resolveAll()
-    }
-  }
-
-  async function downloadSingle(
-    index: number,
-    url: string,
-    opts: Required<ImageLoaderOptions>
-  ): Promise<void> {
-    const filename = urlToFilename(url)
-    const filepath = join(cacheDir, filename)
-
-    for (let attempt = 0; attempt <= opts.maxRetries; attempt++) {
+  let cursor = 0
+  const concurrency = Math.max(1, Math.min(6, Math.floor(options.concurrency ?? DEFAULT_OPTIONS.concurrency)))
+  async function worker(): Promise<void> {
+    while (cursor < urls.length) {
+      const index = cursor++
+      const url = urls[index]
+      let result: ImageResult = { url, localPath: null, cached: false }
       try {
-        await downloadImage(url, filepath, opts.timeout)
-        urlToPathCache.set(url, filepath)
-        if (cacheDir === DEFAULT_OPTIONS.cacheDir) {
-          enforceCacheLimit(cacheDir)
+        options.signal?.throwIfAborted()
+        const cached = await readCachedImage(url)
+        if (cached) {
+          result = { url, localPath: cached.filepath, cached: true, buffer: cached.buffer }
+        } else {
+          const retries = Math.max(0, options.maxRetries ?? DEFAULT_OPTIONS.maxRetries)
+          for (let attempt = 0; ; attempt++) {
+            try {
+              const response = await requestImage(url, {
+                priority: 'background', signal: options.signal, retries: 0,
+                cache: (buffer, contentType) => storeImage(url, buffer, contentType)
+              })
+              if (response.status !== 200 || !response.takeStream) throw new Error(`HTTP ${response.status}`)
+              const stream = response.takeStream()
+              const chunks: Buffer[] = []
+              const reader = stream.getReader()
+              const abort = () => { void reader.cancel(options.signal?.reason).catch(() => {}) }
+              options.signal?.addEventListener('abort', abort, { once: true })
+              try {
+                if (options.signal?.aborted) abort()
+                for (;;) {
+                  const chunk = await reader.read()
+                  options.signal?.throwIfAborted()
+                  if (chunk.done) break
+                  chunks.push(Buffer.from(chunk.value))
+                }
+                options.signal?.throwIfAborted()
+                await response.done
+                if (response.errorReason) throw new Error(response.errorReason)
+              } finally {
+                options.signal?.removeEventListener('abort', abort)
+                reader.releaseLock()
+              }
+              result = { url, localPath: null, cached: false, buffer: Buffer.concat(chunks) }
+              break
+            } catch (error) {
+              if (options.signal?.aborted || attempt >= retries) throw error
+            }
+          }
         }
-        results[index] = { url, localPath: filepath, cached: false }
-        return
-      } catch (err) {
-        if (attempt === opts.maxRetries) {
-          results[index] = { url, localPath: null, cached: false, error: String(err) }
-        }
+        options.signal?.throwIfAborted()
+        await options.onImage?.(result, index)
+      } catch (error) {
+        result = { url, localPath: null, cached: false, error: error instanceof Error ? error.message : String(error) }
       }
+      const { buffer: _buffer, ...summary } = result
+      results[index] = summary
     }
   }
-
-  processNext()
-  await done
-
+  await Promise.all(Array.from({ length: Math.min(concurrency, urls.length) }, worker))
   return results
 }
 
-/**
- * Convert image URL to a file:// protocol URL for use in <img> tags.
- */
-export function imageUrlToFileProtocol(localPath: string): string {
-  // On Windows, convert to proper file:// URL
-  return `file:///${localPath.replace(/\\/g, '/')}`
-}
 
 /**
- * Preload a single image and return its local path (or null).
+ * Clear all cached images asynchronously.
  */
-export async function preloadImage(url: string): Promise<string | null> {
-  // Check cache first
-  const cached = getCachedPath(url)
-  if (cached) {
-    urlToPathCache.set(url, cached)
-    return cached
-  }
-
-  const results = await loadImages([url])
-  return results[0]?.localPath ?? null
-}
-
-/**
- * Clear all cached images.
- */
-export function clearImageCache(): number {
-  const dir = getCacheDir()
+export async function clearImageCacheAsync(): Promise<number> {
+  const dir = DEFAULT_OPTIONS.cacheDir
   let count = 0
   if (existsSync(dir)) {
-    const files = require('fs').readdirSync(dir)
-    for (const file of files) {
-      try {
-        require('fs').unlinkSync(join(dir, file))
-        count++
-      } catch { /* skip */ }
+    try {
+      const files = await readdir(dir)
+      await Promise.all(
+        files.filter(file => !file.endsWith('.tmp')).map(async (file) => {
+          try {
+            await unlink(join(dir, file))
+            count++
+          } catch {
+            /* skip */
+          }
+        })
+      )
+    } catch {
+      /* skip */
     }
   }
-  urlToPathCache.clear()
+  cachedSizeValue = 0
+  lastSizeCheckTime = 0
   return count
 }
 
+
+let cachedSizeValue = 0
+let lastSizeCheckTime = 0
+
 /**
- * Get cache size in bytes.
+ * Get cache size in bytes asynchronously with cached TTL.
  */
-export function getImageCacheSize(): number {
-  const dir = getCacheDir()
+export async function getImageCacheSizeAsync(): Promise<number> {
+  const now = Date.now()
+  if (now - lastSizeCheckTime < 5000 && cachedSizeValue > 0) {
+    return cachedSizeValue
+  }
+  const dir = DEFAULT_OPTIONS.cacheDir
   let size = 0
   if (existsSync(dir)) {
-    const files = require('fs').readdirSync(dir)
-    for (const file of files) {
-      try {
-        size += require('fs').statSync(join(dir, file)).size
-      } catch { /* skip */ }
+    try {
+      const files = await readdir(dir)
+      const stats = await Promise.all(
+        files.map(async (file) => {
+          try {
+            const st = await stat(join(dir, file))
+            return st.size
+          } catch {
+            return 0
+          }
+        })
+      )
+      size = stats.reduce((a, b) => a + b, 0)
+    } catch {
+      /* skip */
     }
   }
+  cachedSizeValue = size
+  lastSizeCheckTime = now
   return size
 }
 
-// ─── IPC Handlers ─────────────────────────────────────────────
-
-ipcMain.handle('image:load', async (_event, urls: string[], options?: ImageLoaderOptions) => {
-  return loadImages(urls, options)
-})
-
-ipcMain.handle('image:preload', async (_event, url: string) => {
-  return preloadImage(url)
-})
 
 ipcMain.handle('image:clearCache', async () => {
-  return clearImageCache()
+  return clearImageCacheAsync()
 })
 
 ipcMain.handle('image:cacheSize', async () => {
-  return getImageCacheSize()
+  return getImageCacheSizeAsync()
 })

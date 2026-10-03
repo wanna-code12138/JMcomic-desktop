@@ -1,0 +1,38 @@
+{
+  "executable": "D:\\soft\\Opencode\\JMComic\\outputs\\releases\\1.1.0-detail-fix\\win-unpacked\\JMComic Desktop.exe",
+  "sha256": "420d68d57895d1fa8b253ed04cd6563d55315e72fd64324830103ee98f6bf3ed",
+  "mode": "direct packaged EXE / synthetic network and save dialog",
+  "assertions": [
+    "delivered EXE loads packaged main, preload, renderer and isolated data without a development loader",
+    "actual EXE accepts empty-series standalone albums and opens their detail from the category card",
+    "actual EXE downloads, descrambles all 23 golden rows, decodes jmlocal and exports CBZ with packaged archiver",
+    "actual pointer input opens the downloaded chapter and its first page is visible in the production reader",
+    "actual EXE has manual docked tools, preserves its book while hidden and closes its last tab with X",
+    "actual EXE launches its packaged PDF worker, restores scrambled pixels, and publishes a root-level PDF with packaged PDFKit",
+    "normal window close completes and exits the actual EXE with code 0"
+  ],
+  "errors": [],
+  "runtime": {
+    "packaged": true,
+    "version": "1.1.0",
+    "appPath": "D:\\soft\\Opencode\\JMComic\\outputs\\releases\\1.1.0-detail-fix\\win-unpacked\\resources\\app.asar",
+    "userData": "D:\\soft\\Opencode\\JMComic\\work\\detail-fix-exe-unpacked\\profile",
+    "electron": "43.2.0",
+    "node": "24.18.0"
+  },
+  "appArchiveSha256": "45fd12ff24c80421f5cdd08090176537f31618400045ed2b3c0617286bd890c4",
+  "warmupAtStartup": {
+    "phase": "verifying",
+    "attempt": 1,
+    "reason": "startup",
+    "startedAt": 1790681567683
+  },
+  "workerInspections": [
+    {
+      "workerId": "1",
+      "type": "worker",
+      "title": "[worker 1] WorkerThread",
+      "url": "file:///D:/soft/Opencode/JMComic/outputs/releases/1.1.0-detail-fix/win-unpacked/resources/app.asar/out/main/pdfWorker.js"
+    }
+  ]
+}

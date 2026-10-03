@@ -1,0 +1,14 @@
+{
+  "runId": "startup-reader-dev-red-20260929-elevated",
+  "mode": "visible Chromium / development StrictMode / synthetic network",
+  "assertions": [],
+  "errors": [
+    "Error: Timed out: decoded first page\nJMComic Desktop\n返回\n山间来信 · 合成阅读样章\n车牌号: JM101\n✍️ 阅读体验实验室\n风景\n旅途\n用于测试长图、横图与章节切换的合成内容。\n开始阅读\n下载\n章节列表 (2)\n倒序\n1\n第一章 · 出发\n2\n第二章 · 抵达\n山间来信 · 合成阅读样章\n山间来信 · 合成阅读样章\n第一章 · 出发\n连续滚动\n单页阅读\n适合宽度\n适合高度\n原始尺寸\n−\n100%\n＋\n正在加载第 1 页\n正在加载第 2 页\n正在加载第 3 页\n上一章\n‹\n/ 36 页\n›\n下一章\n1 / 36\n[{\"src\":null,\"complete\":true,\"width\":0,\"status\":\"loading\"},{\"src\":null,\"complete\":true,\"width\":0,\"status\":\"loading\"},{\"src\":null,\"complete\":true,\"width\":0,\"status\":\"loading\"}]\n    at wait (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:164:11)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:230:3)"
+  ],
+  "network": {
+    "api": 7,
+    "image": 2,
+    "blocked": 3
+  },
+  "summaryQueries": 0
+}

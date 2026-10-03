@@ -1,0 +1,37 @@
+[scraper] detail cache hit: 1477646
+✖ a partial browser detail is not cached and the next visit can recover (1564.2953ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1566.6926
+
+✖ failing tests:
+
+test at src\main\__tests__\scraperDetailCache.test.ts:2:1064
+✖ a partial browser detail is not cached and the next visit can recover (1564.2953ms)
+  AssertionError [ERR_ASSERTION]: an incomplete DOM must not poison subsequent detail attempts for ten minutes
+  + actual - expected
+
+  + []
+  - [
+  -   {
+  -     index: 0,
+  -     title: '单篇合成样本',
+  -     url: '/photo/1477646'
+  -   }
+  - ]
+
+      at TestContext.<anonymous> (D:\soft\Opencode\JMComic\src\main\__tests__\scraperDetailCache.test.ts:28:10)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [Array],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

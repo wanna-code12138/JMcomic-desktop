@@ -1,0 +1,55 @@
+{
+  "runId": "reader-final-20260929",
+  "mode": "visible Chromium / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "visible page persisted through the actual history IPC",
+      "details": {
+        "visible": 4,
+        "mounted": [
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "scrollTop": 13001.5
+      }
+    },
+    {
+      "name": "scroll / single mode preserves page and within-page offset"
+    },
+    {
+      "name": "fit, persisted zoom, focus isolation and both keyboard directions"
+    },
+    {
+      "name": "isolated page failure and manual retry with the new chapter image"
+    },
+    {
+      "name": "minimum window, directory, fullscreen and chapter return"
+    },
+    {
+      "name": "real download, stable identity, missing-page repair, local protocol and CBZ export",
+      "details": {
+        "pages": 36,
+        "archiveBytes": 283315
+      }
+    },
+    {
+      "name": "download library opens the full offline reader without a content or image network request"
+    },
+    {
+      "name": "normal application close flushes pending reader position to disk"
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 8,
+    "image": 42,
+    "blocked": 3
+  },
+  "summaryQueries": 4
+}

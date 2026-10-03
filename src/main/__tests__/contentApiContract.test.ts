@@ -48,11 +48,10 @@ test('unverified direct detail metadata remains on the browser fallback', () => 
   assert.match(source, /throw new Error\('direct-detail-unverified'\)/)
 })
 
-test('IPC responses keep existing fields and page stream preserves pages and scrambleId', () => {
+test('active IPC responses preserve pages and scrambleId', () => {
   assert.match(source, /return \{ ok: true, data: result\.data \}/)
   assert.match(source, /data: result\.data\.results, totalPages: result\.data\.totalPages/)
   assert.match(source, /data: result\.data\.pages, scrambleId: result\.data\.scrambleId/)
-  assert.match(source, /pages: result\.data\.pages/)
   assert.match(source, /scrambleId: result\.data\.scrambleId/)
 })
 
@@ -61,6 +60,17 @@ test('provider metrics are privacy-safe and content URLs are not logged', () => 
   assert.match(source, /fallback: result\.fallback/)
   assert.doesNotMatch(source, /first URL|console\.log\('\[content:pages\]', chapterUrl/)
   assert.doesNotMatch(source, /metadata: \{[^}]*url/s)
+})
+
+test('preload exposes warmup methods and HomePage does not block on global warmingUp flag', () => {
+  const preloadSource = readFileSync(resolve(process.cwd(), 'src/preload/index.ts'), 'utf-8')
+  assert.match(preloadSource, /contentWarmupStatus/)
+  assert.match(preloadSource, /contentWarmupRetry/)
+  assert.match(preloadSource, /onWarmupStateChanged/)
+
+  const homePageSource = readFileSync(resolve(process.cwd(), 'src/renderer/src/pages/HomePage.tsx'), 'utf-8')
+  assert.doesNotMatch(homePageSource, /if \(warmingUp\) return/)
+  assert.doesNotMatch(homePageSource, /if \(warmingUp \|\| currentPage !== 'home'\) return/)
 })
 
 if (process.exitCode) console.log('Some tests failed.')

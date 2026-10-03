@@ -1,0 +1,85 @@
+{
+  "timestamp": "2026-09-29T11:30:07.944Z",
+  "applicationRoot": "D:\\soft\\Opencode\\JMComic",
+  "scope": "Real anonymous detail routes; no account data or comic image downloads",
+  "rows": [
+    {
+      "entry": "分类/同人",
+      "id": "1477646",
+      "ok": true
+    },
+    {
+      "entry": "分类/同人",
+      "id": "1477645",
+      "ok": true
+    },
+    {
+      "entry": "分类/同人",
+      "id": "1449617",
+      "ok": true
+    },
+    {
+      "entry": "首页/最新",
+      "id": "1472020",
+      "ok": true
+    },
+    {
+      "entry": "新标签页",
+      "id": "1477646",
+      "ok": true
+    },
+    {
+      "entry": "新标签页",
+      "id": "1477645",
+      "ok": true
+    },
+    {
+      "entry": "新标签页",
+      "id": "1449617",
+      "ok": true
+    }
+  ],
+  "detailCalls": [
+    {
+      "id": "1477646",
+      "ok": true,
+      "chapters": 1
+    },
+    {
+      "id": "1477645",
+      "ok": true,
+      "chapters": 1
+    },
+    {
+      "id": "1449617",
+      "ok": true,
+      "chapters": 178
+    },
+    {
+      "id": "1472020",
+      "ok": true,
+      "chapters": 10
+    },
+    {
+      "id": "1477646",
+      "ok": true,
+      "chapters": 1
+    },
+    {
+      "id": "1477645",
+      "ok": true,
+      "chapters": 1
+    },
+    {
+      "id": "1449617",
+      "ok": true,
+      "chapters": 178
+    }
+  ],
+  "warmup": {
+    "phase": "verifying",
+    "attempt": 1,
+    "reason": "startup",
+    "startedAt": 1790681408426
+  }
+}

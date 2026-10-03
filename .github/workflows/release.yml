@@ -25,32 +25,81 @@ jobs:
         run: npm ci
 
       - name: Run unit tests
+        run: npm test
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Verify release version and description
         shell: pwsh
         run: |
-          $failed = $false
-          Get-ChildItem src/main/__tests__/*.test.ts | ForEach-Object {
-            Write-Host "==> $($_.Name)"
-            npx tsx $_.FullName
-            if ($LASTEXITCODE -ne 0) { $failed = $true }
-          }
-          if ($failed) { exit 1 }
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          if ($env:GITHUB_REF_NAME -ne "v$version") { throw 'Tag and package version mismatch' }
+          if (-not (Test-Path -LiteralPath "docs/releases/v$version.md")) { throw 'Missing release description' }
 
       - name: Build portable package
         # 只构建不发布：electron-builder 检测到 tag 会自动尝试上传，
         # 这里显式禁用，统一由下方的 gh release create 步骤发布。
         run: npm run package -- --publish never
 
+      - name: Verify actual portable EXE
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          node scripts/package-launch-smoke.mjs "dist-electron/JMComic Desktop Portable $version.exe" "release-$version" --fixture
+          if ($LASTEXITCODE -ne 0) { throw 'Packaged EXE verification failed' }
+
+      - name: Prepare download filename and checksum
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $name = "JMComic.Desktop.Portable.$version.exe"
+          Copy-Item -LiteralPath "dist-electron/JMComic Desktop Portable $version.exe" -Destination "dist-electron/$name"
+          $hash = (Get-FileHash -LiteralPath "dist-electron/$name" -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $name" | Set-Content -LiteralPath dist-electron/SHA256SUMS.txt -Encoding utf8NoBOM
+
       - name: Upload portable exe
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: jmcomic-portable
-          path: dist-electron/*.exe
+          path: |
+            dist-electron/JMComic.Desktop.Portable.*.exe
+            dist-electron/SHA256SUMS.txt
+            outputs/reader-qa/release-*/result.json
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          $exe = Get-ChildItem dist-electron/*.exe | Select-Object -First 1
-          if (-not $exe) { throw "No portable exe found" }
-          gh release create "$env:GITHUB_REF_NAME" $exe.FullName --generate-notes
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          gh release create "$env:GITHUB_REF_NAME" "dist-electron/JMComic.Desktop.Portable.$version.exe" dist-electron/SHA256SUMS.txt --verify-tag --title "v$version" --notes-file "docs/releases/v$version.md" --latest
+          if ($LASTEXITCODE -ne 0) { throw 'Release creation failed' }
+
+      - name: Complete historical release descriptions and checksums
+        if: github.ref_name == 'v1.3.4'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path work/release-checksums -Force | Out-Null
+          foreach ($version in @('1.1.0', '1.2.0', '1.3.1', '1.3.2', '1.3.3')) {
+            $release = $null
+            for ($attempt = 0; $attempt -lt 30; $attempt++) {
+              $raw = gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/v$version" 2>$null
+              if ($LASTEXITCODE -eq 0) { $release = $raw | ConvertFrom-Json; break }
+              Start-Sleep -Seconds 20
+            }
+            if (-not $release) { throw "Historical release v$version is missing" }
+            $assets = @($release.assets | Where-Object { $_.name -like "*Portable*$version.exe" })
+            if ($assets.Count -ne 1 -or $assets[0].size -le 0 -or $assets[0].digest -notmatch '^sha256:[0-9a-f]{64}$') { throw "Invalid historical asset for v$version" }
+            $directory = "work/release-checksums/$version"
+            New-Item -ItemType Directory -Path $directory -Force | Out-Null
+            "$($assets[0].digest.Substring(7))  $($assets[0].name)" | Set-Content -LiteralPath "$directory/SHA256SUMS.txt" -Encoding utf8NoBOM
+            gh release upload "v$version" "$directory/SHA256SUMS.txt" --clobber
+            if ($LASTEXITCODE -ne 0) { throw "Checksum upload failed for v$version" }
+            gh release edit "v$version" --title "v$version" --notes-file "docs/releases/v$version.md" --latest=false
+            if ($LASTEXITCODE -ne 0) { throw "Description update failed for v$version" }
+          }
+          gh release edit v1.3.4 --latest
+          if ($LASTEXITCODE -ne 0) { throw 'Latest release selection failed' }

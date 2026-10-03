@@ -1,0 +1,20 @@
+  PASS: parseSettingPayload parses valid setting and rejects invalid versions
+  PASS: parseListPayload parses search fixture and passes card validation
+  PASS: parseListPayload rejects malformed items (missing title, invalid id, non-https)
+  PASS: parseAlbumPayload parses album fixture and passes detail validation
+  FAIL: parseAlbumPayload maps an explicitly empty series to the single album chapter
+JmApiSchemaError: JM_API_SCHEMA_ERROR: Album chapters series is empty or missing
+    at parseAlbumPayload (D:\soft\Opencode\JMComic\src\main\content\jmAppApiSchemas.ts:133:11)
+    at <anonymous> (D:\soft\Opencode\JMComic\src\main\__tests__\jmAppApiSchemas.test.ts:89:20)
+    at test (D:\soft\Opencode\JMComic\src\main\__tests__\jmAppApiSchemas.test.ts:15:5)
+    at assert (D:\soft\Opencode\JMComic\src\main\__tests__\jmAppApiSchemas.test.ts:87:1)
+    at Object.<anonymous> (D:\soft\Opencode\JMComic\src\main\__tests__\jmAppApiSchemas.test.ts:145:53)
+    at Module._compile (node:internal/modules/cjs/loader:1871:14)
+    at Object.transformer (D:\soft\Opencode\JMComic\node_modules\tsx\dist\register-BoI6-WNn.cjs:9:3252)
+    at Module.load (node:internal/modules/cjs/loader:1594:32)
+    at Module._load (node:internal/modules/cjs/loader:1396:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+  PASS: parseAlbumPayload still rejects missing or malformed chapter data and invalid fields
+  PASS: parseComicReadPayload parses pages and passes page validation
+  PASS: parseComicReadPayload strictly rejects unordered or duplicate page indices without sorting
+Some tests failed.
