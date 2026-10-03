@@ -1,0 +1,40 @@
+
+> jmcomic-desktop@1.1.0 build
+> electron-vite build
+
+vite v5.4.21 building SSR bundle for production...
+transforming...
+✓ 68 modules transformed.
+rendering chunks...
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) D:/soft/Opencode/JMComic/src/main/networkProbe.ts is dynamically imported by D:/soft/Opencode/JMComic/src/main/sessionWarmup.ts but also statically imported by D:/soft/Opencode/JMComic/src/main/httpClient.ts, D:/soft/Opencode/JMComic/src/main/imageNetwork.ts, D:/soft/Opencode/JMComic/src/main/index.ts, D:/soft/Opencode/JMComic/src/main/scraperWindow.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) D:/soft/Opencode/JMComic/src/main/httpClient.ts is dynamically imported by D:/soft/Opencode/JMComic/src/main/sessionWarmup.ts but also statically imported by D:/soft/Opencode/JMComic/src/main/siteAdapter.ts, dynamic import will not move module into another chunk.
+
+out/main/pdfWorker.js    3.71 kB
+out/main/index.js      250.16 kB
+✓ built in 698ms
+vite v5.4.21 building SSR bundle for production...
+transforming...
+✓ 1 modules transformed.
+rendering chunks...
+out/preload/index.js  9.50 kB
+✓ built in 13ms
+vite v5.4.21 building for production...
+transforming...
+✓ 2206 modules transformed.
+rendering chunks...
+../../out/renderer/index.html                              0.62 kB
+../../out/renderer/assets/icon-128-CYIVzjyi.png            8.81 kB
+../../out/renderer/assets/ReaderPage-DZKwGU7N.css          6.09 kB
+../../out/renderer/assets/index-CmDdDKBs.css              34.37 kB
+../../out/renderer/assets/chunk-16-CSPzmQem.js             0.21 kB
+../../out/renderer/assets/Badge-CaxJ75mX.js               16.42 kB
+../../out/renderer/assets/DownloadsPage-CtMVKI-0.js       26.39 kB
+../../out/renderer/assets/MangaDetailPage-pOMuYuf3.js     50.59 kB
+../../out/renderer/assets/DialogContent-CdPT_J4i.js       80.53 kB
+../../out/renderer/assets/SettingsPage-DB4T26lH.js        90.23 kB
+../../out/renderer/assets/ReaderPage-CMmr2LfP.js          96.77 kB
+../../out/renderer/assets/index-q_U_cDfL.js            1,077.76 kB
+✓ built in 4.94s

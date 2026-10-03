@@ -22,15 +22,10 @@ jobs:
         run: npm ci
 
       - name: Run unit tests
-        shell: pwsh
-        run: |
-          $failed = $false
-          Get-ChildItem src/main/__tests__/*.test.ts | ForEach-Object {
-            Write-Host "==> $($_.Name)"
-            npx tsx $_.FullName
-            if ($LASTEXITCODE -ne 0) { $failed = $true }
-          }
-          if ($failed) { exit 1 }
+        run: npm test
+
+      - name: Type check
+        run: npm run typecheck
 
       - name: Production build
         run: npm run build

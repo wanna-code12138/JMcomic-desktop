@@ -1,0 +1,19 @@
+{
+  "runId": "110-motion-green",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "outgoing pages and tools animate, hidden surfaces release, animation-off and system reduced-motion stop all motion"
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 7
+  },
+  "summaryQueries": 0
+}

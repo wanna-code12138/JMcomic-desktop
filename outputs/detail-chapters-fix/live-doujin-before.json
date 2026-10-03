@@ -1,0 +1,155 @@
+{
+  "timestamp": "2026-09-29T11:15:37.903Z",
+  "bootstrap": [
+    {
+      "apiOrigin": "https://www.cdnhjk.net",
+      "ok": true
+    }
+  ],
+  "albums": [
+    {
+      "id": "1449617",
+      "source": "category-doujin-latest",
+      "shape": {
+        "id": 1449617,
+        "titlePresent": true,
+        "seriesType": "array",
+        "seriesCount": 178
+      },
+      "detail": {
+        "ok": true,
+        "chapterCount": 178,
+        "firstChapter": "/photo/1449617"
+      }
+    },
+    {
+      "id": "1477646",
+      "source": "category-doujin-latest",
+      "shape": {
+        "id": 1477646,
+        "titlePresent": true,
+        "seriesType": "array",
+        "seriesCount": 0
+      },
+      "detail": {
+        "ok": false,
+        "error": "JM_API_SCHEMA_ERROR: Album chapters series is empty or missing"
+      },
+      "albumIdRead": {
+        "ok": true,
+        "pages": 34,
+        "scrambleId": 220980
+      }
+    },
+    {
+      "id": "1477645",
+      "source": "category-doujin-latest",
+      "shape": {
+        "id": 1477645,
+        "titlePresent": true,
+        "seriesType": "array",
+        "seriesCount": 0
+      },
+      "detail": {
+        "ok": false,
+        "error": "JM_API_SCHEMA_ERROR: Album chapters series is empty or missing"
+      },
+      "albumIdRead": {
+        "ok": true,
+        "pages": 22,
+        "scrambleId": 220980
+      }
+    },
+    {
+      "id": "1477644",
+      "source": "category-doujin-latest",
+      "shape": {
+        "id": 1477644,
+        "titlePresent": true,
+        "seriesType": "array",
+        "seriesCount": 0
+      },
+      "detail": {
+        "ok": false,
+        "error": "JM_API_SCHEMA_ERROR: Album chapters series is empty or missing"
+      },
+      "error": "JM_API_SCHEMA_ERROR: Untrusted image URL"
+    },
+    {
+      "id": "1477642",
+      "source": "category-doujin-latest",
+      "shape": {
+        "id": 1477642,
+        "titlePresent": true,
+        "seriesType": "array",
+        "seriesCount": 0
+      },
+      "detail": {
+        "ok": false,
+        "error": "JM_API_SCHEMA_ERROR: Album chapters series is empty or missing"
+      },
+      "albumIdRead": {
+        "ok": true,
+        "pages": 27,
+        "scrambleId": 220980
+      }
+    },
+    {
+      "id": "1471390",
+      "source": "category-doujin-latest",
+      "shape": {
+        "id": 1471390,
+        "titlePresent": true,
+        "seriesType": "array",
+        "seriesCount": 10
+      },
+      "detail": {
+        "ok": true,
+        "chapterCount": 10,
+        "firstChapter": "/photo/1471390"
+      }
+    },
+    {
+      "id": "1215915",
+      "source": "control",
+      "shape": {
+        "id": 1215915,
+        "titlePresent": true,
+        "seriesType": "array",
+        "seriesCount": 63
+      },
+      "detail": {
+        "ok": true,
+        "chapterCount": 63,
+        "firstChapter": "/photo/1215915"
+      }
+    }
+  ],
+  "web": [
+    {
+      "id": "1477646",
+      "path": "/album/1477646/",
+      "bookNamePresent": true,
+      "photoLinks": 5,
+      "dataAlbum": 0,
+      "readControls": [
+        {
+          "tag": "A",
+          "href": "/photo/1477646",
+          "dataAlbum": null,
+          "onclick": null
+        },
+        {
+          "tag": "A",
+          "href": "/photo/1477646",
+          "dataAlbum": null,
+          "onclick": null
+        }
+      ]
+    },
+    {
+      "id": "1477645",
+      "error": "ERR_FAILED (-2) loading 'https://18comic.vip/album/1477645/'"
+    }
+  ]
+}

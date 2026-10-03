@@ -1,0 +1,18 @@
+{
+  "runId": "110-workspace-final",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: pointer target must be visible and unobscured: {\"x\":1133,\"y\":57.5,\"hit\":false,\"target\":\"<button class=\\\"reader-workspace-action\\\" aria-label=\\\"收起阅读侧栏\\\" title=\\\"收起阅读侧栏，保留所有标签\\\"><svg fill=\\\"currentColor\\\" class=\\\"___9ctc0p0 f1w7gpdv fez10in f1dd5bof\\\" aria-hidden=\\\"true\\\" width=\\\"20\\\" height=\\\"20\\\" viewBox=\\\"0 0 20 20\\\" xmlns=\",\"cover\":\"<div role=\\\"tooltip\\\" id=\\\"tooltip-r9\\\" class=\\\"fui-Tooltip__content ___1iilip3 ftgm304 f1ewtqcl f132xexn f158kwzp fk6fouc fy9rknc fwrc4pm fokg9q4 ft85np5 f9ggezi f1bzqsji fxugw4r f19n0e5 fxeb0a7\\\" data-popper-placement=\\\"bottom\\\" style=\\\"position: absolute; left: 0px; top: 0px; margin: 0px; transform: translate3d(1047.5px, 33.5px, 0px);\\\">隐藏阅读侧栏 · 2 本漫画</di\"}\n\nfalse !== true\n\n    at pointerClick (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:172:12)\n    at async clickText (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:189:5)\n    at async module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\reader-workspace-smoke.cjs:97:3)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:330:5)"
+  ],
+  "network": {
+    "api": 9,
+    "image": 26,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

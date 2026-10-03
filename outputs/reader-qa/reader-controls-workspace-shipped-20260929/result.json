@@ -1,0 +1,18 @@
+{
+  "runId": "reader-controls-workspace-shipped-20260929",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: tool shortcuts preserve the current page: {\"page\":7,\"offset\":0.9661588580546432}\n\n'7' !== '8'\n\n    at module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\reader-workspace-smoke.cjs:70:10)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:304:5)"
+  ],
+  "network": {
+    "api": 7,
+    "image": 12,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

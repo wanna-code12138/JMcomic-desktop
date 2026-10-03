@@ -8,11 +8,17 @@ import {
 import {
   WeatherMoon20Regular,
   WeatherSunny20Regular,
-  ArrowDownload20Regular
+  ArrowDownload20Regular,
+  PanelRightContract20Regular,
+  PanelRightExpand20Regular
+  , TabAdd20Regular
 } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
+import { toggleReaderVisibility } from '../reader/readerFocus'
+import appIcon from '../../../../build/icons/icon-64.png'
+import { useExitPresence } from '../motion/motion'
 
-const TITLE_BAR_HEIGHT = '32px'
+const TITLE_BAR_HEIGHT = '36px'
 
 // Windows 11 native caption buttons (min/max/close) are drawn by the OS as an
 // overlay ~138px wide on the right edge. We must reserve that space so our own
@@ -28,10 +34,8 @@ const useStyles = makeStyles({
     paddingRight: '4px',
     position: 'relative',
     zIndex: 1000,
-    backgroundColor: 'var(--ac-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-toolbar))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-toolbar))',
-    borderBottom: '1px solid var(--ac-glass-border)',
+    backgroundColor: 'var(--ui-bg-pane)',
+    borderBottom: '1px solid var(--ui-stroke-card)',
     WebkitAppRegion: 'drag',
     userSelect: 'none',
     flexShrink: 0
@@ -39,8 +43,8 @@ const useStyles = makeStyles({
   title: {
     fontSize: '12px',
     fontWeight: 600,
-    color: 'var(--ac-text-2)',
-    marginLeft: '4px',
+    color: 'var(--ui-text-secondary)',
+    marginLeft: '8px',
     flex: 1
   },
   actions: {
@@ -61,16 +65,16 @@ const useStyles = makeStyles({
     alignItems: 'center',
     gap: '6px',
     padding: '3px 10px',
-    borderRadius: '999px',
+    borderRadius: 'var(--ui-radius-md)',
     fontSize: '12px',
     fontWeight: 500,
-    color: 'var(--ac-brand)',
-    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 12%, transparent)',
+    color: 'var(--ui-brand)',
+    backgroundColor: 'var(--ui-bg-selected)',
     cursor: 'pointer',
     marginRight: '6px',
-    transition: 'background-color 0.15s',
+    transition: 'background-color var(--ui-motion-fast) ease-out',
     ':hover': {
-      backgroundColor: 'color-mix(in srgb, var(--ac-brand) 20%, transparent)'
+      backgroundColor: 'var(--ui-bg-hover)'
     }
   },
   downloadPopover: {
@@ -81,12 +85,10 @@ const useStyles = makeStyles({
     maxHeight: '280px',
     overflowY: 'auto',
     padding: '10px 12px',
-    borderRadius: 'var(--ac-radius-card)',
-    backgroundColor: 'var(--ac-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-panel))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-panel))',
-    border: '1px solid var(--ac-glass-border)',
-    boxShadow: '0 8px 24px var(--ac-glass-shadow)',
+    borderRadius: 'var(--ui-radius-lg)',
+    backgroundColor: 'var(--ui-bg-dialog)',
+    border: '1px solid var(--ui-stroke-card)',
+    boxShadow: 'var(--ui-shadow-popup)',
     zIndex: 100,
     display: 'flex',
     flexDirection: 'column',
@@ -100,19 +102,21 @@ const useStyles = makeStyles({
   popTitle: {
     fontSize: '12px',
     fontWeight: 500,
-    color: 'var(--ac-text-1)',
+    color: 'var(--ui-text-primary)',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap'
   },
   popMeta: {
-    fontSize: '11px',
-    color: 'var(--ac-text-3)'
+    fontSize: '12px',
+    lineHeight: '18px',
+    fontVariantNumeric: 'tabular-nums',
+    color: 'var(--ui-text-tertiary)'
   },
   popProgress: {
     height: '4px',
     borderRadius: '2px',
-    backgroundColor: 'var(--ac-glass-border)',
+    backgroundColor: 'var(--ui-stroke-card)',
     overflow: 'hidden'
   }
 })
@@ -125,9 +129,13 @@ interface TitleBarProps {
 export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps): JSX.Element {
   const styles = useStyles()
   const setCurrentPage = useAppStore((s) => s.setCurrentPage)
+  const readerCount = useAppStore((s) => s.readerTabs.length)
+  const readerVisible = useAppStore((s) => s.readerVisible)
+  const readerPending = useAppStore((s) => s.readerTransitionPending)
   const [addStatus, setAddStatus] = useState<{ current: number; total: number; stage: string; error?: string } | null>(null)
   const [activeTasks, setActiveTasks] = useState<Array<{
     taskId: number
+    kind: 'images' | 'pdf'
     mangaTitle: string
     chapterTitle: string
     totalPages: number
@@ -135,6 +143,7 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
     status: string
   }>>([])
   const [hovered, setHovered] = useState(false)
+  const popoverPresent = useExitPresence(hovered)
 
   useEffect(() => {
     // Sync native caption button colors with the active Fluent theme
@@ -145,14 +154,15 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
   useEffect(() => {
     window.electronAPI?.downloadList().then((list) => {
       const rows = (list ?? []) as Array<{ status: string } & {
-        id: number; mangaTitle: string; chapterTitle: string
+        id: number; kind?: 'images' | 'pdf'; mangaTitle: string; chapterTitle: string
         totalPages: number; downloadedPages: number
       }>
       setActiveTasks(
         rows
-          .filter((t) => t.status === 'pending' || t.status === 'downloading')
+          .filter((t) => ['pending', 'downloading', 'resolving', 'merging', 'committing'].includes(t.status))
           .map((t) => ({
             taskId: t.id,
+            kind: t.kind ?? 'images',
             mangaTitle: t.mangaTitle,
             chapterTitle: t.chapterTitle,
             totalPages: t.totalPages,
@@ -165,6 +175,7 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
     const offProgress = window.electronAPI?.onDownloadProgress((progress) => {
       const p = progress as {
         taskId: number
+        kind?: 'images' | 'pdf'
         status: string
         mangaTitle?: string
         chapterTitle?: string
@@ -173,10 +184,12 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
       }
       if (!p.taskId) return
       setActiveTasks((prev) => {
-        const map = new Map(prev.map((t) => [t.taskId, t]))
-        if (p.status === 'pending' || p.status === 'downloading') {
-          map.set(p.taskId, {
+        const map = new Map(prev.map((t) => [`${t.kind}:${t.taskId}`, t]))
+        const key = `${p.kind ?? 'images'}:${p.taskId}`
+        if (['pending', 'downloading', 'resolving', 'merging', 'committing'].includes(p.status)) {
+          map.set(key, {
             taskId: p.taskId,
+            kind: p.kind ?? 'images',
             mangaTitle: p.mangaTitle ?? '',
             chapterTitle: p.chapterTitle ?? '',
             totalPages: p.totalPages ?? 0,
@@ -184,7 +197,7 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
             status: p.status
           })
         } else {
-          map.delete(p.taskId)
+          map.delete(key)
         }
         return [...map.values()]
       })
@@ -213,6 +226,7 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
 
   return (
     <div className={styles.bar}>
+      <img src={appIcon} width={22} height={22} alt="" draggable={false} />
       <span className={styles.title}>JMComic Desktop</span>
       <div className={styles.actions}>
         {(addStatus?.stage === 'fetching' || activeTasks.length > 0) && (
@@ -230,8 +244,9 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
                 ? `添加章节 ${addStatus.current}/${addStatus.total}`
                 : `下载中 ${activeTasks.length}`}
             </div>
-            {hovered && (
-              <div className={styles.downloadPopover}>
+            {popoverPresent && (
+              <div className={`${styles.downloadPopover} download-status-popover`} data-exiting={!hovered}
+                ref={element => { if (element) element.inert = !hovered }} aria-hidden={!hovered || undefined}>
                 {addStatus?.stage === 'fetching' && (
                   <div className={styles.popRow}>
                     <Text size={200}>正在抓取章节图片列表… {addStatus.current}/{addStatus.total}</Text>
@@ -247,16 +262,18 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
                       ? Math.min(100, Math.round((t.downloadedPages / t.totalPages) * 100))
                       : 0
                     return (
-                      <div key={t.taskId} className={styles.popRow}>
+                      <div key={`${t.kind}:${t.taskId}`} className={styles.popRow}>
                         <div className={styles.popTitle}>{t.mangaTitle} - {t.chapterTitle}</div>
-                        <div className={styles.popMeta}>{t.downloadedPages}/{t.totalPages} 页 · {pct}%</div>
+                        <div className={styles.popMeta}>{t.kind === 'pdf' ? 'PDF · ' : ''}{t.status === 'merging' ? '正在合并' : t.status === 'committing' ? '正在保存' : `${t.downloadedPages}/${t.totalPages} 页 · ${pct}%`}</div>
                         <div className={styles.popProgress}>
                           <div
                             style={{
                               height: '100%',
-                              width: `${pct}%`,
-                              backgroundColor: 'var(--ac-brand)',
-                              transition: 'width 0.2s ease'
+                              width: '100%',
+                              transform: `scaleX(${pct / 100})`,
+                              transformOrigin: 'left',
+                              backgroundColor: 'var(--ui-brand)',
+                              transition: 'transform var(--ui-motion-standard) ease-out'
                             }}
                           />
                         </div>
@@ -276,6 +293,17 @@ export default function TitleBar({ darkMode, onToggleDarkMode }: TitleBarProps):
             onClick={handleToggleDarkMode}
           />
         </Tooltip>
+        <Tooltip content="新建阅读标签 · Ctrl T" relationship="description">
+          <Button appearance="subtle" size="small" aria-label="新建阅读标签" icon={<TabAdd20Regular />}
+            onClick={() => { void useAppStore.getState().newReaderTab() }} />
+        </Tooltip>
+        {readerCount > 0 && <Tooltip content={`${readerVisible ? '隐藏' : '显示'}阅读侧栏 · ${readerCount} 本漫画`} relationship="description">
+          <Button appearance="subtle" size="small" data-reader-visibility-toggle
+            aria-label={readerVisible ? '隐藏阅读侧栏' : '显示阅读侧栏'} aria-expanded={readerVisible}
+            aria-controls="reader-workspace" disabled={readerPending}
+            icon={readerVisible ? <PanelRightContract20Regular /> : <PanelRightExpand20Regular />}
+            onClick={() => { void toggleReaderVisibility() }} />
+        </Tooltip>}
       </div>
     </div>
   )

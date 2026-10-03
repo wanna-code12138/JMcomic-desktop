@@ -4,40 +4,35 @@ import {
   Tooltip
 } from '@fluentui/react-components'
 import {
-  Dismiss20Regular, Delete20Regular
+  Dismiss20Regular, Delete20Regular, Heart20Regular, History20Regular
 } from '@fluentui/react-icons'
 import { MangaCard } from '../components'
 import { useAppStore } from '../stores/appStore'
 import { toJmImg } from '../utils/image'
+import { contentTabRow, emptyState, caption } from '../theme/surfaceStyles'
+import OnlineLibraryPanel from '../components/OnlineLibraryPanel'
 
 const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
-  tabRow: { marginBottom: '16px' },
+  tabRow: contentTabRow,
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
     gap: '16px'
   },
-  statusMsg: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '60px 0',
-    color: 'var(--ac-text-3)',
-    gap: '12px'
-  },
+  statusMsg: emptyState,
   historyItem: {
     display: 'flex',
     gap: '12px',
     padding: '12px',
-    borderRadius: 'var(--ac-radius-row)',
+    borderRadius: 'var(--ui-radius-lg)',
     cursor: 'pointer',
-    transition: 'background-color 0.15s, box-shadow 0.15s',
+    transition: 'background-color var(--ui-motion-fast) ease-out, border-color var(--ui-motion-fast) ease-out',
+    border: '1px solid transparent',
     alignItems: 'center',
     ':hover': {
-      backgroundColor: 'var(--ac-glass-bg-hover)',
-      boxShadow: 'inset 0 0 0 1px var(--ac-glass-border)'
+      backgroundColor: 'var(--ui-bg-hover)',
+      border: '1px solid var(--ui-stroke-card)'
     }
   },
   historyCover: {
@@ -45,22 +40,21 @@ const useStyles = makeStyles({
     minWidth: '48px',
     height: '64px',
     objectFit: 'cover',
-    borderRadius: 'var(--ac-radius-badge)',
-    backgroundColor: 'var(--ac-base-bg)',
-    border: '1px solid var(--ac-glass-border)'
+    borderRadius: 'var(--ui-radius-md)',
+    backgroundColor: 'var(--ui-bg-canvas)',
+    border: '1px solid var(--ui-stroke-card)'
   },
   historyInfo: { flex: 1, minWidth: 0 },
   historyTitle: {
     fontSize: '14px',
     fontWeight: 500,
-    color: 'var(--ac-text-1)',
+    color: 'var(--ui-text-primary)',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap'
   },
   historyMeta: {
-    fontSize: '12px',
-    color: 'var(--ac-text-3)',
+    ...caption,
     marginTop: '4px'
   },
   historyActions: {
@@ -76,7 +70,7 @@ const useStyles = makeStyles({
   }
 })
 
-type MainTab = 'local-fav' | 'history'
+type MainTab = 'local-fav' | 'history' | 'tracking'
 
 interface LocalFavorite {
   manga_id: string; title: string; cover_url: string; added_at: number
@@ -85,6 +79,7 @@ interface LocalHistoryRow {
   manga_id: string; manga_title: string; chapter_index: number
   chapter_title: string; chapter_url: string; cover_url: string
   page_index: number; total_pages: number; read_at: number
+  page_offset?: number; is_local?: number
 }
 
 export default function FavoritesPage(): JSX.Element {
@@ -95,6 +90,13 @@ export default function FavoritesPage(): JSX.Element {
   const setFavoritesTab = useAppStore((s) => s.setFavoritesTab)
 
   const [mainTab, setMainTab] = React.useState<MainTab>((savedTab as MainTab) || 'local-fav')
+  const visible = useAppStore(state => state.currentPage === 'favorites')
+  const [sources, setSources] = React.useState<Record<string, string>>({ 'local-fav': 'local', history: 'local' })
+  const source = mainTab === 'tracking' ? 'online' : sources[mainTab]
+  const scrollRef = React.useRef<HTMLDivElement>(null)
+  const scrollPositions = React.useRef<Record<string, number>>({})
+  const scrollKey = `${mainTab}:${source}`
+  React.useLayoutEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollPositions.current[scrollKey] ?? 0 }, [scrollKey])
 
   // 本地收藏
   const [localFav, setLocalFav] = React.useState<LocalFavorite[]>([])
@@ -131,7 +133,9 @@ export default function FavoritesPage(): JSX.Element {
       chapterIndex: row.chapter_index,
       chapterTitle: row.chapter_title,
       chapterUrl: row.chapter_url,
-      resumePageIndex: row.page_index
+      resumePageIndex: row.page_index,
+      resumePageOffset: row.page_offset ?? 0,
+      local: Boolean(row.is_local)
     })
   }
 
@@ -148,19 +152,29 @@ export default function FavoritesPage(): JSX.Element {
   }
 
   return (
-    <div className={styles.root}>
+    <div ref={scrollRef} className={styles.root} onScroll={event => { scrollPositions.current[scrollKey] = event.currentTarget.scrollTop }}>
       {/* Tab */}
       <div className={styles.tabRow}>
         <TabList selectedValue={mainTab} onTabSelect={(_e, d) => { const tab = d.value as MainTab; setMainTab(tab); setFavoritesTab(tab) }}>
-          <Tab value="local-fav">本地收藏</Tab>
-          <Tab value="history">历史记录</Tab>
+          <Tab value="local-fav">收藏</Tab>
+          <Tab value="history">历史</Tab>
+          <Tab value="tracking">追更</Tab>
         </TabList>
       </div>
+      {mainTab !== 'tracking' && <TabList size="small" selectedValue={source} style={{ marginBottom: '16px' }}
+        onTabSelect={(_, data) => setSources(previous => ({ ...previous, [mainTab]: String(data.value) }))}>
+        <Tab value="local">本地</Tab><Tab value="online">在线</Tab>
+      </TabList>}
+      {(['favorites', 'history', 'tracking'] as const).map(kind => {
+        const selected = source === 'online' && (mainTab === 'local-fav' ? kind === 'favorites' : mainTab === kind)
+        return <div key={kind} hidden={!selected}><OnlineLibraryPanel kind={kind} visible={visible && selected} /></div>
+      })}
 
       {/* 本地收藏 */}
-      {mainTab === 'local-fav' && (
+      {mainTab === 'local-fav' && source === 'local' && (
         localFav.length === 0 ? (
           <div className={styles.statusMsg}>
+            <Heart20Regular aria-hidden="true" />
             <Text>暂无本地收藏</Text>
             <Text size={200}>在漫画详情页点击爱心收藏</Text>
           </div>
@@ -174,13 +188,13 @@ export default function FavoritesPage(): JSX.Element {
       )}
 
       {/* 历史记录 */}
-      {mainTab === 'history' && (
+      {mainTab === 'history' && source === 'local' && (
         localHistory.length === 0 ? (
-          <div className={styles.statusMsg}><Text>暂无阅读历史</Text></div>
+          <div className={styles.statusMsg}><History20Regular aria-hidden="true" /><Text>暂无阅读历史</Text></div>
         ) : (
           <>
             <div className={styles.sectionHeader}>
-              <Text size={300} style={{ color: 'var(--ac-text-3)' }}>
+              <Text size={300} style={{ color: 'var(--ui-text-tertiary)' }}>
                 {localHistory.length} 条记录
               </Text>
               <Button size="small" appearance="subtle" icon={<Delete20Regular />}

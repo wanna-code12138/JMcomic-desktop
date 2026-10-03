@@ -1,0 +1,18 @@
+{
+  "runId": "110-tabs-ui-green2",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    }
+  ],
+  "errors": [
+    "Error: Timed out: keyboard reorder\nJMComic Desktop\n返回\n山间来信 · 合成阅读样章\n车牌号: JM101\n✍️ 阅读体验实验室\n风景\n旅途\n用于测试长图、横图与章节切换的合成内容。\n开始阅读\n下载\n章节列表 (2)\n倒序\n1\n第一章 · 出发\n2\n第二章 · 抵达\n我的书签\n新标签页\n新标签页\n下一页，从这里开始\n\n继续上次阅读，或找一本想看的漫画。\n\n↵\n我的收藏\n离线下载\n阅读历史\n继续阅读\n山间来信 · 合成阅读样章\n第一章 · 出发 · 第 1 页\n↗\nCtrl T 新建标签 · Ctrl Tab 切换 · 中键关闭\n[]\n    at wait (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:166:11)\n    at async module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\experience-tabs-smoke.cjs:40:3)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:308:5)"
+  ],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

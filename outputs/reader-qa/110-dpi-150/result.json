@@ -1,0 +1,26 @@
+{
+  "runId": "110-dpi-150",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "four window/theme layouts keep reader controls inside bounds at forced display scale",
+      "details": {
+        "scale": 1.5,
+        "themes": [
+          "#f1f4f8",
+          "#1b212b"
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

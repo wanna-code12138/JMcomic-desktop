@@ -1,0 +1,10 @@
+[scraper] detail cache hit: 1477646
+✔ a partial browser detail is not cached and the next visit can recover (3119.756ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3123.9571

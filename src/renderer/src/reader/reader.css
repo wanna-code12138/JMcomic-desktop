@@ -1,0 +1,50 @@
+.reader-root { --reader-ui-surface: #202833; --reader-ui-popup: #252f3c; --reader-ui-stroke: #384455; position: relative; container: reader / inline-size; display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; background: #141618; color: #eee; color-scheme: dark; font-size: 13px; }
+.reader-root button, .reader-root select, .reader-root input { font: inherit; color: inherit; }
+.reader-root button { min-height: 32px; padding: 5px 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid transparent; border-radius: 6px; background: transparent; cursor: pointer; white-space: nowrap; }
+.reader-root button:hover { background: #ffffff14; }
+.reader-root button:active { background: #ffffff20; }
+.reader-root button:disabled { opacity: .42; cursor: default; }
+.reader-root button:focus-visible, .reader-root select:focus-visible, .reader-root input:focus-visible { outline: 2px solid #83bffa; outline-offset: 2px; }
+.reader-root button[aria-pressed=true] { background: #315775; color: #e6f4ff; }
+.reader-root select, .reader-root input { background: var(--reader-ui-popup); border: 1px solid var(--reader-ui-stroke); border-radius: 5px; min-height: 30px; padding: 3px 7px; }
+.reader-toolbar { position: relative; flex: 0 0 40px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 3px 8px; box-sizing: border-box; z-index: 20; background: var(--reader-ui-surface); border-bottom: 1px solid var(--reader-ui-stroke); }
+.reader-toolbar > button { padding: 4px; width: 32px; }
+.reader-toolbar > select { max-width: 112px; min-width: 0; font-size: 12px; }
+.reader-zoom { display: flex; border: 1px solid #ffffff18; border-radius: 6px; padding: 2px; }
+.reader-zoom button { min-height: 26px; padding: 2px 6px; }
+.reader-viewport { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; overflow-anchor: none; scrollbar-color: #50555d #141618; outline: none; touch-action: pan-x pan-y; }
+.reader-scroll-content { position: relative; min-width: 100%; }
+.reader-page { position: absolute; top: 0; left: 0; display: flex; justify-content: center; width: 100%; padding-bottom: 12px; box-sizing: content-box; }
+.reader-sheet { flex: 0 0 auto; position: relative; background: #202429; }
+.reader-image { position: relative; width: 100%; height: 100%; }
+.reader-image img, .reader-image canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: contain; }
+.reader-image-state { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #9ca6b2; font-size: 13px; }
+.reader-image-state strong { color: #e5e8ec; font-weight: 500; }
+.reader-image-state button { background: #315775; color: white; }
+.reader-loading-dot { width: 22px; height: 22px; border: 2px solid #ffffff18; border-top-color: #93c8f3; border-radius: 50%; animation: reader-loading 900ms linear infinite; }
+.reader-single-content { min-height: 100%; min-width: 100%; display: flex; align-items: flex-start; justify-content: center; padding: var(--reader-top-inset) 24px var(--reader-bottom-inset); box-sizing: border-box; }
+.reader-single-content .reader-sheet { margin: auto; }
+.reader-message { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: #aeb5bd; padding: 100px 24px; box-sizing: border-box; }
+.reader-message h2 { font-size: 18px; font-weight: 500; color: #e5e8ec; margin: 0; }
+.reader-message details { max-width: 560px; font-size: 12px; word-break: break-word; }
+.reader-drawer { position: absolute; left: 12px; top: 48px; bottom: 12px; width: 288px; max-width: calc(100% - 24px); z-index: 30; background: var(--reader-ui-popup); border: 1px solid var(--reader-ui-stroke); border-radius: 10px; padding: 16px; box-sizing: border-box; overflow: auto; box-shadow: 0 8px 32px #0006; }
+.reader-drawer-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; font-weight: 600; }
+.reader-chapters { display: grid; gap: 6px; }
+.reader-chapters button { justify-content: flex-start; white-space: normal; text-align: left; }
+.reader-thumbnails { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 20px; }
+.reader-thumbnails button { display: flex; flex-direction: column; padding: 5px; border: 1px solid #ffffff1a; }
+.reader-thumbnails button[aria-current=page] { border: 2px solid #83bffa; padding: 4px; background: #315775; color: #e6f4ff; }
+.reader-thumbnails .reader-image { width: 96px; height: 140px; pointer-events: none; background: #17191c; }
+.reader-thumbnails .reader-image-state { font-size: 10px; }
+.reader-save-error { position: absolute; bottom: 12px; left: 16px; right: 16px; z-index: 35; background: #673c22; padding: 8px 14px; border-radius: 6px; }
+.reader-more-settings { position: relative; }
+.reader-more-settings > summary { display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; cursor: pointer; border-radius: 6px; list-style: none; }
+.reader-more-settings > summary:hover, .reader-more-settings[open] > summary { background: #ffffff14; }
+.reader-more-settings > summary:focus-visible { outline: 2px solid #83bffa; outline-offset: 2px; }
+.reader-settings-menu { position: absolute; right: 0; top: 40px; width: 260px; display: flex; flex-direction: column; gap: 16px; padding: 18px; border: 1px solid var(--reader-ui-stroke); background: var(--reader-ui-popup); border-radius: 10px; box-shadow: 0 12px 32px #0007; z-index: 40; }
+.reader-settings-menu label { display: flex; justify-content: space-between; align-items: center; }
+.reader-settings-menu small { color: #aeb5bd; font-size: 11px; }
+@keyframes reader-loading { to { transform: rotate(360deg); } }
+@container reader (max-width: 520px) { .reader-toolbar { gap: 4px; padding-inline: 4px; } .reader-toolbar > select { max-width: 104px; } }
+@media (prefers-reduced-motion: reduce) { .reader-root * { transition: none !important; animation: none !important; } }
+@media (forced-colors: active) { .reader-root button, .reader-toolbar, .reader-sheet { border: 1px solid CanvasText; } }

@@ -1,0 +1,6 @@
+{
+  "assertions": [
+    "age confirmation remains visible until the fixture user confirms; known content then completes startup"
+  ],
+  "errors": []
+}

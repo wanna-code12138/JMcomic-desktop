@@ -1,0 +1,9 @@
+Captured from the shipped 1.0.5 directory EXE using its own Node inspector.
+This is the actual main-process startup failure, before any source-loader test harness.
+
+Error: Cannot find module 'archiver-utils'
+Require stack:
+- D:\soft\Opencode\JMComic\dist-electron\win-unpacked\resources\app.asar\node_modules\zip-stream\index.js
+- D:\soft\Opencode\JMComic\dist-electron\win-unpacked\resources\app.asar\node_modules\archiver\lib\plugins\zip.js
+- D:\soft\Opencode\JMComic\dist-electron\win-unpacked\resources\app.asar\node_modules\archiver\index.js
+- D:\soft\Opencode\JMComic\dist-electron\win-unpacked\resources\app.asar\out\main\index.js

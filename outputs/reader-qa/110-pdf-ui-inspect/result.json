@@ -1,0 +1,18 @@
+{
+  "runId": "110-pdf-ui-inspect",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: pointer target must be visible and unobscured: {\"x\":0,\"y\":0,\"hit\":false,\"target\":\"<button type=\\\"button\\\" role=\\\"radio\\\" aria-checked=\\\"false\\\" data-format-option=\\\"images\\\"><svg fill=\\\"currentColor\\\" class=\\\"___9ctc0p0 f1w7gpdv fez10in f1dd5bof\\\" aria-hidden=\\\"true\\\" width=\\\"24\\\" height=\\\"24\\\" viewBox=\\\"0 0 24 24\\\" xmln\",\"cover\":\"<div class=\\\"___19dm5zv f22iagw f122n59 f8ljn23 fzd8dhq f8wuabp f10pi13n f1buevke f1k9xsch ft9c5xs f56mkwp f1xqy1su fi64zpg\\\"><span class=\\\"___1nf3yf7 f1ugzwwg fhuq1gn f5uzgmn fjf1xye fz7g6wx\\\">JMComic Desktop</span><div class=\\\"___yk6m5a0 f22iagw f122n59 f1t6b6ee f24s1u6 f618m06\\\"><button type=\\\"button\\\" aria-label=\\\"深色模式\\\" class=\\\"fui-Button r1f29ykk ___1fj\"}\n\nfalse !== true\n\n    at pointerClick (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:172:12)\n    at async clickSelector (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:180:5)\n    at async module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\pdf-download-smoke.cjs:30:3)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:310:5)"
+  ],
+  "network": {
+    "api": 8,
+    "image": 8,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

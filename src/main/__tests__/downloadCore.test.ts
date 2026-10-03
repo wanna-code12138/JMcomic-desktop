@@ -1,29 +1,22 @@
 import assert from 'assert'
+import { test } from 'node:test'
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import {
   buildChapterSaveDir,
   groupTasksByManga,
+  inspectDownloadedChapter,
   isLocalImagePathSafe,
   normalizeTaskRow,
   pickRetryableTasks,
-  resolveLocalChapterPages,
+  resolveLocalChapterPagesAsync,
   sanitizeFileName,
   toLocalImageUrl,
   type DownloadTaskRow
 } from '../downloadCore'
 
-function test(name: string, fn: () => void): void {
-  try {
-    fn()
-    console.log(`  PASS: ${name}`)
-  } catch (err) {
-    console.log(`  FAIL: ${name}`)
-    console.log(`        ${err instanceof Error ? err.message : String(err)}`)
-    process.exitCode = 1
-  }
-}
+const imageBytes = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aL1kAAAAASUVORK5CYII=', 'base64')
 
 function makeTempDir(prefix: string): string {
   return mkdtempSync(join(tmpdir(), prefix))
@@ -47,15 +40,15 @@ function row(overrides: Partial<DownloadTaskRow> = {}): DownloadTaskRow {
 
 // ─── sanitizeFileName ─────────────────────────────────────────────
 
-test('sanitizeFileName replaces illegal Windows chars', () => {
+test('sanitizeFileName replaces illegal Windows chars', async () => {
   assert.strictEqual(sanitizeFileName('a<b>c:d"e/f\\g|h?i*j'), 'a_b_c_d_e_f_g_h_i_j')
 })
 
-test('sanitizeFileName trims whitespace', () => {
+test('sanitizeFileName trims whitespace', async () => {
   assert.strictEqual(sanitizeFileName('  漫画  '), '漫画')
 })
 
-test('sanitizeFileName collapses internal whitespace and newlines', () => {
+test('sanitizeFileName collapses internal whitespace and newlines', async () => {
   assert.strictEqual(sanitizeFileName('第2話 \n  [2]'), '第2話 [2]')
 })
 
@@ -63,7 +56,7 @@ test('sanitizeFileName collapses internal whitespace and newlines', () => {
 
 // ─── normalizeTaskRow ────────────────────────────────────────────
 
-test('normalizeTaskRow maps snake_case DB row to camelCase task', () => {
+test('normalizeTaskRow maps snake_case DB row to camelCase task', async () => {
   const task = normalizeTaskRow({
     id: 11,
     manga_id: '1193342',
@@ -94,7 +87,7 @@ test('normalizeTaskRow maps snake_case DB row to camelCase task', () => {
   assert.strictEqual(task.error, undefined)
 })
 
-test('normalizeTaskRow tolerates null/missing optional fields', () => {
+test('normalizeTaskRow tolerates null/missing optional fields', async () => {
   const task = normalizeTaskRow({
     id: 8,
     manga_id: '423193',
@@ -117,19 +110,19 @@ test('normalizeTaskRow tolerates null/missing optional fields', () => {
   assert.strictEqual(task.status, 'failed')
 })
 
-test('buildChapterSaveDir nests manga and chapter folders', () => {
+test('buildChapterSaveDir nests manga and chapter folders', async () => {
   const dir = buildChapterSaveDir('D:\\downloads', '我的漫画', '第 3 话')
   assert.strictEqual(dir, join('D:\\downloads', '我的漫画', '第 3 话'))
 })
 
-test('buildChapterSaveDir falls back to numbered chapter folder when title empty', () => {
+test('buildChapterSaveDir falls back to numbered chapter folder when title empty', async () => {
   const dir = buildChapterSaveDir('D:\\downloads', '我的漫画', '   ', 4)
   assert.strictEqual(dir, join('D:\\downloads', '我的漫画', '第 5 話'))
 })
 
 // ─── toLocalImageUrl ──────────────────────────────────────────────
 
-test('toLocalImageUrl encodes absolute path as base64url', () => {
+test('toLocalImageUrl encodes absolute path as base64url', async () => {
   const url = toLocalImageUrl('D:\\downloads\\漫画\\第1话\\0001.jpg')
   assert.ok(url.startsWith('jmlocal://img/'))
   const encoded = url.slice('jmlocal://img/'.length)
@@ -137,17 +130,17 @@ test('toLocalImageUrl encodes absolute path as base64url', () => {
   assert.strictEqual(decoded, 'D:\\downloads\\漫画\\第1话\\0001.jpg')
 })
 
-// ─── resolveLocalChapterPages ─────────────────────────────────────
+// ─── resolveLocalChapterPagesAsync ─────────────────────────────────────
 
-test('resolveLocalChapterPages returns sorted numbered images', () => {
+test('resolveLocalChapterPagesAsync returns sorted numbered images', async () => {
   const root = makeTempDir('jm-local-pages-')
   try {
     mkdirSync(join(root, '章'), { recursive: true })
     for (const name of ['0001.jpg', '0002.jpg', '0010.png']) {
-      writeFileSync(join(root, '章', name), 'x')
+      writeFileSync(join(root, '章', name), imageBytes)
     }
-    const pages = resolveLocalChapterPages(join(root, '章'))
-    assert.deepStrictEqual(pages.map((p) => p.index), [0, 1, 2])
+    const pages = await resolveLocalChapterPagesAsync(join(root, '章'))
+    assert.deepStrictEqual(pages.map((p) => p.index), [0, 1, 9])
     assert.ok(pages[0].imageUrl.startsWith('jmlocal://img/'))
     assert.strictEqual((pages[0] as { url?: string }).url, undefined)
     const encoded = pages[2].imageUrl.slice('jmlocal://img/'.length)
@@ -158,13 +151,97 @@ test('resolveLocalChapterPages returns sorted numbered images', () => {
   }
 })
 
-test('resolveLocalChapterPages returns empty when dir missing', () => {
-  assert.deepStrictEqual(resolveLocalChapterPages('D:\\no\\such\\dir'), [])
+test('resolveLocalChapterPagesAsync returns empty when dir missing', async () => {
+  assert.deepStrictEqual(await resolveLocalChapterPagesAsync('D:\\no\\such\\dir'), [])
+})
+
+// ─── inspectDownloadedChapter ────────────────────────────────────
+
+test('inspectDownloadedChapter reports a missing download root without creating it', async () => {
+  const parent = makeTempDir('jm-download-missing-root-')
+  const missingRoot = join(parent, 'missing')
+  try {
+    const result = await inspectDownloadedChapter(row({ savePath: missingRoot }))
+    assert.deepStrictEqual(result, {
+      available: false,
+      pageCount: 0,
+      reason: 'missing-root'
+    })
+    assert.strictEqual(existsSync(missingRoot), false)
+  } finally {
+    rmSync(parent, { recursive: true, force: true })
+  }
+})
+
+test('inspectDownloadedChapter reports a missing chapter directory', async () => {
+  const root = makeTempDir('jm-download-missing-chapter-')
+  try {
+    const result = await inspectDownloadedChapter(row({ savePath: root }))
+    assert.deepStrictEqual(result, {
+      available: false,
+      pageCount: 0,
+      reason: 'missing-chapter'
+    })
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('inspectDownloadedChapter reports an empty chapter directory', async () => {
+  const root = makeTempDir('jm-download-empty-chapter-')
+  try {
+    const task = row({ savePath: root })
+    mkdirSync(buildChapterSaveDir(root, task.mangaTitle, task.chapterTitle, task.chapterIndex), {
+      recursive: true
+    })
+    assert.deepStrictEqual(await inspectDownloadedChapter(task), {
+      available: false,
+      pageCount: 0,
+      reason: 'missing-pages'
+    })
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('inspectDownloadedChapter counts numbered image files and ignores unrelated entries', async () => {
+  const root = makeTempDir('jm-download-complete-')
+  try {
+    const task = row({ savePath: root, totalPages: 2 })
+    const chapterDir = buildChapterSaveDir(root, task.mangaTitle, task.chapterTitle, task.chapterIndex)
+    mkdirSync(join(chapterDir, 'nested'), { recursive: true })
+    writeFileSync(join(chapterDir, '0001.jpg'), imageBytes)
+    writeFileSync(join(chapterDir, '0002.webp'), imageBytes)
+    writeFileSync(join(chapterDir, 'notes.txt'), 'ignored')
+    assert.deepStrictEqual(await inspectDownloadedChapter(task), {
+      available: true,
+      pageCount: 2
+    })
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test('inspectDownloadedChapter reports missing pages when disk count is below database count', async () => {
+  const root = makeTempDir('jm-download-partial-')
+  try {
+    const task = row({ savePath: root, totalPages: 3 })
+    const chapterDir = buildChapterSaveDir(root, task.mangaTitle, task.chapterTitle, task.chapterIndex)
+    mkdirSync(chapterDir, { recursive: true })
+    writeFileSync(join(chapterDir, '0001.jpg'), imageBytes)
+    assert.deepStrictEqual(await inspectDownloadedChapter(task), {
+      available: false,
+      pageCount: 1,
+      reason: 'missing-pages'
+    })
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
 })
 
 // ─── isLocalImagePathSafe ─────────────────────────────────────────
 
-test('isLocalImagePathSafe accepts image inside root/manga/chapter', () => {
+test('isLocalImagePathSafe accepts image inside root/manga/chapter', async () => {
   const ok = isLocalImagePathSafe(
     'D:\\downloads\\漫画\\第1话\\0001.jpg',
     ['D:\\downloads']
@@ -172,14 +249,14 @@ test('isLocalImagePathSafe accepts image inside root/manga/chapter', () => {
   assert.strictEqual(ok, true)
 })
 
-test('isLocalImagePathSafe rejects files outside allowed roots', () => {
+test('isLocalImagePathSafe rejects files outside allowed roots', async () => {
   assert.strictEqual(
     isLocalImagePathSafe('C:\\Windows\\system32\\drivers\\etc\\hosts', ['D:\\downloads']),
     false
   )
 })
 
-test('isLocalImagePathSafe rejects wrong depth or non-image files', () => {
+test('isLocalImagePathSafe rejects wrong depth or non-image files', async () => {
   assert.strictEqual(
     isLocalImagePathSafe('D:\\downloads\\漫画\\0001.jpg', ['D:\\downloads']),
     false
@@ -192,7 +269,7 @@ test('isLocalImagePathSafe rejects wrong depth or non-image files', () => {
 
 // ─── groupTasksByManga ────────────────────────────────────────────
 
-test('groupTasksByManga groups rows by manga and counts chapters', () => {
+test('groupTasksByManga groups rows by manga and counts chapters', async () => {
   const groups = groupTasksByManga([
     row({ id: 1, mangaId: '100', chapterIndex: 0, status: 'completed', createdAt: 100 }),
     row({ id: 2, mangaId: '100', chapterIndex: 1, status: 'downloading', createdAt: 200 }),
@@ -210,13 +287,13 @@ test('groupTasksByManga groups rows by manga and counts chapters', () => {
   assert.strictEqual(g1.createdAt, 300)
 })
 
-test('groupTasksByManga returns empty for empty input', () => {
+test('groupTasksByManga returns empty for empty input', async () => {
   assert.deepStrictEqual(groupTasksByManga([]), [])
 })
 
 // ─── pickRetryableTasks ───────────────────────────────────────────
 
-test('pickRetryableTasks returns failed and cancelled tasks in order', () => {
+test('pickRetryableTasks returns failed and cancelled tasks in order', async () => {
   const rows = [
     row({ id: 1, status: 'failed' }),
     row({ id: 2, status: 'cancelled' }),
@@ -228,13 +305,8 @@ test('pickRetryableTasks returns failed and cancelled tasks in order', () => {
   assert.deepStrictEqual(picked.map((t) => t.id), [1, 2])
 })
 
-test('pickRetryableTasks returns empty when nothing is retryable', () => {
+test('pickRetryableTasks returns empty when nothing is retryable', async () => {
   assert.deepStrictEqual(pickRetryableTasks([row({ id: 1, status: 'completed' })]), [])
 })
 
 console.log('\nAll tests completed.')
-if (process.exitCode) {
-  console.log('Some tests failed.')
-} else {
-  console.log('All tests passed!')
-}

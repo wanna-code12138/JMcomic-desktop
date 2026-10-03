@@ -1,0 +1,18 @@
+{
+  "runId": "110-pdf-ui-verified",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    }
+  ],
+  "errors": [
+    "Error: Electron QA watchdog expired\n    at Timeout._onTimeout (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:61:23)\n    at listOnTimeout (node:internal/timers:605:17)\n    at process.processTimers (node:internal/timers:541:7)"
+  ],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

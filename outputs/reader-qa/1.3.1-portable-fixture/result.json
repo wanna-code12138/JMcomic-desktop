@@ -1,0 +1,18 @@
+{
+  "executable": "D:\\soft\\Opencode\\JMComic\\dist-electron\\JMComic Desktop Portable 1.3.1.exe",
+  "sha256": "08fd685b6f3a1f9b7fe7897426482c6e15c64f84fee388ff61884a8d7071329d",
+  "mode": "direct packaged EXE / synthetic network and save dialog",
+  "fixtureWindow": "hidden",
+  "assertions": [],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: the real EXE must use the isolated profile\n+ actual - expected\n\n+ 'D:\\\\soft\\\\Opencode\\\\JMComic\\\\work\\\\1.3.1-portable-fixture\\\\portable\\\\JMComicData'\n- 'D:\\\\soft\\\\Opencode\\\\JMComic\\\\work\\\\1.3.1-portable-fixture\\\\profile'\n\n    at file:///D:/soft/Opencode/JMComic/scripts/package-launch-smoke.mjs:119:10\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)"
+  ],
+  "runtime": {
+    "packaged": true,
+    "version": "1.3.1",
+    "appPath": "C:\\Users\\David\\AppData\\Local\\Temp\\3K99Q6pPZyxMkveqxL91XiqHwAH\\resources\\app.asar",
+    "userData": "D:\\soft\\Opencode\\JMComic\\work\\1.3.1-portable-fixture\\portable\\JMComicData",
+    "electron": "43.2.0",
+    "node": "24.18.0"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "runId": "startup-retry-ui-green-20260929",
+  "mode": "visible Chromium / development StrictMode / synthetic network",
+  "assertions": [
+    {
+      "name": "startup failure exposes a working retry action and preserves the renderer workspace"
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 5,
+    "image": 1,
+    "blocked": 5
+  },
+  "summaryQueries": 0
+}

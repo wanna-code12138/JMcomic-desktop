@@ -1,0 +1,3 @@
+
+QA PASS: cold restart restores start/book tabs, pin, custom title and active selection; GPU preference applies at startup
+QA RESULT=0 evidence=D:\soft\Opencode\JMComic\outputs\reader-qa\110-cold-restore

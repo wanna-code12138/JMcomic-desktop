@@ -1,0 +1,16 @@
+{
+  "runId": "reader-controls-full-verified-20260929",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "cold process restart restores offline mode, last page, preferences and chapter directory"
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 1,
+    "image": 0,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

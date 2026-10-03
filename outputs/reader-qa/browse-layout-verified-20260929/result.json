@@ -1,0 +1,135 @@
+{
+  "runId": "browse-layout-verified-20260929",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "settings scrollbar fills the browse pane across hide, restore, resize, navigation expansion and final close",
+      "details": [
+        {
+          "width": 1280,
+          "state": "hidden",
+          "browse": {
+            "left": 64,
+            "right": 1280,
+            "width": 1216
+          },
+          "scroll": {
+            "left": 64,
+            "right": 1280,
+            "width": 1216
+          },
+          "windowWidth": 1280,
+          "scrollTop": 0,
+          "horizontalOverflow": 0,
+          "readerWidth": 0,
+          "sameReader": true
+        },
+        {
+          "width": 1280,
+          "state": "shown",
+          "browse": {
+            "left": 64,
+            "right": 550.3875122070312,
+            "width": 486.38751220703125
+          },
+          "scroll": {
+            "left": 64,
+            "right": 550.3875122070312,
+            "width": 486.38751220703125
+          },
+          "windowWidth": 1280,
+          "scrollTop": 1246.4000244140625,
+          "horizontalOverflow": 0,
+          "readerWidth": 728.8125,
+          "sameReader": true
+        },
+        {
+          "width": 960,
+          "state": "hidden",
+          "browse": {
+            "left": 64,
+            "right": 961.6000366210938,
+            "width": 897.6000366210938
+          },
+          "scroll": {
+            "left": 64,
+            "right": 961.6000366210938,
+            "width": 897.6000366210938
+          },
+          "windowWidth": 962,
+          "scrollTop": 1254.4000244140625,
+          "horizontalOverflow": 0,
+          "readerWidth": 0,
+          "sameReader": true
+        },
+        {
+          "width": 960,
+          "state": "shown",
+          "browse": {
+            "left": 64,
+            "right": 423.0249938964844,
+            "width": 359.0249938964844
+          },
+          "scroll": {
+            "left": 64,
+            "right": 423.0249938964844,
+            "width": 359.0249938964844
+          },
+          "windowWidth": 962,
+          "scrollTop": 1448,
+          "horizontalOverflow": 0,
+          "readerWidth": 537.7750244140625,
+          "sameReader": true
+        },
+        {
+          "width": 1600,
+          "state": "hidden",
+          "browse": {
+            "left": 64,
+            "right": 1600,
+            "width": 1536
+          },
+          "scroll": {
+            "left": 64,
+            "right": 1600,
+            "width": 1536
+          },
+          "windowWidth": 1600,
+          "scrollTop": 1254.4000244140625,
+          "horizontalOverflow": 0,
+          "readerWidth": 0,
+          "sameReader": true
+        },
+        {
+          "width": 1600,
+          "state": "shown",
+          "browse": {
+            "left": 64,
+            "right": 678.3875122070312,
+            "width": 614.3875122070312
+          },
+          "scroll": {
+            "left": 64,
+            "right": 678.3875122070312,
+            "width": 614.3875122070312
+          },
+          "windowWidth": 1600,
+          "scrollTop": 1226.4000244140625,
+          "horizontalOverflow": 0,
+          "readerWidth": 920.8125,
+          "sameReader": true
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 7
+  },
+  "summaryQueries": 0
+}

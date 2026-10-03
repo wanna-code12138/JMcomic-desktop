@@ -1,0 +1,15 @@
+{
+  "runId": "detail-retry-red",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [],
+  "errors": [
+    "Error: Timed out: button 重新加载\nFocus: <button type=\"button\" class=\"___7dstut0 f22iagw f122n59 f1ga9sj3 fv9hx5d f127wd93 f10pi13n ff1bbxe f1k6fduh fses1vf f71fsbu f5uzgmn f9o4duy f1lzbuw2 f3rmtva f3bhgqh fly5x3f f1o700av f1ewtqcl ff5za5u f1wv2ul9 frsxs6k fz7cnr3\" aria-label=\"分类\"><span class=\"___vof3hx0 f22iagw f122n59 f64fuq3 fjamq6b fi64zpg\"><svg fill=\"currentColor\" class=\"___9ctc0p0 f1w7gpdv fez10in f1dd5bof\" aria-hidden=\"true\" width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M2 3.5C2 2.67 2.67\nTrace: undefined\nJMComic Desktop\n导航\n首页\n分类\n搜索\n收藏\n下载\n设置\n返回\n⚠️ 加载失败\nError: browser-validation:detail-chapters\n网络正常\nJMComic Desktop v43.2.0\n[]\n    at wait (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:179:11)\n    at async clickText (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:201:5)\n    at async verifyRetry (D:\\soft\\Opencode\\JMComic\\scripts\\detail-entry-smoke.cjs:12:5)\n    at async module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\detail-entry-smoke.cjs:16:46)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:217:5)"
+  ],
+  "network": {
+    "api": 7,
+    "image": 4,
+    "blocked": 0
+  },
+  "summaryQueries": 0,
+  "detailEntries": []
+}

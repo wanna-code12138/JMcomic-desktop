@@ -1,0 +1,135 @@
+
+> jmcomic-desktop@1.2.0 check
+> npm run test && npm run typecheck && npm run build
+
+
+> jmcomic-desktop@1.2.0 test
+> node scripts/test.mjs
+
+PASS scripts\__tests__\summarize-performance.test.mjs
+PASS src\main\__tests__\cbzExport.test.ts
+PASS src\main\__tests__\contentApiContract.test.ts
+PASS src\main\__tests__\contentCache.test.ts
+PASS src\main\__tests__\contentCacheBudget.test.ts
+PASS src\main\__tests__\contentCacheScale.test.ts
+PASS src\main\__tests__\contentGateway.test.ts
+PASS src\main\__tests__\contentValidation.test.ts
+PASS src\main\__tests__\dataPaths.test.ts
+PASS src\main\__tests__\databaseCloseDrain.test.ts
+PASS src\main\__tests__\databasePersistence.test.ts
+PASS src\main\__tests__\databaseRecovery.test.ts
+PASS src\main\__tests__\databaseStartupRecovery.test.ts
+PASS src\main\__tests__\databaseWriteCoordinator.test.ts
+PASS src\main\__tests__\downloadAvailabilityContract.test.ts
+PASS src\main\__tests__\downloadCore.test.ts
+PASS src\main\__tests__\downloadLibraryIntegrity.test.ts
+PASS src\main\__tests__\downloadLifecycle.test.ts
+PASS src\main\__tests__\downloadOperationLeases.test.ts
+PASS src\main\__tests__\downloadPathSafety.test.ts
+PASS src\main\__tests__\downloadRootsInvalidation.test.ts
+PASS src\main\__tests__\downloadSummaryRace.test.ts
+PASS src\main\__tests__\experiencePreferences.test.ts
+PASS src\main\__tests__\favoritesStoreRuntime.test.ts
+PASS src\main\__tests__\homepageLogic.test.ts
+PASS src\main\__tests__\imageBackgroundBudget.test.ts
+PASS src\main\__tests__\imageCacheCore.test.ts
+PASS src\main\__tests__\imageCacheIoContract.test.ts
+PASS src\main\__tests__\imageCorrectnessContract.test.ts
+PASS src\main\__tests__\imageDescrambleCore.test.ts
+PASS src\main\__tests__\imageLoaderRuntime.test.ts
+PASS src\main\__tests__\imageRequestScheduler.test.ts
+PASS src\main\__tests__\imageSchedulerLifecycle.test.ts
+PASS src\main\__tests__\imageStreamFetch.test.ts
+PASS src\main\__tests__\imageStreamingPolicy.test.ts
+PASS src\main\__tests__\imageStreamingProtocol.test.ts
+PASS src\main\__tests__\jmAppApiCrypto.test.ts
+PASS src\main\__tests__\jmAppApiFetchPort.test.ts
+PASS src\main\__tests__\jmAppApiProvider.test.ts
+PASS src\main\__tests__\jmAppApiRuntime.test.ts
+PASS src\main\__tests__\jmAppApiSchemas.test.ts
+PASS src\main\__tests__\jmAppApiTransport.test.ts
+PASS src\main\__tests__\localImageAccess.test.ts
+PASS src\main\__tests__\localImageJunction.test.ts
+PASS src\main\__tests__\mainIoContract.test.ts
+PASS src\main\__tests__\mangaDetailMetadata.test.ts
+PASS src\main\__tests__\navigationExperienceContract.test.ts
+PASS src\main\__tests__\navigationReturnContract.test.ts
+PASS src\main\__tests__\pageStateCache.test.ts
+PASS src\main\__tests__\pdfDownload.test.ts
+PASS src\main\__tests__\pdfLifecycle.test.ts
+PASS src\main\__tests__\pdfRecovery.test.ts
+PASS src\main\__tests__\performanceDiagnosticsContract.test.ts
+PASS src\main\__tests__\performanceInstrumentation.test.ts
+PASS src\main\__tests__\performanceMetricsCore.test.ts
+PASS src\main\__tests__\performanceRuntimeRegression.test.ts
+PASS src\main\__tests__\performanceTraceCore.test.ts
+PASS src\main\__tests__\performanceTraceOutput.test.ts
+PASS src\main\__tests__\personalData.test.ts
+PASS src\main\__tests__\personalDataLifecycle.test.ts
+PASS src\main\__tests__\readerCloseLoading.test.ts
+PASS src\main\__tests__\readerFocus.test.ts
+PASS src\main\__tests__\readerLayoutContract.test.ts
+PASS src\main\__tests__\readerSession.test.ts
+PASS src\main\__tests__\readerWorkspace.test.ts
+PASS src\main\__tests__\recommendationCore.test.ts
+PASS src\main\__tests__\recommendationData.test.ts
+PASS src\main\__tests__\recommendationUiContract.test.ts
+PASS src\main\__tests__\rendererBoundaryContract.test.ts
+PASS src\main\__tests__\rendererMetrics.test.ts
+PASS src\main\__tests__\retryableLazyPage.test.ts
+PASS src\main\__tests__\scraperDetailCache.test.ts
+PASS src\main\__tests__\sessionWarmupState.test.ts
+PASS src\main\__tests__\settingsConcurrency.test.ts
+PASS src\main\__tests__\settingsCore.test.ts
+PASS src\main\__tests__\shutdownAdmission.test.ts
+PASS src\main\__tests__\shutdownController.test.ts
+PASS src\main\__tests__\startupVerification.test.ts
+PASS src\main\__tests__\themeTokens.test.ts
+PASS src\main\__tests__\verificationPage.test.ts
+PASS src\main\__tests__\warmupLifecycle.test.ts
+PASS src\main\__tests__\winuiVisualContract.test.ts
+TOTAL=82 PASSED=82 FAILED=0
+
+> jmcomic-desktop@1.2.0 typecheck
+> tsc --noEmit
+
+
+> jmcomic-desktop@1.2.0 build
+> electron-vite build
+
+vite v5.4.21 building SSR bundle for production...
+transforming...
+✓ 68 modules transformed.
+rendering chunks...
+[plugin:vite:reporter] [plugin vite:reporter]
+(!) D:/soft/Opencode/JMComic/src/main/networkProbe.ts is dynamically imported by D:/soft/Opencode/JMComic/src/main/sessionWarmup.ts but also statically imported by D:/soft/Opencode/JMComic/src/main/httpClient.ts, D:/soft/Opencode/JMComic/src/main/imageNetwork.ts, D:/soft/Opencode/JMComic/src/main/index.ts, D:/soft/Opencode/JMComic/src/main/scraperWindow.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter]
+(!) D:/soft/Opencode/JMComic/src/main/httpClient.ts is dynamically imported by D:/soft/Opencode/JMComic/src/main/sessionWarmup.ts but also statically imported by D:/soft/Opencode/JMComic/src/main/siteAdapter.ts, dynamic import will not move module into another chunk.
+
+out/main/pdfWorker.js    3.71 kB
+out/main/index.js      250.16 kB
+✓ built in 953ms
+vite v5.4.21 building SSR bundle for production...
+transforming...
+✓ 1 modules transformed.
+rendering chunks...
+out/preload/index.js  9.50 kB
+✓ built in 16ms
+vite v5.4.21 building for production...
+transforming...
+✓ 2206 modules transformed.
+rendering chunks...
+../../out/renderer/index.html                              0.62 kB
+../../out/renderer/assets/icon-128-CYIVzjyi.png            8.81 kB
+../../out/renderer/assets/ReaderPage-D4sodoqI.css          6.29 kB
+../../out/renderer/assets/index-99wz6WB9.css              36.89 kB
+../../out/renderer/assets/chunk-16-BGHHCCXE.js             0.21 kB
+../../out/renderer/assets/Badge-2nRWzcPV.js               16.42 kB
+../../out/renderer/assets/DownloadsPage-DRCztlTl.js       26.48 kB
+../../out/renderer/assets/MangaDetailPage-xWw6DEyn.js     50.68 kB
+../../out/renderer/assets/DialogContent-B-f1l3nw.js       80.53 kB
+../../out/renderer/assets/SettingsPage-BZ2L-ckE.js        92.22 kB
+../../out/renderer/assets/ReaderPage-DbdHk0wD.js          96.77 kB
+../../out/renderer/assets/index-DLD8ya98.js            1,081.08 kB
+✓ built in 6.84s
