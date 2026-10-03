@@ -1,0 +1,232 @@
+{
+  "at": "2026-10-02T14:15:40.637Z",
+  "runtime": "Node fetch with existing production signing/decryption/fetch-port modules",
+  "credentials": "omit",
+  "realAccountRequests": 0,
+  "requests": [
+    {
+      "endpoint": "setting",
+      "origin": "https://www.cdnhjk.net",
+      "ok": true,
+      "appVersion": "2.1.9"
+    },
+    {
+      "endpoint": "forum",
+      "query": {
+        "aid": "123456",
+        "mode": "all",
+        "page": "1"
+      },
+      "ok": true,
+      "shape": {
+        "keys": [
+          "list",
+          "total"
+        ],
+        "total": "34",
+        "itemCount": 10,
+        "itemKeys": [
+          "AID",
+          "BID",
+          "CID",
+          "NCID",
+          "NID",
+          "UID",
+          "addtime",
+          "content",
+          "expinfo",
+          "gender",
+          "likes",
+          "name",
+          "nickname",
+          "parent_CID",
+          "photo",
+          "spoiler",
+          "update_at",
+          "username"
+        ],
+        "embeddedReplyCount": 0,
+        "flatReplyCount": 0,
+        "spoilers": [
+          "1"
+        ],
+        "idsDigest": "1498701f0b21196e9a183e5335d969c208998b21a649e5a575a7893fb37d248f"
+      }
+    },
+    {
+      "endpoint": "forum",
+      "query": {
+        "aid": "123456",
+        "mode": "all",
+        "page": "2"
+      },
+      "ok": true,
+      "shape": {
+        "keys": [
+          "list",
+          "total"
+        ],
+        "total": "34",
+        "itemCount": 10,
+        "itemKeys": [
+          "AID",
+          "BID",
+          "CID",
+          "NCID",
+          "NID",
+          "UID",
+          "addtime",
+          "content",
+          "expinfo",
+          "gender",
+          "likes",
+          "name",
+          "nickname",
+          "parent_CID",
+          "photo",
+          "spoiler",
+          "update_at",
+          "username"
+        ],
+        "embeddedReplyCount": 0,
+        "flatReplyCount": 0,
+        "spoilers": [
+          "1",
+          "2"
+        ],
+        "idsDigest": "bca28f0c76070452ca65e4198b4b50a4d9c8f85681ce3bc96f4bcdb49f23885a"
+      }
+    },
+    {
+      "endpoint": "forum",
+      "query": {
+        "aid": "123456",
+        "mode": "manhua",
+        "page": "1"
+      },
+      "ok": true,
+      "shape": {
+        "keys": [
+          "list",
+          "total"
+        ],
+        "total": "34",
+        "itemCount": 10,
+        "itemKeys": [
+          "AID",
+          "BID",
+          "CID",
+          "NCID",
+          "NID",
+          "UID",
+          "addtime",
+          "content",
+          "expinfo",
+          "gender",
+          "likes",
+          "name",
+          "nickname",
+          "parent_CID",
+          "photo",
+          "spoiler",
+          "update_at",
+          "username"
+        ],
+        "embeddedReplyCount": 0,
+        "flatReplyCount": 0,
+        "spoilers": [
+          "1"
+        ],
+        "idsDigest": "1498701f0b21196e9a183e5335d969c208998b21a649e5a575a7893fb37d248f"
+      }
+    },
+    {
+      "endpoint": "forum",
+      "query": {
+        "aid": "123456",
+        "mode": "all",
+        "page": "4"
+      },
+      "ok": true,
+      "shape": {
+        "keys": [
+          "list",
+          "total"
+        ],
+        "total": "34",
+        "itemCount": 4,
+        "itemKeys": [
+          "AID",
+          "BID",
+          "CID",
+          "NCID",
+          "NID",
+          "UID",
+          "addtime",
+          "content",
+          "expinfo",
+          "gender",
+          "likes",
+          "name",
+          "nickname",
+          "parent_CID",
+          "photo",
+          "replys",
+          "spoiler",
+          "update_at",
+          "username"
+        ],
+        "embeddedReplyCount": 3,
+        "flatReplyCount": 0,
+        "spoilers": [
+          "1",
+          "2"
+        ],
+        "idsDigest": "eceb7cec7d136fef6d9f4c15e3cb1969e24cdc8114c5485a75dbfce7d42e1fdc"
+      }
+    },
+    {
+      "endpoint": "forum",
+      "query": {
+        "aid": "1173049",
+        "mode": "all",
+        "page": "1"
+      },
+      "ok": true,
+      "shape": {
+        "keys": [
+          "list",
+          "total"
+        ],
+        "total": "4",
+        "itemCount": 4,
+        "itemKeys": [
+          "AID",
+          "BID",
+          "CID",
+          "NCID",
+          "NID",
+          "UID",
+          "addtime",
+          "content",
+          "expinfo",
+          "gender",
+          "likes",
+          "name",
+          "nickname",
+          "parent_CID",
+          "photo",
+          "spoiler",
+          "update_at",
+          "username"
+        ],
+        "embeddedReplyCount": 0,
+        "flatReplyCount": 0,
+        "spoilers": [
+          "1"
+        ],
+        "idsDigest": "5dcdf4a9d06e6aae848e7ef44d4a6fc19be0f227b972f1f63fea4371e1f68534"
+      }
+    }
+  ]
+}

@@ -1,25 +1,30 @@
+import type { MangaDownloadGroup } from '../../../shared/downloadContracts'
 import React from 'react'
 import {
   makeStyles, Text, Button, Badge, Skeleton, SkeletonItem,
-  Tooltip, Divider, Spinner
+  Tooltip, Divider, Spinner, Tab, TabList
 } from '@fluentui/react-components'
 import {
   BookOpen20Regular, ArrowDownload20Regular,
   Heart20Regular, Heart20Filled, ArrowLeft20Regular,
   ChevronDown20Regular, ChevronUp20Regular,
-  FolderOpen20Regular, CheckmarkCircle20Regular, ArrowClockwise20Regular
+  FolderOpen20Regular, CheckmarkCircle20Regular, ArrowClockwise20Regular, Person20Regular, Warning20Regular
 } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
 import { toJmImg } from '../utils/image'
 import ChapterSelectDialog from '../components/ChapterSelectDialog'
+import { requestDownload } from '../downloads/downloadRequest'
+import { pageTitle, emptyState } from '../theme/surfaceStyles'
+import CommentPanel from '../components/CommentPanel'
+import AccountAlbumActions from '../components/AccountAlbumActions'
 
 const useStyles = makeStyles({
   root: { height: '100%', overflow: 'auto' },
-  backBtn: { padding: '12px 32px 0' },
+  backBtn: { padding: '12px 24px 0' },
   hero: {
     display: 'flex',
-    gap: '32px',
-    padding: '32px',
+    gap: '24px',
+    padding: '24px',
     backgroundColor: 'var(--ui-bg-card)',
     borderBottom: '1px solid var(--ui-stroke-card)'
   },
@@ -44,12 +49,7 @@ const useStyles = makeStyles({
     opacity: 1
   },
   info: { flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0 },
-  title: {
-    fontSize: '28px',
-    fontWeight: 700,
-    color: 'var(--ui-text-primary)',
-    lineHeight: 1.3
-  },
+  title: pageTitle,
   carPlate: {
     fontSize: '13px',
     color: 'var(--ui-text-tertiary)',
@@ -57,11 +57,11 @@ const useStyles = makeStyles({
     userSelect: 'all',
     cursor: 'text'
   },
-  author: { fontSize: '15px', color: 'var(--ui-text-secondary)' },
+  author: { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', lineHeight: '20px', color: 'var(--ui-text-secondary)' },
   tags: { display: 'flex', flexWrap: 'wrap', gap: '6px' },
   tagBadge: {
-    backgroundColor: 'var(--ui-brand)',
-    color: '#ffffff',
+    backgroundColor: 'var(--ui-brand-fill)',
+    color: 'var(--ui-on-brand)',
     cursor: 'pointer',
     transition: 'opacity var(--ui-motion-fast) ease-out, background-color var(--ui-motion-fast) ease-out',
     ':hover': {
@@ -74,7 +74,7 @@ const useStyles = makeStyles({
     lineHeight: 1.6
   },
   actions: { display: 'flex', gap: '12px', marginTop: '8px' },
-  chaptersSection: { padding: '24px 32px' },
+  chaptersSection: { padding: '24px' },
   chapterHeader: {
     display: 'flex',
     alignItems: 'center',
@@ -93,7 +93,7 @@ const useStyles = makeStyles({
     border: '1px solid transparent',
     ':hover': {
       backgroundColor: 'var(--ui-bg-hover)',
-      borderColor: 'var(--ui-stroke-card)'
+      border: '1px solid var(--ui-stroke-card)'
     },
     ':active': {
       transform: 'scale(0.97)'
@@ -119,15 +119,7 @@ const useStyles = makeStyles({
     color: 'var(--ui-text-primary)',
     flex: 1
   },
-  center: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '60px',
-    gap: '16px',
-    color: 'var(--ui-text-tertiary)'
-  }
+  center: { ...emptyState, padding: '60px 24px' }
 })
 
 interface DetailData {
@@ -145,20 +137,6 @@ interface DetailChapter extends DownloadedFileAvailability {
   error?: string
 }
 
-interface MangaDownloadGroup {
-  mangaId: string
-  mangaTitle: string
-  coverUrl: string
-  tasks: Array<DownloadedFileAvailability & {
-    id: number
-    chapterIndex: number
-    chapterTitle: string
-    chapterUrl: string
-    status: string
-    error?: string
-  }>
-}
-
 export default function MangaDetailPage(): JSX.Element {
   const styles = useStyles()
   const currentMangaId = useAppStore((s) => s.currentMangaId)
@@ -173,8 +151,13 @@ export default function MangaDetailPage(): JSX.Element {
   const [coverLoaded, setCoverLoaded] = React.useState(false)
   const [manga, setManga] = React.useState<DetailData | null>(null)
   const [error, setError] = React.useState('')
+  const [loadAttempt, setLoadAttempt] = React.useState(0)
   const [selectOpen, setSelectOpen] = React.useState(false)
+  const [forceDownloadFormat, setForceDownloadFormat] = React.useState(false)
   const [addStatus, setAddStatus] = React.useState('')
+  const [detailTab, setDetailTab] = React.useState('chapters')
+  const visible = useAppStore(state => state.currentPage === 'detail')
+  React.useEffect(() => { setDetailTab('chapters') }, [currentMangaId])
 
   React.useEffect(() => {
     if (!currentMangaId) return
@@ -213,10 +196,10 @@ export default function MangaDetailPage(): JSX.Element {
           } else {
             setError('本地没有该漫画的下载记录')
           }
-        } else if (result?.ok) {
+        } else if (result && 'ok' in result && result.ok) {
           setManga(result.data as DetailData)
         } else {
-          setError(result?.error || '加载失败')
+          setError((result && 'error' in result && result.error) || '加载失败')
         }
       } catch (err) {
         if (!cancelled) setError(String(err))
@@ -226,7 +209,7 @@ export default function MangaDetailPage(): JSX.Element {
 
     load()
     return () => { cancelled = true }
-  }, [currentMangaId, detailSource])
+  }, [currentMangaId, detailSource, loadAttempt])
 
   React.useEffect(() => {
     if (!currentMangaId) return
@@ -262,8 +245,11 @@ export default function MangaDetailPage(): JSX.Element {
           <Button appearance="subtle" icon={<ArrowLeft20Regular />} onClick={() => setCurrentPage(previousPage || 'home')}>返回</Button>
         </div>
         <div className={styles.center}>
-          <Text size={500} weight="semibold">⚠️ 加载失败</Text>
+          <Warning20Regular aria-hidden="true" />
+          <Text size={400} weight="semibold">加载失败</Text>
           <Text size={300}>{error || '未找到漫画数据'}</Text>
+          <Button appearance="primary" icon={<ArrowClockwise20Regular />}
+            onClick={() => setLoadAttempt(attempt => attempt + 1)}>重新加载</Button>
         </div>
       </div>
     )
@@ -271,24 +257,25 @@ export default function MangaDetailPage(): JSX.Element {
 
   const chapters = orderAsc ? [...manga.chapters].reverse() : manga.chapters
 
-  const downloadChapters = async (indices: number[]): Promise<void> => {
+  const downloadChapters = async (indices: number[], chooseFormat = false): Promise<void> => {
     if (!window.electronAPI || indices.length === 0) return
     // 立即关闭选择弹窗，后续进度在顶部栏展示，不阻塞页面操作
     setSelectOpen(false)
     setAddStatus('')
     const selected = manga.chapters.filter((c) => indices.includes(c.index))
     try {
-      const result = await window.electronAPI.downloadAddChapters({
+      const result = await requestDownload({
         mangaId: manga.id,
         mangaTitle: manga.title,
         coverUrl: manga.coverUrl,
         chapters: selected.map((c) => ({ index: c.index, title: c.title, url: c.url }))
-      }) as { added?: number; total?: number; results?: Array<{ ok: boolean; error?: string }> } | undefined
+      }, chooseFormat)
+      if (result.cancelled) return
       const added = result?.added ?? 0
       const total = result?.total ?? selected.length
-      const firstError = result?.results?.find((r) => !r.ok)?.error
+      const firstError = result.error ?? result?.results?.find((r) => !r.ok)?.error
       if (added === total) {
-        setAddStatus(`已加入下载队列 ${added} 章`)
+        setAddStatus(result.format === 'pdf' ? `已加入 PDF 合并队列，共 ${added} 章` : `已加入下载队列 ${added} 章`)
       } else if (added > 0) {
         setAddStatus(`已加入 ${added}/${total} 章${firstError ? `，失败：${firstError}` : '，部分失败'}`)
       } else {
@@ -300,6 +287,7 @@ export default function MangaDetailPage(): JSX.Element {
   }
 
   const handleDownloadClick = (): void => {
+    setForceDownloadFormat(false)
     if (manga.chapters.length > 1) {
       setSelectOpen(true)
     } else if (manga.chapters.length === 1) {
@@ -319,7 +307,8 @@ export default function MangaDetailPage(): JSX.Element {
       chapterIndex: ch.index,
       chapterTitle: ch.title,
       chapterUrl: ch.url,
-      local: true
+      local: true,
+      chapters: manga.chapters
     })
   }
 
@@ -329,8 +318,8 @@ export default function MangaDetailPage(): JSX.Element {
         <Button appearance="subtle" icon={<ArrowLeft20Regular />} onClick={() => setCurrentPage(previousPage || 'home')}>返回</Button>
       </div>
 
-      <div className={styles.hero}>
-        <div className={styles.coverWrap}>
+      <div className={`${styles.hero} manga-detail-hero`}>
+        <div className={`${styles.coverWrap} manga-detail-cover`}>
           {manga.coverUrl ? (
             <img
               className={`${styles.cover} ${coverLoaded ? styles.coverLoaded : ''}`}
@@ -345,9 +334,9 @@ export default function MangaDetailPage(): JSX.Element {
           )}
         </div>
         <div className={styles.info}>
-          <h1 className={styles.title}>{manga.title}</h1>
+          <h1 className={`${styles.title} manga-detail-title`}>{manga.title}</h1>
           <div className={styles.carPlate}>车牌号: JM{manga.id}</div>
-          <div className={styles.author}>✍️ {manga.author || '未知作者'}</div>
+          <div className={styles.author}><Person20Regular aria-hidden="true" />{manga.author || '未知作者'}</div>
           {manga.tags.length > 0 && (
             <div className={styles.tags}>
               {manga.tags.map((tag) => (
@@ -367,7 +356,7 @@ export default function MangaDetailPage(): JSX.Element {
             </div>
           )}
           {manga.description && <div className={styles.description}>{manga.description}</div>}
-          <div className={styles.actions}>
+          <div className={`${styles.actions} manga-detail-actions`}>
             {detailSource === 'local' ? (
               <Button appearance="primary" size="large" icon={<FolderOpen20Regular />}
                 onClick={async () => {
@@ -398,9 +387,14 @@ export default function MangaDetailPage(): JSX.Element {
                 >
                   下载
                 </Button>
-                <Tooltip content={liked ? '取消收藏' : '收藏'} relationship="label">
+                <Button size="small" appearance="subtle" onClick={() => {
+                  setForceDownloadFormat(true)
+                  if (manga.chapters.length > 1) setSelectOpen(true)
+                  else if (manga.chapters.length) void downloadChapters([manga.chapters[0].index], true)
+                }}>选择格式…</Button>
+                <Tooltip content={liked ? '取消本地收藏' : '本地收藏'} relationship="label">
                   <Button size="large"
-                    icon={liked ? <Heart20Filled style={{ color: 'var(--ui-danger)' }} /> : <Heart20Regular />}
+                    icon={liked ? <Heart20Filled style={{ color: 'var(--ui-favorite)' }} /> : <Heart20Regular />}
                     onClick={async () => {
                       if (!window.electronAPI) return
                       const wasLiked = liked
@@ -424,18 +418,23 @@ export default function MangaDetailPage(): JSX.Element {
               </>
             )}
           </div>
+          <AccountAlbumActions key={manga.id} id={manga.id} visible={visible && detailSource !== 'local'} />
           {addStatus && (
             <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>{addStatus}</Text>
           )}
         </div>
       </div>
 
-      {manga.chapters.length > 0 && (
+      <div style={{ padding: '12px 24px 0' }}><TabList selectedValue={detailTab} onTabSelect={(_, data) => setDetailTab(String(data.value))}>
+        <Tab value="chapters">章节</Tab><Tab value="comments">评论</Tab>
+      </TabList></div>
+      {detailTab === 'comments' && <div className={styles.chaptersSection}><CommentPanel key={manga.id} albumId={manga.id} title={manga.title} visible={visible} /></div>}
+      {detailTab === 'chapters' && manga.chapters.length > 0 && (
         <>
           <Divider />
-          <div className={styles.chaptersSection}>
+          <div className={`${styles.chaptersSection} manga-detail-chapters`}>
             <div className={styles.chapterHeader}>
-              <Text size={500} weight="semibold">章节列表 ({manga.chapters.length})</Text>
+              <Text size={400} weight="semibold">章节列表 ({manga.chapters.length})</Text>
               <Button size="small" appearance="subtle"
                 icon={orderAsc ? <ChevronDown20Regular /> : <ChevronUp20Regular />}
                 onClick={() => setOrderAsc(!orderAsc)}
@@ -506,7 +505,7 @@ export default function MangaDetailPage(): JSX.Element {
         chapters={manga.chapters.map((c) => ({ index: c.index, title: c.title }))}
         busy={false}
         busyText=""
-        onConfirm={(indices) => void downloadChapters(indices)}
+        onConfirm={(indices) => void downloadChapters(indices, forceDownloadFormat)}
         onCancel={() => setSelectOpen(false)}
       />
     </div>

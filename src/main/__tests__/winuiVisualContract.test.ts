@@ -20,20 +20,20 @@ assert.match(globalCss, /--ui-motion-fast:\s*120ms/)
 console.log('  PASS: WinUI theme, semantic surfaces, and root tokens are wired')
 
 const app = read('src/renderer/src/App.tsx')
+const navigation = read('src/renderer/src/components/AppNavigation.tsx')
 const titleBar = read('src/renderer/src/components/TitleBar.tsx')
 assert.doesNotMatch(app, /clayStyles/)
-assert.match(app, /const NAV_WIDTH = 208/)
-assert.match(app, /width:\s*'2px'/)
+assert.match(navigation, /const NAV_WIDTH = 208/)
+assert.match(navigation, /width:\s*'2px'/)
 assert.doesNotMatch(app, /backdropFilter|ac-page-enter/)
 assert.match(titleBar, /const TITLE_BAR_HEIGHT = '36px'/)
 assert.doesNotMatch(titleBar, /backdropFilter|borderRadius:\s*'999px'/)
 console.log('  PASS: application shell uses flat WinUI navigation and title chrome')
 
 const mangaCard = read('src/renderer/src/components/MangaCard.tsx')
-const loginDialog = read('src/renderer/src/components/LoginDialog.tsx')
 const chapterDialog = read('src/renderer/src/components/ChapterSelectDialog.tsx')
 assert.doesNotMatch(mangaCard, /translateY|scale\(1\.03\)|backdropFilter|ac-card-enter/)
-for (const dialog of [loginDialog, chapterDialog]) {
+for (const dialog of [chapterDialog]) {
   assert.match(dialog, /var\(--ui-bg-dialog\)/)
   assert.match(dialog, /var\(--ui-stroke-card\)/)
   assert.doesNotMatch(dialog, /backdropFilter/)
@@ -47,7 +47,7 @@ const migratedPages = [
 const pageViolations: string[] = []
 for (const file of migratedPages) {
   const text = read(`src/renderer/src/pages/${file}`)
-  const forbidden = text.match(/--ac-glass|--ac-clay|radial-gradient|brand-glow/gi) ?? []
+  const forbidden: string[] = [...(text.match(/--ac-glass|--ac-clay|radial-gradient|brand-glow/gi) ?? [])]
   if (file !== 'ReaderPage.tsx') forbidden.push(...(text.match(/translateY\(-[1-9]/g) ?? []))
   if (forbidden.length > 0) pageViolations.push(`${file}: ${[...new Set(forbidden)].join(', ')}`)
 }

@@ -1,9 +1,16 @@
+import { normalizeRecommendationTags } from '../shared/recommendationCore'
+import { DEFAULT_READER_PREFERENCES, normalizeReaderPreferences, type ReaderPreferences } from '../shared/readerContracts'
+
 export type ThemeMode = 'system' | 'light' | 'dark'
 
-export interface AppSettings {
+export interface AppSettings extends ReaderPreferences {
   themeMode: ThemeMode
   micaEnabled: boolean
   solidWindow: boolean
+  animationsEnabled: boolean
+  restoreReaderWorkspace: boolean
+  browseRatio: number
+  downloadFormat: 'ask' | 'images' | 'pdf'
   proxyEnabled: boolean
   proxyUrl: string
   cacheLimitMb: number
@@ -15,19 +22,27 @@ export interface AppSettings {
   downloadRetries: number
   /** 启动时自动继续未完成的任务 */
   downloadResumeOnStartup: boolean
+  /** 用户主动选择的推荐标签，最多 8 个且全部等权 */
+  recommendationTags: string[]
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
+  ...DEFAULT_READER_PREFERENCES,
   themeMode: 'system',
   micaEnabled: true,
   solidWindow: false,
+  animationsEnabled: true,
+  restoreReaderWorkspace: false,
+  browseRatio: 0.4,
+  downloadFormat: 'ask',
   proxyEnabled: false,
   proxyUrl: '',
   cacheLimitMb: 1000,
   downloadDir: '',
   downloadConcurrency: 4,
   downloadRetries: 3,
-  downloadResumeOnStartup: true
+  downloadResumeOnStartup: true,
+  recommendationTags: []
 }
 
 export const CACHE_LIMIT_MIN_MB = 100
@@ -74,16 +89,22 @@ export function normalizeSettings(raw: Record<string, unknown>): AppSettings {
     Math.max(0, toNumber(raw.downloadRetries, DEFAULT_SETTINGS.downloadRetries))
   )
   return {
+    ...normalizeReaderPreferences(raw),
     themeMode,
     micaEnabled: toBoolean(raw.micaEnabled, DEFAULT_SETTINGS.micaEnabled),
     solidWindow: toBoolean(raw.solidWindow, DEFAULT_SETTINGS.solidWindow),
+    animationsEnabled: toBoolean(raw.animationsEnabled, true),
+    restoreReaderWorkspace: toBoolean(raw.restoreReaderWorkspace, false),
+    browseRatio: Math.max(0.25, Math.min(0.65, toNumber(raw.browseRatio, 0.4))),
+    downloadFormat: raw.downloadFormat === 'images' || raw.downloadFormat === 'pdf' ? raw.downloadFormat : 'ask',
     proxyEnabled: toBoolean(raw.proxyEnabled, DEFAULT_SETTINGS.proxyEnabled),
     proxyUrl: typeof raw.proxyUrl === 'string' ? raw.proxyUrl.trim() : DEFAULT_SETTINGS.proxyUrl,
     cacheLimitMb,
     downloadDir: typeof raw.downloadDir === 'string' ? raw.downloadDir.trim() : DEFAULT_SETTINGS.downloadDir,
     downloadConcurrency,
     downloadRetries,
-    downloadResumeOnStartup: toBoolean(raw.downloadResumeOnStartup, DEFAULT_SETTINGS.downloadResumeOnStartup)
+    downloadResumeOnStartup: toBoolean(raw.downloadResumeOnStartup, DEFAULT_SETTINGS.downloadResumeOnStartup),
+    recommendationTags: normalizeRecommendationTags(raw.recommendationTags)
   }
 }
 

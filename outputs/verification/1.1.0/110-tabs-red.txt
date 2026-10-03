@@ -1,0 +1,119 @@
+✔ hiding the reader preserves tabs and the active session; opening the same book reveals it without reloading (1.4719ms)
+✔ manual tools keep the user choice across chapters, books and side-pane visibility (0.5127ms)
+✔ reading keeps browsing independent and reuses a book tab without resetting its chapter (0.3266ms)
+✔ switch waits for saving and restores each tab anchor; closing selects neighbor then restores navigation (3.578ms)
+✔ save failure holds the active tab, cancels already queued transitions and supports explicit retry (1.4039ms)
+✔ background close and repeated activation do not save or remount the active session (0.4958ms)
+✔ a stale session cleanup cannot remove the current saver and shutdown propagates failure (0.5958ms)
+✔ shutdown freezes new tab admission until a failed close explicitly resumes the workspace (0.3371ms)
+✔ retrying a failed close save clears the recovered error (0.2986ms)
+✖ new tabs are independent start pages and a book replaces the active start page (1.9893ms)
+✖ tab metadata and reorder do not save, replace the reader object, or lose concurrent updates (0.4825ms)
+✖ batch close protects pinned tabs and undo restores the saved anchor without duplication (0.9938ms)
+✖ failed closing does not alter the closed stack and the stack is bounded (0.3358ms)
+✖ hiding undoes automatic navigation collapse but preserves explicit user choices (0.1838ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 9
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18.5688
+
+✖ failing tests:
+
+test at src\main\__tests__\readerWorkspace.test.ts:2:10426
+✖ new tabs are independent start pages and a book replaces the active start page (1.9893ms)
+  AssertionError [ERR_ASSERTION]: the workspace needs a new-tab action
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at TestContext.<anonymous> (D:\soft\Opencode\JMComic\src\main\__tests__\readerWorkspace.test.ts:201:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1325:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:911:18)
+      at Test.postRun (node:internal/test_runner/test:1465:19)
+      at Test.run (node:internal/test_runner/test:1390:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at src\main\__tests__\readerWorkspace.test.ts:2:11433
+✖ tab metadata and reorder do not save, replace the reader object, or lose concurrent updates (0.4825ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at TestContext.<anonymous> (D:\soft\Opencode\JMComic\src\main\__tests__\readerWorkspace.test.ts:229:12)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at src\main\__tests__\readerWorkspace.test.ts:2:12973
+✖ batch close protects pinned tabs and undo restores the saved anchor without duplication (0.9938ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+
+  + 'undefined'
+  - 'function'
+
+      at TestContext.<anonymous> (D:\soft\Opencode\JMComic\src\main\__tests__\readerWorkspace.test.ts:253:10)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at src\main\__tests__\readerWorkspace.test.ts:2:14002
+✖ failed closing does not alter the closed stack and the stack is bounded (0.3358ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+
+  undefined !== []
+
+      at TestContext.<anonymous> (D:\soft\Opencode\JMComic\src\main\__tests__\readerWorkspace.test.ts:276:10)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at src\main\__tests__\readerWorkspace.test.ts:2:14529
+✖ hiding undoes automatic navigation collapse but preserves explicit user choices (0.1838ms)
+  AssertionError [ERR_ASSERTION]: automatic collapse is temporary
+
+  true !== false
+
+      at TestContext.<anonymous> (D:\soft\Opencode\JMComic\src\main\__tests__\readerWorkspace.test.ts:289:10)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:911:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

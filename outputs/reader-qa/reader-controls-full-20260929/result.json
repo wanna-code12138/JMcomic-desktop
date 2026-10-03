@@ -1,0 +1,35 @@
+{
+  "runId": "reader-controls-full-20260929",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "visible page persisted through the actual history IPC",
+      "details": {
+        "visible": 8,
+        "mounted": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "scrollTop": 12725
+      }
+    },
+    {
+      "name": "scroll / single mode preserves page and within-page offset"
+    }
+  ],
+  "errors": [
+    "Error: Timed out: keyboard next page\nJMComic Desktop\n返回\n山间来信 · 合成阅读样章\n车牌号: JM101\n✍️ 阅读体验实验室\n风景\n旅途\n用于测试长图、横图与章节切换的合成内容。\n开始阅读\n下载\n章节列表 (2)\n倒序\n1\n第一章 · 出发\n2\n第二章 · 抵达\n山间来信 · 合成阅读样章\n9 / 36\n连续滚动\n单页阅读\n适合宽度\n适合高度\n原始尺寸\n−\n110%\n＋\n[{\"src\":\"jmimg://img/aHR0cHM6Ly9jZG4tbXNwLjE4Y29taWMudmlwL21lZGlhL3Bob3Rvcy8yMDIvOC5wbmc?p=critical\",\"complete\":true,\"width\":720,\"status\":\"ready\"}]\n    at wait (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:166:11)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:382:3)"
+  ],
+  "network": {
+    "api": 7,
+    "image": 11,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

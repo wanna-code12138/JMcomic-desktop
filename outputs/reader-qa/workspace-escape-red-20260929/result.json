@@ -1,0 +1,24 @@
+{
+  "runId": "workspace-escape-red-20260929",
+  "mode": "visible Chromium / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "three panes, source-aware tabs, independent anchors, deduplication and background unmount"
+    },
+    {
+      "name": "failed saving retains the active tab; explicit retry completes the intended switch"
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: Escape restores three panes while the tab bar owns focus\n    at module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\reader-workspace-smoke.cjs:65:10)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:266:5)"
+  ],
+  "network": {
+    "api": 9,
+    "image": 31,
+    "blocked": 3
+  },
+  "summaryQueries": 0
+}

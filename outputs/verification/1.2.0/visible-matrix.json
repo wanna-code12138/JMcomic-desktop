@@ -1,0 +1,76 @@
+[
+  {
+    "visible": true,
+    "exitCode": 0,
+    "flags": {
+      "JM_QA_MOTION": "1",
+      "JM_QA_GRAPHICS": "on"
+    },
+    "id": "motion-verified"
+  },
+  {
+    "visible": true,
+    "exitCode": 0,
+    "flags": {
+      "JM_QA_MOTION": "1",
+      "JM_QA_GRAPHICS": "off"
+    },
+    "id": "motion-software"
+  },
+  {
+    "visible": true,
+    "exitCode": 0,
+    "flags": {
+      "JM_QA_RESOURCE_MATRIX": "on",
+      "JM_QA_GRAPHICS": "on"
+    },
+    "id": "visible-gpu-on-motion-on"
+  },
+  {
+    "visible": true,
+    "exitCode": 0,
+    "flags": {
+      "JM_QA_RESOURCE_MATRIX": "off",
+      "JM_QA_GRAPHICS": "on"
+    },
+    "id": "visible-gpu-on-motion-off"
+  },
+  {
+    "visible": true,
+    "exitCode": 0,
+    "flags": {
+      "JM_QA_RESOURCE_MATRIX": "on",
+      "JM_QA_GRAPHICS": "off"
+    },
+    "id": "visible-gpu-off-motion-on"
+  },
+  {
+    "visible": true,
+    "exitCode": 0,
+    "flags": {
+      "JM_QA_RESOURCE_MATRIX": "off",
+      "JM_QA_GRAPHICS": "off"
+    },
+    "id": "visible-gpu-off-motion-off"
+  },
+  {
+    "visible": true,
+    "exitCode": 0,
+    "flags": {
+      "JM_QA_MOTION": "1",
+      "JM_QA_GRAPHICS": "on"
+    },
+    "id": "motion-window-on",
+    "note": "Final native window visibility assertions: true/false/true. Supersedes motion-verified for occlusion coverage."
+  },
+  {
+    "visible": true,
+    "exitCode": 0,
+    "flags": {
+      "JM_QA_MOTION": "1",
+      "JM_QA_GRAPHICS": "off"
+    },
+    "id": "motion-window-off",
+    "note": "Final native window visibility assertions: true/false/true. Supersedes motion-software for occlusion coverage."
+  }
+]

@@ -1,4 +1,5 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, realpath } from 'node:fs/promises'
+import { isLocalImagePathSafe } from './downloadCore'
 
 export interface AllowedRootsCache {
   get: () => Promise<string[]>
@@ -51,6 +52,11 @@ export function createAllowedRootsCache(
   }
 }
 
-export async function openLocalImage(filepath: string): Promise<Buffer> {
+export async function openLocalImage(filepath: string, allowedRoots?: string[]): Promise<Buffer> {
+  if (allowedRoots) {
+    if (!isLocalImagePathSafe(filepath, allowedRoots)) throw new Error('图片路径超出下载范围')
+    const [actualFile, actualRoots] = await Promise.all([realpath(filepath), Promise.all(allowedRoots.map(root => realpath(root).catch(() => '')))])
+    if (!isLocalImagePathSafe(actualFile, actualRoots)) throw new Error('图片路径超出下载范围')
+  }
   return readFile(filepath)
 }

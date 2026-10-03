@@ -1,0 +1,23 @@
+{
+  "runId": "120-pdf",
+  "mode": "visible Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "format confirmation/default/override, two chapters in one root-level PDF, unique output, images retain chapter folders",
+      "details": {
+        "output": "D:\\soft\\Opencode\\JMComic\\work\\120-pdf\\downloads\\JMComic\\山间来信 · 合成阅读样章 - JM101 - 1-2.pdf",
+        "pages": 6
+      }
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 8,
+    "image": 8,
+    "blocked": 4
+  },
+  "summaryQueries": 1
+}

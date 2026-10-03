@@ -1,0 +1,2346 @@
+{
+  "timestamp": "2026-09-28T17:44:26.068Z",
+  "scope": "Original single-pane reader before the proposed three-pane design. Fixed synthetic chapter, 80ms latency, shared 4MiB/s. Visible Chromium rAF intervals are not compositor presentation. Short trials and forced fresh image URLs are not long-term production memory measurements.",
+  "notes": [
+    "Exploration groups have 10 repetitions; their p95 fields are descriptive sample quantiles, not stable tail estimates.",
+    "The first warm-stability trial also loads later pages once; subsequent 49 trials transfer zero image bytes.",
+    "The opaque reader covers window materials; material results do not establish cost on the catalog or general window interactions.",
+    "Same-process repeated cold trials deliberately use distinct image URLs. Chromium decoded-image caches and retained benchmark events contribute to memory.",
+    "Temporary overscan variants modify only the work/ build transform. Final product retains overscan=2; no product experiment switch."
+  ],
+  "experiments": [
+    {
+      "name": "cold-warm-materials",
+      "stage": "exploration",
+      "sampleCount": 30,
+      "rawFile": "reader-cold-warm-materials.raw.json.gz",
+      "rawSha256": "31cfeafca98b8b577ec70786c14b836a81375534a8aa72b63ffe7b272c43f3f8",
+      "versions": {
+        "node": "24.18.0",
+        "acorn": "8.16.0",
+        "ada": "3.4.4",
+        "amaro": "1.1.9",
+        "ares": "1.34.6",
+        "brotli": "1.2.0",
+        "cldr": "48.0",
+        "icu": "78.2",
+        "llhttp": "9.4.2",
+        "merve": "1.2.2",
+        "modules": "148",
+        "napi": "10",
+        "nbytes": "0.1.4",
+        "ncrypto": "0.0.1",
+        "nghttp2": "1.69.0",
+        "nghttp3": "",
+        "ngtcp2": "",
+        "openssl": "0.0.0",
+        "simdjson": "4.6.4",
+        "simdutf": "7.7.0",
+        "sqlite": "3.53.1",
+        "tz": "2025c",
+        "undici": "7.28.0",
+        "unicode": "17.0",
+        "uv": "1.52.1",
+        "uvwasi": "0.0.23",
+        "v8": "15.0.1240245-electron.0",
+        "zlib": "1.3.2.1-motley",
+        "zstd": "1.6.0",
+        "electron": "43.2.0",
+        "chrome": "150.0.7871.129"
+      },
+      "gpu": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "buildHash": "9afa0b8cacd607b8bf142526ceeca0a23126cef3012c1262327c6ba5c0c0c8a5",
+      "summary": {
+        "baseline": {
+          "firstVisible": {
+            "n": 10,
+            "p50": 514,
+            "p95": 520.2,
+            "max": 520.2
+          },
+          "pageDemand": {
+            "n": 20,
+            "p50": 16.2,
+            "p95": 17.8,
+            "max": 17.9
+          },
+          "frameP95PerTrial": {
+            "n": 10,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 10,
+            "p50": 0.4,
+            "p95": 0.7,
+            "max": 0.7
+          },
+          "bytes": {
+            "n": 10,
+            "p50": 2375026,
+            "p95": 2375026,
+            "max": 2375026
+          },
+          "peakPrivateKb": {
+            "n": 10,
+            "p50": 967572,
+            "p95": 1009620,
+            "max": 1009620
+          },
+          "residualPrivateKb": {
+            "n": 10,
+            "p50": 953908,
+            "p95": 1001432,
+            "max": 1001432
+          }
+        },
+        "warm": {
+          "firstVisible": {
+            "n": 10,
+            "p50": 23.4,
+            "p95": 34,
+            "max": 34
+          },
+          "pageDemand": {
+            "n": 20,
+            "p50": 15,
+            "p95": 18.1,
+            "max": 18.2
+          },
+          "frameP95PerTrial": {
+            "n": 10,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 10,
+            "p50": 0.4,
+            "p95": 0.8,
+            "max": 0.8
+          },
+          "bytes": {
+            "n": 10,
+            "p50": 0,
+            "p95": 0,
+            "max": 0
+          },
+          "peakPrivateKb": {
+            "n": 10,
+            "p50": 972440,
+            "p95": 1003540,
+            "max": 1003540
+          },
+          "residualPrivateKb": {
+            "n": 10,
+            "p50": 965284,
+            "p95": 987220,
+            "max": 987220
+          }
+        },
+        "solid": {
+          "firstVisible": {
+            "n": 10,
+            "p50": 504.6,
+            "p95": 516.5,
+            "max": 516.5
+          },
+          "pageDemand": {
+            "n": 20,
+            "p50": 15.2,
+            "p95": 17.6,
+            "max": 18
+          },
+          "frameP95PerTrial": {
+            "n": 10,
+            "p50": 6.2,
+            "p95": 12.1,
+            "max": 12.1
+          },
+          "canvasP95PerTrial": {
+            "n": 10,
+            "p50": 0.4,
+            "p95": 0.9,
+            "max": 0.9
+          },
+          "bytes": {
+            "n": 10,
+            "p50": 2375026,
+            "p95": 2375026,
+            "max": 2375026
+          },
+          "peakPrivateKb": {
+            "n": 10,
+            "p50": 982364,
+            "p95": 1002480,
+            "max": 1002480
+          },
+          "residualPrivateKb": {
+            "n": 10,
+            "p50": 967200,
+            "p95": 990588,
+            "max": 990588
+          }
+        }
+      },
+      "memory": [
+        {
+          "variant": "baseline",
+          "repeat": 0,
+          "peakPrivateMiB": 623.69140625,
+          "residualPrivateMiB": 632.4921875
+        },
+        {
+          "variant": "warm",
+          "repeat": 0,
+          "peakPrivateMiB": 648.46484375,
+          "residualPrivateMiB": 641.88671875
+        },
+        {
+          "variant": "solid",
+          "repeat": 0,
+          "peakPrivateMiB": 675.9375,
+          "residualPrivateMiB": 673.3671875
+        },
+        {
+          "variant": "solid",
+          "repeat": 1,
+          "peakPrivateMiB": 696.96484375,
+          "residualPrivateMiB": 693.140625
+        },
+        {
+          "variant": "warm",
+          "repeat": 1,
+          "peakPrivateMiB": 702.375,
+          "residualPrivateMiB": 700.9140625
+        },
+        {
+          "variant": "baseline",
+          "repeat": 1,
+          "peakPrivateMiB": 770.60546875,
+          "residualPrivateMiB": 759.609375
+        },
+        {
+          "variant": "baseline",
+          "repeat": 2,
+          "peakPrivateMiB": 820.109375,
+          "residualPrivateMiB": 811.19921875
+        },
+        {
+          "variant": "warm",
+          "repeat": 2,
+          "peakPrivateMiB": 825.47265625,
+          "residualPrivateMiB": 823.625
+        },
+        {
+          "variant": "solid",
+          "repeat": 2,
+          "peakPrivateMiB": 857.74609375,
+          "residualPrivateMiB": 849.18359375
+        },
+        {
+          "variant": "solid",
+          "repeat": 3,
+          "peakPrivateMiB": 890.99609375,
+          "residualPrivateMiB": 881.67578125
+        },
+        {
+          "variant": "warm",
+          "repeat": 3,
+          "peakPrivateMiB": 893.8125,
+          "residualPrivateMiB": 888.078125
+        },
+        {
+          "variant": "baseline",
+          "repeat": 3,
+          "peakPrivateMiB": 906.32421875,
+          "residualPrivateMiB": 898.72265625
+        },
+        {
+          "variant": "baseline",
+          "repeat": 4,
+          "peakPrivateMiB": 944.89453125,
+          "residualPrivateMiB": 935.0078125
+        },
+        {
+          "variant": "warm",
+          "repeat": 4,
+          "peakPrivateMiB": 949.6484375,
+          "residualPrivateMiB": 945.65234375
+        },
+        {
+          "variant": "solid",
+          "repeat": 4,
+          "peakPrivateMiB": 963.11328125,
+          "residualPrivateMiB": 961.85546875
+        },
+        {
+          "variant": "solid",
+          "repeat": 5,
+          "peakPrivateMiB": 976.74609375,
+          "residualPrivateMiB": 960.98046875
+        },
+        {
+          "variant": "warm",
+          "repeat": 5,
+          "peakPrivateMiB": 968.65625,
+          "residualPrivateMiB": 951.70703125
+        },
+        {
+          "variant": "baseline",
+          "repeat": 5,
+          "peakPrivateMiB": 985.95703125,
+          "residualPrivateMiB": 955.765625
+        },
+        {
+          "variant": "baseline",
+          "repeat": 6,
+          "peakPrivateMiB": 982.0078125,
+          "residualPrivateMiB": 977.9609375
+        },
+        {
+          "variant": "warm",
+          "repeat": 6,
+          "peakPrivateMiB": 977.5,
+          "residualPrivateMiB": 964.08203125
+        },
+        {
+          "variant": "solid",
+          "repeat": 6,
+          "peakPrivateMiB": 976.50390625,
+          "residualPrivateMiB": 965.47265625
+        },
+        {
+          "variant": "solid",
+          "repeat": 7,
+          "peakPrivateMiB": 978.984375,
+          "residualPrivateMiB": 967.37109375
+        },
+        {
+          "variant": "warm",
+          "repeat": 7,
+          "peakPrivateMiB": 980.01953125,
+          "residualPrivateMiB": 958.1796875
+        },
+        {
+          "variant": "baseline",
+          "repeat": 7,
+          "peakPrivateMiB": 976.80859375,
+          "residualPrivateMiB": 962.19140625
+        },
+        {
+          "variant": "baseline",
+          "repeat": 8,
+          "peakPrivateMiB": 965.03125,
+          "residualPrivateMiB": 936.37890625
+        },
+        {
+          "variant": "warm",
+          "repeat": 8,
+          "peakPrivateMiB": 956.9765625,
+          "residualPrivateMiB": 948.71484375
+        },
+        {
+          "variant": "solid",
+          "repeat": 8,
+          "peakPrivateMiB": 960.99609375,
+          "residualPrivateMiB": 946.640625
+        },
+        {
+          "variant": "solid",
+          "repeat": 9,
+          "peakPrivateMiB": 959.33984375,
+          "residualPrivateMiB": 944.53125
+        },
+        {
+          "variant": "warm",
+          "repeat": 9,
+          "peakPrivateMiB": 956.36328125,
+          "residualPrivateMiB": 942.66015625
+        },
+        {
+          "variant": "baseline",
+          "repeat": 9,
+          "peakPrivateMiB": 955.7734375,
+          "residualPrivateMiB": 931.55078125
+        }
+      ]
+    },
+    {
+      "name": "warm-stability",
+      "stage": "confirmation",
+      "sampleCount": 50,
+      "rawFile": "reader-warm-stability.raw.json.gz",
+      "rawSha256": "5185b7ddfcd63209a5ef7c3df9b6187d3939c31efa333153585159a088440e54",
+      "versions": {
+        "node": "24.18.0",
+        "acorn": "8.16.0",
+        "ada": "3.4.4",
+        "amaro": "1.1.9",
+        "ares": "1.34.6",
+        "brotli": "1.2.0",
+        "cldr": "48.0",
+        "icu": "78.2",
+        "llhttp": "9.4.2",
+        "merve": "1.2.2",
+        "modules": "148",
+        "napi": "10",
+        "nbytes": "0.1.4",
+        "ncrypto": "0.0.1",
+        "nghttp2": "1.69.0",
+        "nghttp3": "",
+        "ngtcp2": "",
+        "openssl": "0.0.0",
+        "simdjson": "4.6.4",
+        "simdutf": "7.7.0",
+        "sqlite": "3.53.1",
+        "tz": "2025c",
+        "undici": "7.28.0",
+        "unicode": "17.0",
+        "uv": "1.52.1",
+        "uvwasi": "0.0.23",
+        "v8": "15.0.1240245-electron.0",
+        "zlib": "1.3.2.1-motley",
+        "zstd": "1.6.0",
+        "electron": "43.2.0",
+        "chrome": "150.0.7871.129"
+      },
+      "gpu": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "environment": {
+        "cpu": "AMD Ryzen AI 7 H 350 w/ Radeon 860M ",
+        "logicalCores": 16,
+        "totalMemoryBytes": 33413771264,
+        "platform": "win32",
+        "release": "10.0.26100",
+        "windowBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 752
+        }
+      },
+      "buildHash": "9afa0b8cacd607b8bf142526ceeca0a23126cef3012c1262327c6ba5c0c0c8a5",
+      "rendererHashes": {
+        "Badge-BQXZ16y7.js": "f473244d8f14279d1478eeb533bc1c09e6f2fcf3e83aa6b81939481043e7c26f",
+        "DialogContent-D3sJQ_w2.js": "ae8e6ebbdf97087480cea4ee99ce924d24285999b61b1a78266b5b94a571acd7",
+        "DownloadsPage-CILZgJAU.js": "0a74040ba96313c06998607238f0be8e140d1e4e3d871242a4e121d24f43ecc2",
+        "MangaDetailPage-CBuBrNVw.js": "f00922b2c299fb5e8f9229a4a2234ba97ffd64d7e08d1024fd459d13b9146c74",
+        "ReaderPage-CXR8Elsz.css": "a94f0e729e86e07a496ed343eaa82bb1d056d0cd996f58ef3b64b4989499997e",
+        "ReaderPage-DxtyNBzR.js": "a9a1105940cf159f0c7567fca4f0b8c23327a42cf398189b05ea5bead18ac6a6",
+        "SettingsPage-CujVxXf_.js": "f30b03c3e11ae0f49a04801afb6ed68f47d17f0ef3fa79d4232a221920ec74c0",
+        "chunk-16-DRkJwK2h.js": "4eca66ef817bd9b48e1fec54fe7ae8bf2df6a7d9557d5581941bfd7b24d17127",
+        "chunk-19-I5-jM9WG.js": "b531dfebbbf112dc7ee593be9fd7db1dc2a02dc50285a7f2381bb1d68f35c24b",
+        "index-AS-Yry5a.js": "154be16daf0342c091b39da1eb3d84333a216492d8f7eb05ea5a0fa6f16f1ce6",
+        "index-BfYxcyUT.css": "b6aa5c71db6b428709f7a55e15d5ec0776810972571d9b6f012a104668f7c0f0"
+      },
+      "fixture": {
+        "latencyMs": 80,
+        "sharedBytesPerSecond": 4194304,
+        "encodedBytes": [
+          401333,
+          464639,
+          536889,
+          400339,
+          465713,
+          106113,
+          215235
+        ],
+        "scrambled": true
+      },
+      "scope": "Same-process repeated reading; all visible rAF intervals, not compositor presentation timing. Unique cold URLs bypass Chromium decoded-image cache. Process memory includes synthetic fixture and test harness.",
+      "summary": {
+        "warm": {
+          "firstVisible": {
+            "n": 50,
+            "p50": 23.8,
+            "p95": 30.6,
+            "max": 36.5
+          },
+          "pageDemand": {
+            "n": 100,
+            "p50": 15.4,
+            "p95": 17.4,
+            "max": 18.3
+          },
+          "frameP95PerTrial": {
+            "n": 50,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 50,
+            "p50": 0.5,
+            "p95": 0.8,
+            "max": 0.9
+          },
+          "bytes": {
+            "n": 50,
+            "p50": 0,
+            "p95": 0,
+            "max": 972165
+          },
+          "peakPrivateKb": {
+            "n": 50,
+            "p50": 694564,
+            "p95": 718904,
+            "max": 727440
+          },
+          "residualPrivateKb": {
+            "n": 50,
+            "p50": 676632,
+            "p95": 700188,
+            "max": 705764
+          }
+        }
+      },
+      "memory": [
+        {
+          "variant": "warm",
+          "repeat": 0,
+          "peakPrivateMiB": 598.8828125,
+          "residualPrivateMiB": 607.3984375
+        },
+        {
+          "variant": "warm",
+          "repeat": 1,
+          "peakPrivateMiB": 633.99609375,
+          "residualPrivateMiB": 632.79296875
+        },
+        {
+          "variant": "warm",
+          "repeat": 2,
+          "peakPrivateMiB": 651.56640625,
+          "residualPrivateMiB": 632.55078125
+        },
+        {
+          "variant": "warm",
+          "repeat": 3,
+          "peakPrivateMiB": 649.2890625,
+          "residualPrivateMiB": 641.90234375
+        },
+        {
+          "variant": "warm",
+          "repeat": 4,
+          "peakPrivateMiB": 665.2578125,
+          "residualPrivateMiB": 651.40234375
+        },
+        {
+          "variant": "warm",
+          "repeat": 5,
+          "peakPrivateMiB": 662.44140625,
+          "residualPrivateMiB": 656.23828125
+        },
+        {
+          "variant": "warm",
+          "repeat": 6,
+          "peakPrivateMiB": 665.41015625,
+          "residualPrivateMiB": 659.89453125
+        },
+        {
+          "variant": "warm",
+          "repeat": 7,
+          "peakPrivateMiB": 677.9140625,
+          "residualPrivateMiB": 652.49609375
+        },
+        {
+          "variant": "warm",
+          "repeat": 8,
+          "peakPrivateMiB": 669.46875,
+          "residualPrivateMiB": 652.06640625
+        },
+        {
+          "variant": "warm",
+          "repeat": 9,
+          "peakPrivateMiB": 671.046875,
+          "residualPrivateMiB": 656.1953125
+        },
+        {
+          "variant": "warm",
+          "repeat": 10,
+          "peakPrivateMiB": 671.20703125,
+          "residualPrivateMiB": 654.609375
+        },
+        {
+          "variant": "warm",
+          "repeat": 11,
+          "peakPrivateMiB": 663.921875,
+          "residualPrivateMiB": 661.5234375
+        },
+        {
+          "variant": "warm",
+          "repeat": 12,
+          "peakPrivateMiB": 679.39453125,
+          "residualPrivateMiB": 644.1484375
+        },
+        {
+          "variant": "warm",
+          "repeat": 13,
+          "peakPrivateMiB": 662.29296875,
+          "residualPrivateMiB": 638.29296875
+        },
+        {
+          "variant": "warm",
+          "repeat": 14,
+          "peakPrivateMiB": 662.56640625,
+          "residualPrivateMiB": 647.20703125
+        },
+        {
+          "variant": "warm",
+          "repeat": 15,
+          "peakPrivateMiB": 665.2734375,
+          "residualPrivateMiB": 647.67578125
+        },
+        {
+          "variant": "warm",
+          "repeat": 16,
+          "peakPrivateMiB": 665.82421875,
+          "residualPrivateMiB": 654.93359375
+        },
+        {
+          "variant": "warm",
+          "repeat": 17,
+          "peakPrivateMiB": 677.40625,
+          "residualPrivateMiB": 661.421875
+        },
+        {
+          "variant": "warm",
+          "repeat": 18,
+          "peakPrivateMiB": 684.05078125,
+          "residualPrivateMiB": 664.27734375
+        },
+        {
+          "variant": "warm",
+          "repeat": 19,
+          "peakPrivateMiB": 674.25,
+          "residualPrivateMiB": 671.01171875
+        },
+        {
+          "variant": "warm",
+          "repeat": 20,
+          "peakPrivateMiB": 687.73046875,
+          "residualPrivateMiB": 666.38671875
+        },
+        {
+          "variant": "warm",
+          "repeat": 21,
+          "peakPrivateMiB": 677.57421875,
+          "residualPrivateMiB": 658.078125
+        },
+        {
+          "variant": "warm",
+          "repeat": 22,
+          "peakPrivateMiB": 677.28515625,
+          "residualPrivateMiB": 659.484375
+        },
+        {
+          "variant": "warm",
+          "repeat": 23,
+          "peakPrivateMiB": 678.28515625,
+          "residualPrivateMiB": 661.2890625
+        },
+        {
+          "variant": "warm",
+          "repeat": 24,
+          "peakPrivateMiB": 683.6328125,
+          "residualPrivateMiB": 681.3125
+        },
+        {
+          "variant": "warm",
+          "repeat": 25,
+          "peakPrivateMiB": 697.22265625,
+          "residualPrivateMiB": 667.87109375
+        },
+        {
+          "variant": "warm",
+          "repeat": 26,
+          "peakPrivateMiB": 687.33203125,
+          "residualPrivateMiB": 658.7578125
+        },
+        {
+          "variant": "warm",
+          "repeat": 27,
+          "peakPrivateMiB": 667.96484375,
+          "residualPrivateMiB": 657.390625
+        },
+        {
+          "variant": "warm",
+          "repeat": 28,
+          "peakPrivateMiB": 679.12109375,
+          "residualPrivateMiB": 656.87890625
+        },
+        {
+          "variant": "warm",
+          "repeat": 29,
+          "peakPrivateMiB": 679.9609375,
+          "residualPrivateMiB": 657.2890625
+        },
+        {
+          "variant": "warm",
+          "repeat": 30,
+          "peakPrivateMiB": 678.86328125,
+          "residualPrivateMiB": 671.66015625
+        },
+        {
+          "variant": "warm",
+          "repeat": 31,
+          "peakPrivateMiB": 683.73046875,
+          "residualPrivateMiB": 666.046875
+        },
+        {
+          "variant": "warm",
+          "repeat": 32,
+          "peakPrivateMiB": 676.04296875,
+          "residualPrivateMiB": 673.84765625
+        },
+        {
+          "variant": "warm",
+          "repeat": 33,
+          "peakPrivateMiB": 688.5703125,
+          "residualPrivateMiB": 679.56640625
+        },
+        {
+          "variant": "warm",
+          "repeat": 34,
+          "peakPrivateMiB": 701.328125,
+          "residualPrivateMiB": 677.40234375
+        },
+        {
+          "variant": "warm",
+          "repeat": 35,
+          "peakPrivateMiB": 698.74609375,
+          "residualPrivateMiB": 672.09765625
+        },
+        {
+          "variant": "warm",
+          "repeat": 36,
+          "peakPrivateMiB": 693.00390625,
+          "residualPrivateMiB": 689.22265625
+        },
+        {
+          "variant": "warm",
+          "repeat": 37,
+          "peakPrivateMiB": 710.390625,
+          "residualPrivateMiB": 683.77734375
+        },
+        {
+          "variant": "warm",
+          "repeat": 38,
+          "peakPrivateMiB": 692.12890625,
+          "residualPrivateMiB": 681.91015625
+        },
+        {
+          "variant": "warm",
+          "repeat": 39,
+          "peakPrivateMiB": 703.1953125,
+          "residualPrivateMiB": 688.859375
+        },
+        {
+          "variant": "warm",
+          "repeat": 40,
+          "peakPrivateMiB": 702.0546875,
+          "residualPrivateMiB": 674.48828125
+        },
+        {
+          "variant": "warm",
+          "repeat": 41,
+          "peakPrivateMiB": 693.23046875,
+          "residualPrivateMiB": 666.79296875
+        },
+        {
+          "variant": "warm",
+          "repeat": 42,
+          "peakPrivateMiB": 687.890625,
+          "residualPrivateMiB": 665.86328125
+        },
+        {
+          "variant": "warm",
+          "repeat": 43,
+          "peakPrivateMiB": 693.34375,
+          "residualPrivateMiB": 668.5
+        },
+        {
+          "variant": "warm",
+          "repeat": 44,
+          "peakPrivateMiB": 690.09375,
+          "residualPrivateMiB": 661.33203125
+        },
+        {
+          "variant": "warm",
+          "repeat": 45,
+          "peakPrivateMiB": 679.01953125,
+          "residualPrivateMiB": 660.7734375
+        },
+        {
+          "variant": "warm",
+          "repeat": 46,
+          "peakPrivateMiB": 671.04296875,
+          "residualPrivateMiB": 662.5859375
+        },
+        {
+          "variant": "warm",
+          "repeat": 47,
+          "peakPrivateMiB": 680.30078125,
+          "residualPrivateMiB": 648.20703125
+        },
+        {
+          "variant": "warm",
+          "repeat": 48,
+          "peakPrivateMiB": 668.6640625,
+          "residualPrivateMiB": 660.8359375
+        },
+        {
+          "variant": "warm",
+          "repeat": 49,
+          "peakPrivateMiB": 681.80078125,
+          "residualPrivateMiB": 658.296875
+        }
+      ]
+    },
+    {
+      "name": "overscan-explore",
+      "stage": "exploration",
+      "sampleCount": 30,
+      "rawFile": "reader-overscan-explore.raw.json.gz",
+      "rawSha256": "dfacfc8bd0e87b35dbe6008d28c526d877fb75851af72264e866b6c34a4860eb",
+      "versions": {
+        "node": "24.18.0",
+        "acorn": "8.16.0",
+        "ada": "3.4.4",
+        "amaro": "1.1.9",
+        "ares": "1.34.6",
+        "brotli": "1.2.0",
+        "cldr": "48.0",
+        "icu": "78.2",
+        "llhttp": "9.4.2",
+        "merve": "1.2.2",
+        "modules": "148",
+        "napi": "10",
+        "nbytes": "0.1.4",
+        "ncrypto": "0.0.1",
+        "nghttp2": "1.69.0",
+        "nghttp3": "",
+        "ngtcp2": "",
+        "openssl": "0.0.0",
+        "simdjson": "4.6.4",
+        "simdutf": "7.7.0",
+        "sqlite": "3.53.1",
+        "tz": "2025c",
+        "undici": "7.28.0",
+        "unicode": "17.0",
+        "uv": "1.52.1",
+        "uvwasi": "0.0.23",
+        "v8": "15.0.1240245-electron.0",
+        "zlib": "1.3.2.1-motley",
+        "zstd": "1.6.0",
+        "electron": "43.2.0",
+        "chrome": "150.0.7871.129"
+      },
+      "gpu": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "environment": {
+        "cpu": "AMD Ryzen AI 7 H 350 w/ Radeon 860M ",
+        "logicalCores": 16,
+        "totalMemoryBytes": 33413771264,
+        "platform": "win32",
+        "release": "10.0.26100",
+        "windowBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 752
+        }
+      },
+      "buildHash": "9afa0b8cacd607b8bf142526ceeca0a23126cef3012c1262327c6ba5c0c0c8a5",
+      "rendererHashes": {
+        "Badge-DhNjJN7V.js": "07e0803a9defdcf1355dab5645074a14e37926776a430e620ba0068bec4cf144",
+        "DialogContent-C-d_z_bc.js": "ad03375da195a2f44b039bee3080a96c94c74a61028b6c0927e7f01600625ea0",
+        "DownloadsPage-DspVfvDB.js": "47f874de8dd9f481d561f35fe2c8a73e9c96791b903fc8a27c8140e2123b21b3",
+        "MangaDetailPage-SVdvrnYi.js": "db21f8042cf0e83560dfea618de975f0dcd717a2e0e6a110d3ca7516a0f8651d",
+        "ReaderPage-BVVtMTxh.js": "167868c8fc0ffb4dbbdb1088ba0b695f857492f4ab5a9a60e56a05f69110ea36",
+        "ReaderPage-CXR8Elsz.css": "a94f0e729e86e07a496ed343eaa82bb1d056d0cd996f58ef3b64b4989499997e",
+        "SettingsPage-C8oJPQt6.js": "c2e5a81416867fe4dc9fb308c4618dc2d41a124a75fd549f6aa3f88fe9b2cbbe",
+        "chunk-16-BkeMLrj_.js": "aedb0933258a0a52ad714d8a467ad25804b6a8539255a8300b70fd424f8ccb6a",
+        "chunk-19-DQeH6C8h.js": "d75bfb3835a7461530c0e8c5587ef8d4b8393a19275e733b40e452d888b7d8de",
+        "index-BfYxcyUT.css": "b6aa5c71db6b428709f7a55e15d5ec0776810972571d9b6f012a104668f7c0f0",
+        "index-BgCVaPzr.js": "07709ea7ebaab6a6a0c25ed60b33c22c8c425fb0e888712862e30d69bb80b058"
+      },
+      "fixture": {
+        "latencyMs": 80,
+        "sharedBytesPerSecond": 4194304,
+        "encodedBytes": [
+          401333,
+          464639,
+          536889,
+          400339,
+          465713,
+          106113,
+          215235
+        ],
+        "scrambled": true
+      },
+      "scope": "Same-process repeated reading; all visible rAF intervals, not compositor presentation timing. Unique cold URLs bypass Chromium decoded-image cache. Process memory includes synthetic fixture and test harness.",
+      "summary": {
+        "overscan0": {
+          "firstVisible": {
+            "n": 10,
+            "p50": 314.9,
+            "p95": 330.8,
+            "max": 330.8
+          },
+          "pageDemand": {
+            "n": 20,
+            "p50": 240.3,
+            "p95": 265.9,
+            "max": 267.4
+          },
+          "frameP95PerTrial": {
+            "n": 10,
+            "p50": 6.1,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 10,
+            "p50": 0.4,
+            "p95": 0.5,
+            "max": 0.5
+          },
+          "bytes": {
+            "n": 10,
+            "p50": 1803200,
+            "p95": 1803200,
+            "max": 1803200
+          },
+          "peakPrivateKb": {
+            "n": 10,
+            "p50": 964364,
+            "p95": 994760,
+            "max": 994760
+          },
+          "residualPrivateKb": {
+            "n": 10,
+            "p50": 947600,
+            "p95": 954568,
+            "max": 954568
+          }
+        },
+        "overscan1": {
+          "firstVisible": {
+            "n": 10,
+            "p50": 421,
+            "p95": 424.6,
+            "max": 424.6
+          },
+          "pageDemand": {
+            "n": 20,
+            "p50": 15.8,
+            "p95": 18,
+            "max": 18.1
+          },
+          "frameP95PerTrial": {
+            "n": 10,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 10,
+            "p50": 0.5,
+            "p95": 0.9,
+            "max": 0.9
+          },
+          "bytes": {
+            "n": 10,
+            "p50": 2268913,
+            "p95": 2268913,
+            "max": 2268913
+          },
+          "peakPrivateKb": {
+            "n": 10,
+            "p50": 960252,
+            "p95": 988452,
+            "max": 988452
+          },
+          "residualPrivateKb": {
+            "n": 10,
+            "p50": 946812,
+            "p95": 973568,
+            "max": 973568
+          }
+        },
+        "overscan2": {
+          "firstVisible": {
+            "n": 10,
+            "p50": 513.6,
+            "p95": 520.5,
+            "max": 520.5
+          },
+          "pageDemand": {
+            "n": 20,
+            "p50": 16.1,
+            "p95": 18.1,
+            "max": 18.3
+          },
+          "frameP95PerTrial": {
+            "n": 10,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 10,
+            "p50": 0.5,
+            "p95": 1.2,
+            "max": 1.2
+          },
+          "bytes": {
+            "n": 10,
+            "p50": 2375026,
+            "p95": 2375026,
+            "max": 2375026
+          },
+          "peakPrivateKb": {
+            "n": 10,
+            "p50": 961460,
+            "p95": 978440,
+            "max": 978440
+          },
+          "residualPrivateKb": {
+            "n": 10,
+            "p50": 947420,
+            "p95": 962892,
+            "max": 962892
+          }
+        }
+      },
+      "memory": [
+        {
+          "variant": "overscan0",
+          "repeat": 0,
+          "peakPrivateMiB": 620.19921875,
+          "residualPrivateMiB": 620.5703125
+        },
+        {
+          "variant": "overscan1",
+          "repeat": 0,
+          "peakPrivateMiB": 690.171875,
+          "residualPrivateMiB": 671.13671875
+        },
+        {
+          "variant": "overscan2",
+          "repeat": 0,
+          "peakPrivateMiB": 728.35546875,
+          "residualPrivateMiB": 726.21875
+        },
+        {
+          "variant": "overscan2",
+          "repeat": 1,
+          "peakPrivateMiB": 748.1640625,
+          "residualPrivateMiB": 739.90234375
+        },
+        {
+          "variant": "overscan1",
+          "repeat": 1,
+          "peakPrivateMiB": 775.41015625,
+          "residualPrivateMiB": 767.33203125
+        },
+        {
+          "variant": "overscan0",
+          "repeat": 1,
+          "peakPrivateMiB": 805.37109375,
+          "residualPrivateMiB": 803.125
+        },
+        {
+          "variant": "overscan0",
+          "repeat": 2,
+          "peakPrivateMiB": 839.828125,
+          "residualPrivateMiB": 818.0078125
+        },
+        {
+          "variant": "overscan1",
+          "repeat": 2,
+          "peakPrivateMiB": 872.3671875,
+          "residualPrivateMiB": 870.67578125
+        },
+        {
+          "variant": "overscan2",
+          "repeat": 2,
+          "peakPrivateMiB": 907.87109375,
+          "residualPrivateMiB": 902.9375
+        },
+        {
+          "variant": "overscan2",
+          "repeat": 3,
+          "peakPrivateMiB": 936.9609375,
+          "residualPrivateMiB": 906.84375
+        },
+        {
+          "variant": "overscan1",
+          "repeat": 3,
+          "peakPrivateMiB": 955.1796875,
+          "residualPrivateMiB": 950.75
+        },
+        {
+          "variant": "overscan0",
+          "repeat": 3,
+          "peakPrivateMiB": 971.4453125,
+          "residualPrivateMiB": 926.21484375
+        },
+        {
+          "variant": "overscan0",
+          "repeat": 4,
+          "peakPrivateMiB": 941.76171875,
+          "residualPrivateMiB": 932.1953125
+        },
+        {
+          "variant": "overscan1",
+          "repeat": 4,
+          "peakPrivateMiB": 952.171875,
+          "residualPrivateMiB": 937.5625
+        },
+        {
+          "variant": "overscan2",
+          "repeat": 4,
+          "peakPrivateMiB": 951.77734375,
+          "residualPrivateMiB": 929.6484375
+        },
+        {
+          "variant": "overscan2",
+          "repeat": 5,
+          "peakPrivateMiB": 942.98828125,
+          "residualPrivateMiB": 925.35546875
+        },
+        {
+          "variant": "overscan1",
+          "repeat": 5,
+          "peakPrivateMiB": 957.0078125,
+          "residualPrivateMiB": 947.21484375
+        },
+        {
+          "variant": "overscan0",
+          "repeat": 5,
+          "peakPrivateMiB": 952.5390625,
+          "residualPrivateMiB": 930.14453125
+        },
+        {
+          "variant": "overscan0",
+          "repeat": 6,
+          "peakPrivateMiB": 956.00390625,
+          "residualPrivateMiB": 917.73046875
+        },
+        {
+          "variant": "overscan1",
+          "repeat": 6,
+          "peakPrivateMiB": 937.74609375,
+          "residualPrivateMiB": 930.7734375
+        },
+        {
+          "variant": "overscan2",
+          "repeat": 6,
+          "peakPrivateMiB": 955.5078125,
+          "residualPrivateMiB": 935.1171875
+        },
+        {
+          "variant": "overscan2",
+          "repeat": 7,
+          "peakPrivateMiB": 952.76171875,
+          "residualPrivateMiB": 936.23828125
+        },
+        {
+          "variant": "overscan1",
+          "repeat": 7,
+          "peakPrivateMiB": 960.6328125,
+          "residualPrivateMiB": 924.62109375
+        },
+        {
+          "variant": "overscan0",
+          "repeat": 7,
+          "peakPrivateMiB": 943.29296875,
+          "residualPrivateMiB": 931.1640625
+        },
+        {
+          "variant": "overscan0",
+          "repeat": 8,
+          "peakPrivateMiB": 935.95703125,
+          "residualPrivateMiB": 925.390625
+        },
+        {
+          "variant": "overscan1",
+          "repeat": 8,
+          "peakPrivateMiB": 928.26953125,
+          "residualPrivateMiB": 914.05859375
+        },
+        {
+          "variant": "overscan2",
+          "repeat": 8,
+          "peakPrivateMiB": 938.92578125,
+          "residualPrivateMiB": 925.21484375
+        },
+        {
+          "variant": "overscan2",
+          "repeat": 9,
+          "peakPrivateMiB": 954.12890625,
+          "residualPrivateMiB": 940.32421875
+        },
+        {
+          "variant": "overscan1",
+          "repeat": 9,
+          "peakPrivateMiB": 965.28515625,
+          "residualPrivateMiB": 933.7421875
+        },
+        {
+          "variant": "overscan0",
+          "repeat": 9,
+          "peakPrivateMiB": 959.21875,
+          "residualPrivateMiB": 930.6953125
+        }
+      ]
+    },
+    {
+      "name": "overscan-fast",
+      "stage": "exploration",
+      "sampleCount": 20,
+      "rawFile": "reader-overscan-fast.raw.json.gz",
+      "rawSha256": "15473cb1342e0c5ba88d58893d53e7847087eb751ab17a2e3bfa8530291b385e",
+      "versions": {
+        "node": "24.18.0",
+        "acorn": "8.16.0",
+        "ada": "3.4.4",
+        "amaro": "1.1.9",
+        "ares": "1.34.6",
+        "brotli": "1.2.0",
+        "cldr": "48.0",
+        "icu": "78.2",
+        "llhttp": "9.4.2",
+        "merve": "1.2.2",
+        "modules": "148",
+        "napi": "10",
+        "nbytes": "0.1.4",
+        "ncrypto": "0.0.1",
+        "nghttp2": "1.69.0",
+        "nghttp3": "",
+        "ngtcp2": "",
+        "openssl": "0.0.0",
+        "simdjson": "4.6.4",
+        "simdutf": "7.7.0",
+        "sqlite": "3.53.1",
+        "tz": "2025c",
+        "undici": "7.28.0",
+        "unicode": "17.0",
+        "uv": "1.52.1",
+        "uvwasi": "0.0.23",
+        "v8": "15.0.1240245-electron.0",
+        "zlib": "1.3.2.1-motley",
+        "zstd": "1.6.0",
+        "electron": "43.2.0",
+        "chrome": "150.0.7871.129"
+      },
+      "gpu": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "environment": {
+        "cpu": "AMD Ryzen AI 7 H 350 w/ Radeon 860M ",
+        "logicalCores": 16,
+        "totalMemoryBytes": 33413771264,
+        "platform": "win32",
+        "release": "10.0.26100",
+        "windowBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 752
+        }
+      },
+      "buildHash": "9afa0b8cacd607b8bf142526ceeca0a23126cef3012c1262327c6ba5c0c0c8a5",
+      "rendererHashes": {
+        "Badge-DhNjJN7V.js": "07e0803a9defdcf1355dab5645074a14e37926776a430e620ba0068bec4cf144",
+        "DialogContent-C-d_z_bc.js": "ad03375da195a2f44b039bee3080a96c94c74a61028b6c0927e7f01600625ea0",
+        "DownloadsPage-DspVfvDB.js": "47f874de8dd9f481d561f35fe2c8a73e9c96791b903fc8a27c8140e2123b21b3",
+        "MangaDetailPage-SVdvrnYi.js": "db21f8042cf0e83560dfea618de975f0dcd717a2e0e6a110d3ca7516a0f8651d",
+        "ReaderPage-BVVtMTxh.js": "167868c8fc0ffb4dbbdb1088ba0b695f857492f4ab5a9a60e56a05f69110ea36",
+        "ReaderPage-CXR8Elsz.css": "a94f0e729e86e07a496ed343eaa82bb1d056d0cd996f58ef3b64b4989499997e",
+        "SettingsPage-C8oJPQt6.js": "c2e5a81416867fe4dc9fb308c4618dc2d41a124a75fd549f6aa3f88fe9b2cbbe",
+        "chunk-16-BkeMLrj_.js": "aedb0933258a0a52ad714d8a467ad25804b6a8539255a8300b70fd424f8ccb6a",
+        "chunk-19-DQeH6C8h.js": "d75bfb3835a7461530c0e8c5587ef8d4b8393a19275e733b40e452d888b7d8de",
+        "index-BfYxcyUT.css": "b6aa5c71db6b428709f7a55e15d5ec0776810972571d9b6f012a104668f7c0f0",
+        "index-BgCVaPzr.js": "07709ea7ebaab6a6a0c25ed60b33c22c8c425fb0e888712862e30d69bb80b058"
+      },
+      "fixture": {
+        "latencyMs": 80,
+        "sharedBytesPerSecond": 4194304,
+        "encodedBytes": [
+          401333,
+          464639,
+          536889,
+          400339,
+          465713,
+          106113,
+          215235
+        ],
+        "scrambled": true
+      },
+      "scope": "Same-process repeated reading; all visible rAF intervals, not compositor presentation timing. Unique cold URLs bypass Chromium decoded-image cache. Process memory includes synthetic fixture and test harness.",
+      "summary": {
+        "overscan1-fast": {
+          "firstVisible": {
+            "n": 10,
+            "p50": 423.6,
+            "p95": 427.5,
+            "max": 427.5
+          },
+          "pageDemand": {
+            "n": 20,
+            "p50": 16.3,
+            "p95": 209.1,
+            "max": 211
+          },
+          "frameP95PerTrial": {
+            "n": 10,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 10,
+            "p50": 0.5,
+            "p95": 0.6,
+            "max": 0.6
+          },
+          "bytes": {
+            "n": 10,
+            "p50": 2268913,
+            "p95": 2268913,
+            "max": 2268913
+          },
+          "peakPrivateKb": {
+            "n": 10,
+            "p50": 919544,
+            "p95": 934380,
+            "max": 934380
+          },
+          "residualPrivateKb": {
+            "n": 10,
+            "p50": 907408,
+            "p95": 927968,
+            "max": 927968
+          }
+        },
+        "overscan2-fast": {
+          "firstVisible": {
+            "n": 10,
+            "p50": 514.9,
+            "p95": 519.7,
+            "max": 519.7
+          },
+          "pageDemand": {
+            "n": 20,
+            "p50": 16.4,
+            "p95": 17.7,
+            "max": 18.1
+          },
+          "frameP95PerTrial": {
+            "n": 10,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 10,
+            "p50": 0.4,
+            "p95": 1,
+            "max": 1
+          },
+          "bytes": {
+            "n": 10,
+            "p50": 2375026,
+            "p95": 2375026,
+            "max": 2375026
+          },
+          "peakPrivateKb": {
+            "n": 10,
+            "p50": 923924,
+            "p95": 948264,
+            "max": 948264
+          },
+          "residualPrivateKb": {
+            "n": 10,
+            "p50": 917480,
+            "p95": 933220,
+            "max": 933220
+          }
+        }
+      },
+      "memory": [
+        {
+          "variant": "overscan1-fast",
+          "repeat": 0,
+          "peakPrivateMiB": 615.66015625,
+          "residualPrivateMiB": 620.4921875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 0,
+          "peakPrivateMiB": 684.3046875,
+          "residualPrivateMiB": 655.1328125
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 1,
+          "peakPrivateMiB": 693.45703125,
+          "residualPrivateMiB": 691.4375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 1,
+          "peakPrivateMiB": 727.00390625,
+          "residualPrivateMiB": 727.0859375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 2,
+          "peakPrivateMiB": 768.75390625,
+          "residualPrivateMiB": 762.97265625
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 2,
+          "peakPrivateMiB": 808.875,
+          "residualPrivateMiB": 806.52734375
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 3,
+          "peakPrivateMiB": 848.3828125,
+          "residualPrivateMiB": 841.6328125
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 3,
+          "peakPrivateMiB": 877.73046875,
+          "residualPrivateMiB": 878.28515625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 4,
+          "peakPrivateMiB": 906.53125,
+          "residualPrivateMiB": 903.4765625
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 4,
+          "peakPrivateMiB": 926.0390625,
+          "residualPrivateMiB": 906.6796875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 5,
+          "peakPrivateMiB": 911.66796875,
+          "residualPrivateMiB": 906.66015625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 5,
+          "peakPrivateMiB": 901.07421875,
+          "residualPrivateMiB": 898.0625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 6,
+          "peakPrivateMiB": 903.6328125,
+          "residualPrivateMiB": 892.3984375
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 6,
+          "peakPrivateMiB": 906.40625,
+          "residualPrivateMiB": 900.42578125
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 7,
+          "peakPrivateMiB": 914.08984375,
+          "residualPrivateMiB": 911.34765625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 7,
+          "peakPrivateMiB": 912.48046875,
+          "residualPrivateMiB": 896.90234375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 8,
+          "peakPrivateMiB": 897.9921875,
+          "residualPrivateMiB": 886.140625
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 8,
+          "peakPrivateMiB": 902.26953125,
+          "residualPrivateMiB": 895.9765625
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 9,
+          "peakPrivateMiB": 911.55859375,
+          "residualPrivateMiB": 903.47265625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 9,
+          "peakPrivateMiB": 908.92578125,
+          "residualPrivateMiB": 906.21875
+        }
+      ]
+    },
+    {
+      "name": "overscan-confirm",
+      "stage": "confirmation",
+      "sampleCount": 100,
+      "rawFile": "reader-overscan-confirm.raw.json.gz",
+      "rawSha256": "4ea4470f24228e3bead6b9aaec6238c058c2462b0f8a215db4dcc21cd5021616",
+      "versions": {
+        "node": "24.18.0",
+        "acorn": "8.16.0",
+        "ada": "3.4.4",
+        "amaro": "1.1.9",
+        "ares": "1.34.6",
+        "brotli": "1.2.0",
+        "cldr": "48.0",
+        "icu": "78.2",
+        "llhttp": "9.4.2",
+        "merve": "1.2.2",
+        "modules": "148",
+        "napi": "10",
+        "nbytes": "0.1.4",
+        "ncrypto": "0.0.1",
+        "nghttp2": "1.69.0",
+        "nghttp3": "",
+        "ngtcp2": "",
+        "openssl": "0.0.0",
+        "simdjson": "4.6.4",
+        "simdutf": "7.7.0",
+        "sqlite": "3.53.1",
+        "tz": "2025c",
+        "undici": "7.28.0",
+        "unicode": "17.0",
+        "uv": "1.52.1",
+        "uvwasi": "0.0.23",
+        "v8": "15.0.1240245-electron.0",
+        "zlib": "1.3.2.1-motley",
+        "zstd": "1.6.0",
+        "electron": "43.2.0",
+        "chrome": "150.0.7871.129"
+      },
+      "gpu": {
+        "2d_canvas": "enabled",
+        "direct_rendering_display_compositor": "disabled_off_ok",
+        "gpu_compositing": "enabled",
+        "multiple_raster_threads": "enabled_on",
+        "opengl": "enabled_on",
+        "rasterization": "enabled",
+        "raw_draw": "disabled_off_ok",
+        "skia_graphite": "disabled_off",
+        "trees_in_viz": "disabled_off",
+        "video_decode": "enabled",
+        "video_encode": "enabled",
+        "webgl": "enabled",
+        "webgpu": "enabled",
+        "webnn": "disabled_off"
+      },
+      "environment": {
+        "cpu": "AMD Ryzen AI 7 H 350 w/ Radeon 860M ",
+        "logicalCores": 16,
+        "totalMemoryBytes": 33413771264,
+        "platform": "win32",
+        "release": "10.0.26100",
+        "windowBounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 752
+        }
+      },
+      "buildHash": "9afa0b8cacd607b8bf142526ceeca0a23126cef3012c1262327c6ba5c0c0c8a5",
+      "rendererHashes": {
+        "Badge-DhNjJN7V.js": "07e0803a9defdcf1355dab5645074a14e37926776a430e620ba0068bec4cf144",
+        "DialogContent-C-d_z_bc.js": "ad03375da195a2f44b039bee3080a96c94c74a61028b6c0927e7f01600625ea0",
+        "DownloadsPage-DspVfvDB.js": "47f874de8dd9f481d561f35fe2c8a73e9c96791b903fc8a27c8140e2123b21b3",
+        "MangaDetailPage-SVdvrnYi.js": "db21f8042cf0e83560dfea618de975f0dcd717a2e0e6a110d3ca7516a0f8651d",
+        "ReaderPage-BVVtMTxh.js": "167868c8fc0ffb4dbbdb1088ba0b695f857492f4ab5a9a60e56a05f69110ea36",
+        "ReaderPage-CXR8Elsz.css": "a94f0e729e86e07a496ed343eaa82bb1d056d0cd996f58ef3b64b4989499997e",
+        "SettingsPage-C8oJPQt6.js": "c2e5a81416867fe4dc9fb308c4618dc2d41a124a75fd549f6aa3f88fe9b2cbbe",
+        "chunk-16-BkeMLrj_.js": "aedb0933258a0a52ad714d8a467ad25804b6a8539255a8300b70fd424f8ccb6a",
+        "chunk-19-DQeH6C8h.js": "d75bfb3835a7461530c0e8c5587ef8d4b8393a19275e733b40e452d888b7d8de",
+        "index-BfYxcyUT.css": "b6aa5c71db6b428709f7a55e15d5ec0776810972571d9b6f012a104668f7c0f0",
+        "index-BgCVaPzr.js": "07709ea7ebaab6a6a0c25ed60b33c22c8c425fb0e888712862e30d69bb80b058"
+      },
+      "fixture": {
+        "latencyMs": 80,
+        "sharedBytesPerSecond": 4194304,
+        "encodedBytes": [
+          401333,
+          464639,
+          536889,
+          400339,
+          465713,
+          106113,
+          215235
+        ],
+        "scrambled": true
+      },
+      "scope": "Same-process repeated reading; all visible rAF intervals, not compositor presentation timing. Unique cold URLs bypass Chromium decoded-image cache. Process memory includes synthetic fixture and test harness.",
+      "summary": {
+        "overscan1-fast": {
+          "firstVisible": {
+            "n": 50,
+            "p50": 422.1,
+            "p95": 426.9,
+            "max": 427.2
+          },
+          "pageDemand": {
+            "n": 100,
+            "p50": 18.1,
+            "p95": 254.9,
+            "max": 256.2
+          },
+          "frameP95PerTrial": {
+            "n": 50,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 50,
+            "p50": 0.4,
+            "p95": 0.6,
+            "max": 0.9
+          },
+          "bytes": {
+            "n": 50,
+            "p50": 2268913,
+            "p95": 2268913,
+            "max": 2268913
+          },
+          "peakPrivateKb": {
+            "n": 50,
+            "p50": 979760,
+            "p95": 1026456,
+            "max": 1033628
+          },
+          "residualPrivateKb": {
+            "n": 50,
+            "p50": 969912,
+            "p95": 1014632,
+            "max": 1021496
+          }
+        },
+        "overscan2-fast": {
+          "firstVisible": {
+            "n": 50,
+            "p50": 514.4,
+            "p95": 519.9,
+            "max": 521.2
+          },
+          "pageDemand": {
+            "n": 100,
+            "p50": 16.1,
+            "p95": 17.9,
+            "max": 18.2
+          },
+          "frameP95PerTrial": {
+            "n": 50,
+            "p50": 6.2,
+            "p95": 6.2,
+            "max": 6.2
+          },
+          "canvasP95PerTrial": {
+            "n": 50,
+            "p50": 0.4,
+            "p95": 0.9,
+            "max": 1
+          },
+          "bytes": {
+            "n": 50,
+            "p50": 2375026,
+            "p95": 2375026,
+            "max": 2375026
+          },
+          "peakPrivateKb": {
+            "n": 50,
+            "p50": 979088,
+            "p95": 1021328,
+            "max": 1030088
+          },
+          "residualPrivateKb": {
+            "n": 50,
+            "p50": 967364,
+            "p95": 1010636,
+            "max": 1022224
+          }
+        }
+      },
+      "memory": [
+        {
+          "variant": "overscan1-fast",
+          "repeat": 0,
+          "peakPrivateMiB": 617.66015625,
+          "residualPrivateMiB": 622.21875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 0,
+          "peakPrivateMiB": 691.3359375,
+          "residualPrivateMiB": 659.03515625
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 1,
+          "peakPrivateMiB": 712.1640625,
+          "residualPrivateMiB": 701.21875
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 1,
+          "peakPrivateMiB": 740.04296875,
+          "residualPrivateMiB": 741.1875
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 2,
+          "peakPrivateMiB": 791.578125,
+          "residualPrivateMiB": 787.015625
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 2,
+          "peakPrivateMiB": 830.05078125,
+          "residualPrivateMiB": 825.828125
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 3,
+          "peakPrivateMiB": 871.01953125,
+          "residualPrivateMiB": 850.82421875
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 3,
+          "peakPrivateMiB": 899.8046875,
+          "residualPrivateMiB": 900.43359375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 4,
+          "peakPrivateMiB": 936.796875,
+          "residualPrivateMiB": 934.01171875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 4,
+          "peakPrivateMiB": 958.22265625,
+          "residualPrivateMiB": 955.140625
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 5,
+          "peakPrivateMiB": 951.4609375,
+          "residualPrivateMiB": 951.65234375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 5,
+          "peakPrivateMiB": 969.48828125,
+          "residualPrivateMiB": 949.2578125
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 6,
+          "peakPrivateMiB": 952.15625,
+          "residualPrivateMiB": 947.1796875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 6,
+          "peakPrivateMiB": 950.9375,
+          "residualPrivateMiB": 929.2421875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 7,
+          "peakPrivateMiB": 943.578125,
+          "residualPrivateMiB": 939.31640625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 7,
+          "peakPrivateMiB": 953.8046875,
+          "residualPrivateMiB": 941.76953125
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 8,
+          "peakPrivateMiB": 945.75,
+          "residualPrivateMiB": 928.9921875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 8,
+          "peakPrivateMiB": 934.4453125,
+          "residualPrivateMiB": 927.91015625
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 9,
+          "peakPrivateMiB": 942.39453125,
+          "residualPrivateMiB": 932.84765625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 9,
+          "peakPrivateMiB": 960.87890625,
+          "residualPrivateMiB": 944.5546875
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 10,
+          "peakPrivateMiB": 955.6953125,
+          "residualPrivateMiB": 951.171875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 10,
+          "peakPrivateMiB": 956.140625,
+          "residualPrivateMiB": 950.76953125
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 11,
+          "peakPrivateMiB": 941.7109375,
+          "residualPrivateMiB": 932.40234375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 11,
+          "peakPrivateMiB": 949.65625,
+          "residualPrivateMiB": 940.48046875
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 12,
+          "peakPrivateMiB": 955.4140625,
+          "residualPrivateMiB": 940.921875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 12,
+          "peakPrivateMiB": 954.3359375,
+          "residualPrivateMiB": 952.10546875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 13,
+          "peakPrivateMiB": 956.40234375,
+          "residualPrivateMiB": 951.31640625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 13,
+          "peakPrivateMiB": 964.21484375,
+          "residualPrivateMiB": 962.5859375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 14,
+          "peakPrivateMiB": 962.3359375,
+          "residualPrivateMiB": 925.2109375
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 14,
+          "peakPrivateMiB": 953.71875,
+          "residualPrivateMiB": 936.09765625
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 15,
+          "peakPrivateMiB": 951.75390625,
+          "residualPrivateMiB": 946.88671875
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 15,
+          "peakPrivateMiB": 956.7421875,
+          "residualPrivateMiB": 954.90234375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 16,
+          "peakPrivateMiB": 943.15625,
+          "residualPrivateMiB": 935.5
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 16,
+          "peakPrivateMiB": 939.04296875,
+          "residualPrivateMiB": 927.984375
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 17,
+          "peakPrivateMiB": 936.78125,
+          "residualPrivateMiB": 927.7578125
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 17,
+          "peakPrivateMiB": 947.76953125,
+          "residualPrivateMiB": 934.8046875
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 18,
+          "peakPrivateMiB": 949.46484375,
+          "residualPrivateMiB": 946.94921875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 18,
+          "peakPrivateMiB": 951.11328125,
+          "residualPrivateMiB": 929.015625
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 19,
+          "peakPrivateMiB": 957.984375,
+          "residualPrivateMiB": 944.69140625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 19,
+          "peakPrivateMiB": 954.48046875,
+          "residualPrivateMiB": 944.80859375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 20,
+          "peakPrivateMiB": 948.70703125,
+          "residualPrivateMiB": 933.83203125
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 20,
+          "peakPrivateMiB": 952.375,
+          "residualPrivateMiB": 935.328125
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 21,
+          "peakPrivateMiB": 942.3359375,
+          "residualPrivateMiB": 929.05078125
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 21,
+          "peakPrivateMiB": 954.43359375,
+          "residualPrivateMiB": 952.5078125
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 22,
+          "peakPrivateMiB": 962.953125,
+          "residualPrivateMiB": 956.08984375
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 22,
+          "peakPrivateMiB": 963.87890625,
+          "residualPrivateMiB": 946.94140625
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 23,
+          "peakPrivateMiB": 962.6015625,
+          "residualPrivateMiB": 953.41796875
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 23,
+          "peakPrivateMiB": 948.38671875,
+          "residualPrivateMiB": 941.9453125
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 24,
+          "peakPrivateMiB": 947.625,
+          "residualPrivateMiB": 933.265625
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 24,
+          "peakPrivateMiB": 950.64453125,
+          "residualPrivateMiB": 944.85546875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 25,
+          "peakPrivateMiB": 945.703125,
+          "residualPrivateMiB": 941.33203125
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 25,
+          "peakPrivateMiB": 963.2109375,
+          "residualPrivateMiB": 949.87109375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 26,
+          "peakPrivateMiB": 956.796875,
+          "residualPrivateMiB": 951.6484375
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 26,
+          "peakPrivateMiB": 962.96484375,
+          "residualPrivateMiB": 938.35546875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 27,
+          "peakPrivateMiB": 969.09765625,
+          "residualPrivateMiB": 955.59375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 27,
+          "peakPrivateMiB": 969.6171875,
+          "residualPrivateMiB": 964.7890625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 28,
+          "peakPrivateMiB": 970.67578125,
+          "residualPrivateMiB": 945.67578125
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 28,
+          "peakPrivateMiB": 951.63671875,
+          "residualPrivateMiB": 924.10546875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 29,
+          "peakPrivateMiB": 946.7265625,
+          "residualPrivateMiB": 936.64453125
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 29,
+          "peakPrivateMiB": 953.140625,
+          "residualPrivateMiB": 941.9453125
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 30,
+          "peakPrivateMiB": 965.171875,
+          "residualPrivateMiB": 963.16015625
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 30,
+          "peakPrivateMiB": 970.67578125,
+          "residualPrivateMiB": 937.98828125
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 31,
+          "peakPrivateMiB": 946.734375,
+          "residualPrivateMiB": 932.4921875
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 31,
+          "peakPrivateMiB": 937.4765625,
+          "residualPrivateMiB": 935.3359375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 32,
+          "peakPrivateMiB": 950.9765625,
+          "residualPrivateMiB": 939.07421875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 32,
+          "peakPrivateMiB": 967.90625,
+          "residualPrivateMiB": 965.04296875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 33,
+          "peakPrivateMiB": 973.2109375,
+          "residualPrivateMiB": 939.3359375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 33,
+          "peakPrivateMiB": 948.7421875,
+          "residualPrivateMiB": 943.80078125
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 34,
+          "peakPrivateMiB": 960.01171875,
+          "residualPrivateMiB": 958.09375
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 34,
+          "peakPrivateMiB": 964.70703125,
+          "residualPrivateMiB": 943.78125
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 35,
+          "peakPrivateMiB": 972.40625,
+          "residualPrivateMiB": 965.87890625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 35,
+          "peakPrivateMiB": 986.21484375,
+          "residualPrivateMiB": 983.40234375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 36,
+          "peakPrivateMiB": 985.66015625,
+          "residualPrivateMiB": 927.9375
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 36,
+          "peakPrivateMiB": 957.65234375,
+          "residualPrivateMiB": 947.453125
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 37,
+          "peakPrivateMiB": 954.85546875,
+          "residualPrivateMiB": 934.5078125
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 37,
+          "peakPrivateMiB": 964.94921875,
+          "residualPrivateMiB": 961.27734375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 38,
+          "peakPrivateMiB": 967.86328125,
+          "residualPrivateMiB": 964.8203125
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 38,
+          "peakPrivateMiB": 987.51953125,
+          "residualPrivateMiB": 982.30078125
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 39,
+          "peakPrivateMiB": 997.390625,
+          "residualPrivateMiB": 986.94921875
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 39,
+          "peakPrivateMiB": 986.87890625,
+          "residualPrivateMiB": 972.984375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 40,
+          "peakPrivateMiB": 985.41015625,
+          "residualPrivateMiB": 981.21875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 40,
+          "peakPrivateMiB": 990.69140625,
+          "residualPrivateMiB": 969.328125
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 41,
+          "peakPrivateMiB": 971.67578125,
+          "residualPrivateMiB": 967.078125
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 41,
+          "peakPrivateMiB": 995.33984375,
+          "residualPrivateMiB": 990.8515625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 42,
+          "peakPrivateMiB": 1007.45703125,
+          "residualPrivateMiB": 997.5546875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 42,
+          "peakPrivateMiB": 1005.9453125,
+          "residualPrivateMiB": 974.0625
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 43,
+          "peakPrivateMiB": 1001.7890625,
+          "residualPrivateMiB": 998.265625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 43,
+          "peakPrivateMiB": 1009.40234375,
+          "residualPrivateMiB": 995.890625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 44,
+          "peakPrivateMiB": 1002.3984375,
+          "residualPrivateMiB": 955.5703125
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 44,
+          "peakPrivateMiB": 979.40625,
+          "residualPrivateMiB": 971.7421875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 45,
+          "peakPrivateMiB": 983.3125,
+          "residualPrivateMiB": 976.5390625
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 45,
+          "peakPrivateMiB": 986.6328125,
+          "residualPrivateMiB": 977.5703125
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 46,
+          "peakPrivateMiB": 988.17578125,
+          "residualPrivateMiB": 984.2421875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 46,
+          "peakPrivateMiB": 990.74609375,
+          "residualPrivateMiB": 981.7734375
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 47,
+          "peakPrivateMiB": 977.09765625,
+          "residualPrivateMiB": 968.296875
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 47,
+          "peakPrivateMiB": 980.78125,
+          "residualPrivateMiB": 978.90234375
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 48,
+          "peakPrivateMiB": 988.2265625,
+          "residualPrivateMiB": 979.6484375
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 48,
+          "peakPrivateMiB": 990.77734375,
+          "residualPrivateMiB": 966.96875
+        },
+        {
+          "variant": "overscan2-fast",
+          "repeat": 49,
+          "peakPrivateMiB": 993.56640625,
+          "residualPrivateMiB": 991.21875
+        },
+        {
+          "variant": "overscan1-fast",
+          "repeat": 49,
+          "peakPrivateMiB": 990.76171875,
+          "residualPrivateMiB": 978.203125
+        }
+      ]
+    }
+  ]
+}

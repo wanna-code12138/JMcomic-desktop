@@ -38,9 +38,19 @@ body {
 :root {
   --ui-radius-sm: 4px;
   --ui-radius-md: 6px;
-  --ui-radius-lg: 8px;
+  --ui-radius-lg: 10px;
   --ui-motion-fast: 120ms;
   --ui-motion-standard: 160ms;
+  --ui-motion-layout: 200ms;
+  --ui-ease-out: cubic-bezier(.2,.8,.2,1);
+  --ui-font-title: 24px;
+  --ui-line-title: 32px;
+  --ui-font-section: 16px;
+  --ui-line-section: 22px;
+  --ui-font-body: 14px;
+  --ui-line-body: 20px;
+  --ui-font-caption: 12px;
+  --ui-line-caption: 18px;
 
   /* 阅读器沉浸深色（不随浅深主题切换） */
   --ac-reader-bg: #0b0b14;
@@ -50,27 +60,36 @@ body {
   --ac-reader-text-3: #8a8aa8;
 }
 
-/* WinUI light */
+/* Fluent is the color source for both custom surfaces and portalled controls. */
+.fui-FluentProvider, .ui-light, .ui-dark {
+  --ui-bg-app-solid: var(--colorNeutralBackground3);
+  --ui-bg-pane: var(--colorNeutralBackground2);
+  --ui-bg-canvas: var(--colorNeutralBackground4);
+  --ui-bg-card: var(--colorNeutralBackground1);
+  --ui-bg-toolbar: var(--colorNeutralBackground2);
+  --ui-bg-dialog: var(--colorNeutralBackground1);
+  --ui-bg-hover: var(--colorNeutralBackground1Hover);
+  --ui-bg-selected: var(--colorBrandBackground2);
+  --ui-stroke-card: var(--colorNeutralStroke2);
+  --ui-stroke-strong: var(--colorNeutralStroke1);
+  --ui-text-primary: var(--colorNeutralForeground1);
+  --ui-text-secondary: var(--colorNeutralForeground2);
+  --ui-text-tertiary: var(--colorNeutralForeground3);
+  --ui-brand: var(--colorBrandForeground1);
+  --ui-brand-hover: var(--colorBrandForeground2);
+  --ui-brand-fill: var(--colorBrandBackground);
+  --ui-brand-fill-hover: var(--colorBrandBackgroundHover);
+  --ui-on-brand: var(--colorNeutralForegroundOnBrand);
+  --ui-success: var(--colorPaletteGreenForeground1);
+  --ui-warning: var(--colorPaletteYellowForeground1);
+  --ui-danger: var(--colorPaletteRedForeground1);
+  --ui-favorite: var(--colorPaletteBerryForeground1);
+  --ui-shadow-popup: var(--shadow16);
+  --ui-shadow-dialog: var(--shadow64);
+}
+
 .ui-light {
-  --ui-bg-app: rgba(243, 243, 243, 0.72);
-  --ui-bg-app-solid: #f3f3f3;
-  --ui-bg-pane: rgba(249, 249, 249, 0.9);
-  --ui-bg-canvas: #ffffff;
-  --ui-bg-card: #ffffff;
-  --ui-bg-toolbar: rgba(255, 255, 255, 0.94);
-  --ui-bg-dialog: #ffffff;
-  --ui-bg-hover: #f5f5f5;
-  --ui-bg-selected: #e8f2fb;
-  --ui-stroke-card: #e5e5e5;
-  --ui-stroke-strong: #d1d1d1;
-  --ui-text-primary: #1b1a19;
-  --ui-text-secondary: #605e5c;
-  --ui-text-tertiary: #8a8886;
-  --ui-brand: #0f6cbd;
-  --ui-brand-hover: #115ea3;
-  --ui-success: #107c10;
-  --ui-warning: #9d5d00;
-  --ui-danger: #c42b1c;
+  --ui-bg-app: rgba(243, 244, 246, 0.94);
   --ui-scrollbar-thumb: rgba(0, 0, 0, 0.28);
   --ui-scrollbar-thumb-hover: rgba(0, 0, 0, 0.42);
 
@@ -78,31 +97,86 @@ body {
 
 /* WinUI dark */
 .ui-dark {
-  --ui-bg-app: rgba(32, 32, 32, 0.76);
-  --ui-bg-app-solid: #202020;
-  --ui-bg-pane: rgba(39, 39, 39, 0.92);
-  --ui-bg-canvas: #1f1f1f;
-  --ui-bg-card: #292929;
-  --ui-bg-toolbar: rgba(44, 44, 44, 0.96);
-  --ui-bg-dialog: #2b2b2b;
-  --ui-bg-hover: #333333;
-  --ui-bg-selected: #183b56;
-  --ui-stroke-card: #3d3d3d;
-  --ui-stroke-strong: #505050;
-  --ui-text-primary: #ffffff;
-  --ui-text-secondary: #d2d0ce;
-  --ui-text-tertiary: #a19f9d;
-  --ui-brand: #62abf5;
-  --ui-brand-hover: #83bff5;
-  --ui-success: #6ccb5f;
-  --ui-warning: #fce100;
-  --ui-danger: #ff99a4;
+  --ui-bg-app: rgba(21, 26, 33, 0.94);
   --ui-scrollbar-thumb: rgba(255, 255, 255, 0.2);
   --ui-scrollbar-thumb-hover: rgba(255, 255, 255, 0.34);
 
 }
 
 /* Compact WinUI-style scrollbars */
+.settings-caption { color: var(--ui-text-secondary); font-size: var(--ui-font-caption); line-height: var(--ui-line-caption); margin-top: 4px; }
+.settings-group { border: 1px solid var(--ui-stroke-card); border-radius: var(--ui-radius-lg); background: var(--ui-bg-card); overflow: hidden; }
+.settings-group > .fui-Card + .fui-Card { border-top: 1px solid var(--ui-stroke-card); }
+.settings-page .fui-Card { padding: 18px 20px; }
+.settings-page .fui-Switch { flex-shrink: 0; }
+.settings-page .fui-Button { white-space: nowrap; }
+.settings-page .fui-Select { max-width: 100%; }
+.settings-page .fui-Input { min-width: 0; max-width: 100%; }
+.settings-theme-options { display: flex; gap: 2px; padding: 2px; border: 1px solid var(--ui-stroke-card); border-radius: var(--ui-radius-md); background: var(--ui-bg-pane); }
+.settings-group > .settings-error { padding: 12px 20px; }
+.fui-Tooltip__content { pointer-events: none; }
+.fui-DialogSurface { background: var(--colorNeutralBackground1); border: 1px solid var(--colorNeutralStroke2); border-radius: 10px; box-shadow: var(--shadow64); }
+.diagnostics-content { max-width: 880px; margin-inline: auto; }
+@container browse (max-width: 580px) {
+  .ui-page-title { font-size: 20px !important; line-height: 28px !important; }
+  .settings-page { padding: 20px 16px; }
+  .settings-page .fui-Card { padding: 16px; }
+  .diagnostics-header { flex-wrap: wrap; gap: 14px; }
+  .diagnostics-header > div { flex-wrap: wrap; }
+}
+@container browse (max-width: 440px) {
+  .settings-theme-row { grid-template-columns: minmax(0, 1fr) !important; gap: 12px !important; }
+  .settings-theme-options { justify-self: start; }
+}
+.download-format-dialog { width: min(480px, calc(100vw - 32px)); }
+.download-format-title { overflow-wrap: anywhere; }
+.download-format-options { display: grid; gap: 12px; margin: 22px 0; }
+.download-format-options button { display: flex; gap: 14px; padding: 16px; text-align: left; align-items: center; }
+.download-format-options button[aria-checked=true] { border-color: var(--ui-brand); background: var(--ui-bg-selected); box-shadow: 0 0 0 1px var(--ui-brand); }
+.download-format-options svg { flex-shrink: 0; color: var(--ui-brand); }
+.download-format-options span { display: grid; gap: 6px; }
+.download-format-options strong { font-size: 14px; font-weight: 600; }
+.download-format-options small { color: var(--ui-text-secondary); font-size: 12px; line-height: 1.6; }
+.workspace-dialog .download-remember { display: flex; align-items: center; gap: 8px; }
+.download-remember input { width: 16px; height: 16px; accent-color: var(--ui-brand); }
+.download-format-badge { display: inline-flex; padding: 2px 6px; margin-right: 7px; border-radius: 4px; background: var(--ui-bg-selected); color: var(--ui-brand); font-size: 10px; font-weight: 600; vertical-align: middle; }
+.download-pdf-library { margin: 8px 0 28px; }
+.download-pdf-library h2 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+.download-pdf-card { display: flex; align-items: center; gap: 12px; border: 1px solid var(--ui-stroke-card); background: var(--ui-bg-card); padding: 14px; border-radius: 10px; margin: 8px 0; }
+.download-pdf-card > div { min-width: 0; flex: 1; }
+.download-pdf-card strong { display: block; font-size: 14px; font-weight: 600; }
+.download-pdf-card small { display: block; font-size: 12px; color: var(--ui-text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; }
+@container browse (max-width: 580px) { .download-task-row { flex-wrap: wrap; } .download-task-row > :first-child { flex-basis: 100%; } }
+.settings-restart { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ui-stroke-card); }
+.settings-error { color: var(--ui-danger); font-size: 13px; }
+.settings-network-icon { display: inline-flex; vertical-align: middle; margin-right: 4px; }
+.settings-network-icon[data-state=online] { color: var(--ui-success); }
+.settings-network-icon[data-state=degraded] { color: var(--ui-warning); }
+.settings-network-icon[data-state=offline] { color: var(--ui-danger); }
+@media (forced-colors: active) {
+  .settings-group, .settings-group > .fui-Card + .fui-Card, .fui-DialogSurface { border-color: CanvasText; }
+  .settings-theme-options .fui-Button[aria-pressed=true] { outline: 1px solid Highlight; }
+}
+.app-page-enter, .reader-start, .reader-root { animation: ui-content-in var(--ui-motion-standard) var(--ui-ease-out); }
+.app-page-stack { position: relative; height: 100%; overflow: hidden; isolation: isolate; }
+.app-page-surface { position: absolute; inset: 0; min-height: 0; overflow: hidden; opacity: 0; transform: translateY(-4px); pointer-events: none;
+  transition: opacity 140ms var(--ui-ease-out), transform 160ms var(--ui-ease-out), display 160ms allow-discrete; }
+.app-page-surface[data-current=true] { opacity: 1; transform: none; z-index: 1; pointer-events: auto; }
+@starting-style { .app-page-surface[data-current=true] { opacity: .25; transform: translateY(6px); } }
+[data-exiting=true] { animation: ui-surface-out 140ms var(--ui-ease-out) both !important; pointer-events: none; }
+.reader-toolbar[data-exiting=true] { position: absolute; inset: 0 0 auto; height: 40px; }
+@keyframes ui-surface-out { to { opacity: 0; transform: translateY(-5px); } }
+.workspace-storage-error { font-size: 12px; padding: 10px 14px; background: var(--ui-bg-selected); color: var(--ui-text-primary); }
+.workspace-storage-error button { float: right; background: transparent; border: 0; color: inherit; cursor: pointer; }
+.reader-toolbar, .reader-drawer, .reader-settings-menu, .reader-page-menu, .workspace-menu, .download-status-popover, [role=dialog] { animation: ui-surface-in var(--ui-motion-standard) var(--ui-ease-out); }
+.reader-transition-error, .reader-save-error, [role=status] { animation: ui-content-in var(--ui-motion-fast) var(--ui-ease-out); }
+button, summary, select, .manga-card { transition: background-color var(--ui-motion-fast) ease, border-color var(--ui-motion-fast) ease, box-shadow var(--ui-motion-fast) ease; }
+.workspace-dialog { opacity: 0; transform: translateY(8px) scale(.99); transition: opacity 160ms, transform 160ms, overlay 160ms allow-discrete, display 160ms allow-discrete; }
+.workspace-dialog[open] { opacity: 1; transform: none; }
+@starting-style { .workspace-dialog[open] { opacity: 0; transform: translateY(8px) scale(.99); } }
+@keyframes ui-content-in { from { opacity: .3; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes ui-surface-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+html[data-motion=off] *, html[data-motion=off] *::before, html[data-motion=off] *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -129,10 +203,31 @@ img.manga-page {
   image-rendering: auto;
 }
 
+/* Manga Card CSS containment and hover/focus styling */
+.manga-card {
+  contain: layout paint style;
+}
+
+.manga-card .manga-card-fav-btn {
+  opacity: 0;
+  transition: opacity 100ms ease-out, background-color 100ms ease-out;
+}
+
+.manga-card:hover .manga-card-fav-btn,
+.manga-card:focus-within .manga-card-fav-btn,
+.manga-card .manga-card-fav-btn.is-active {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  .manga-card,
+  .manga-card .manga-card-fav-btn,
+  .manga-card img {
+    transition-duration: 0ms !important;
   }
 }

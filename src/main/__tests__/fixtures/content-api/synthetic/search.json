@@ -1,0 +1,19 @@
+{
+  "total": 42,
+  "content": [
+    {
+      "id": "1215915",
+      "name": "男人配额制",
+      "image": "/media/albums/1215915.jpg",
+      "author": "MALPOI",
+      "tags": ["连载", "都市", "全彩"]
+    },
+    {
+      "id": "1215916",
+      "name": "示例漫画第二部",
+      "image": "/media/albums/1215916.jpg",
+      "author": "达兰",
+      "tags": ["短篇"]
+    }
+  ]
+}

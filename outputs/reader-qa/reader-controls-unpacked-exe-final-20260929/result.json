@@ -1,0 +1,28 @@
+{
+  "executable": "D:\\soft\\Opencode\\JMComic\\dist-electron\\reader-controls-20260929\\win-unpacked\\JMComic Desktop.exe",
+  "sha256": "10b27caaf56a8fa34780711e7065735fccdcba4f2f471c06151b54a8a7c65fd1",
+  "mode": "direct packaged EXE / synthetic network and save dialog",
+  "assertions": [
+    "delivered EXE loads packaged main, preload, renderer and isolated data without a development loader",
+    "actual EXE downloads, descrambles all 23 golden rows, decodes jmlocal and exports CBZ with packaged archiver",
+    "actual pointer input opens the downloaded chapter and its first page is visible in the production reader",
+    "actual EXE has manual docked tools, preserves its book while hidden and closes its last tab with X",
+    "normal window close completes and exits the actual EXE with code 0"
+  ],
+  "errors": [],
+  "runtime": {
+    "packaged": true,
+    "version": "1.0.7",
+    "appPath": "D:\\soft\\Opencode\\JMComic\\dist-electron\\reader-controls-20260929\\win-unpacked\\resources\\app.asar",
+    "userData": "D:\\soft\\Opencode\\JMComic\\work\\reader-controls-unpacked-exe-final-20260929\\profile",
+    "electron": "43.2.0",
+    "node": "24.18.0"
+  },
+  "appArchiveSha256": "e372ac1fefd25246c314aa6e1af33b45f900f65e4153f2398a7b73bb13c009bf",
+  "warmupAtStartup": {
+    "phase": "verifying",
+    "attempt": 1,
+    "reason": "startup",
+    "startedAt": 1790667982751
+  }
+}

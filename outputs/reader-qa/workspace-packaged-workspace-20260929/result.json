@@ -1,0 +1,28 @@
+{
+  "runId": "workspace-packaged-workspace-20260929",
+  "mode": "visible Chromium / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "three panes, source-aware tabs, independent anchors, deduplication and background unmount"
+    },
+    {
+      "name": "failed saving retains the active tab; explicit retry completes the intended switch"
+    },
+    {
+      "name": "expand, fullscreen, restore and compact responsive controls preserve the active session"
+    },
+    {
+      "name": "rapid tab requests serialize; background close preserves active session; final close restores navigation"
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 9,
+    "image": 40,
+    "blocked": 3
+  },
+  "summaryQueries": 0
+}

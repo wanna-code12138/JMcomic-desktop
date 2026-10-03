@@ -61,7 +61,8 @@ function ensureDir(dir) {
 
 function renderPng(size, svgFile, workDir) {
   const outPath = pngPath(size)
-  const svgAbsPath = svgPath(svgFile).replace(/\\/g, '/')
+  const source = resolve(BUILD_DIR, 'icon-source.png')
+  const svgAbsPath = (existsSync(source) ? source : svgPath(svgFile)).replace(/\\/g, '/')
 
   const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;overflow:hidden;background:transparent}</style></head>

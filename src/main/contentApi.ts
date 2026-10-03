@@ -1,7 +1,6 @@
-import { ipcMain, app, BrowserWindow } from 'electron'
+import { ipcMain, app, BrowserWindow, net } from 'electron'
 import { join } from 'node:path'
-import { getNetworkStatus } from './networkProbe'
-import { isSessionWarmedUp, warmupSession } from './sessionWarmup'
+import { ensureWarmup, getWarmupState, retryWarmup } from './sessionWarmup'
 import {
   extractHomepage,
   extractMangaDetail,
@@ -15,6 +14,8 @@ import { beginMainPerfSpan } from './performanceTrace'
 import { JmWebAdapter } from './siteAdapter'
 import { createContentCache } from './contentCache'
 import { getAppDataDir } from './dataPaths'
+import { getSettings } from './settingsStore'
+import { buildRecommendationSourceRequests } from './recommendationData'
 import {
   createContentGateway,
   type CategoryRequest,
@@ -22,22 +23,25 @@ import {
   type HomepageCategory,
   type SearchRequest
 } from './contentGateway'
+import { createJmApiFetchPort } from './content/jmAppApiFetchPort'
+import { createAnonymousApiProvider } from './content/jmAppApiRuntime'
+import { createCommentService } from './comments/commentService'
 
 // Ensure session is ready (Cloudflare warmup)
 async function ensureReady(): Promise<void> {
-  if (!isSessionWarmedUp()) {
-    const hostWindow = BrowserWindow.getAllWindows().find((window) => !window.isDestroyed())
-    if (!hostWindow) throw new Error('找不到用于网页验证的主窗口')
-    await warmupSession(hostWindow)
+  const hostWindow = BrowserWindow.getAllWindows().find((window) => !window.isDestroyed())
+  if (!hostWindow) throw new Error('找不到用于网页验证的主窗口')
+  const state = await ensureWarmup('browser-fallback', hostWindow)
+  if (state.phase !== 'verified') {
+    throw new Error(`网页验证未完成（${state.phase === 'failed' ? state.reason : state.phase}），请在首页重试验证`)
   }
 }
 
-const directAdapter = new JmWebAdapter([])
+const directAdapter = new JmWebAdapter()
 
 const directProvider: ContentProvider = {
   async homepage() {
-    // The adapter currently splits homepage sections heuristically. Until its
-    // section semantics are proven equivalent, retain the browser extractor.
+    // Homepage sections require the canonical browser extractor in the web fallback.
     throw new Error('direct-homepage-unverified')
   },
   async search(request) {
@@ -49,10 +53,18 @@ const directProvider: ContentProvider = {
     const result = await directAdapter.search(request.query, request.page)
     return { results: result.results, totalPages: result.totalPages }
   },
-  async category() {
-    // Category URL semantics include several combined filters that the direct
-    // adapter does not yet implement. Do not silently return a different list.
-    throw new Error('direct-category-unverified')
+  async category(request) {
+    const supportsDirect = request.recommendation === true
+      && (!request.category || request.category === '0')
+      && !request.subCategory
+    if (!supportsDirect) throw new Error('direct-category-combination-unverified')
+    const result = await directAdapter.listAlbums({
+      tag: request.tag,
+      order: request.order ?? 'mr',
+      time: request.time ?? 'a',
+      page: request.page ?? 1
+    })
+    return { results: result.results, totalPages: result.totalPages }
   },
   async detail() {
     // Real-site parity check: the direct DOM returned missing canonical author
@@ -100,11 +112,20 @@ const browserProvider: ContentProvider = {
   }
 }
 
+const apiContentProvider = createAnonymousApiProvider(createJmApiFetchPort((url, init) => net.fetch(url, init)))
+export const publicComments = createCommentService((id, page, signal) => apiContentProvider.comments(id, page, signal))
+
+export async function warmAnonymousContentProvider(): Promise<void> {
+  await apiContentProvider.prewarm().catch(() => {})
+}
+
 const contentPersistentCache = createContentCache({
-  filePath: join(getAppDataDir(), 'content-cache.json')
+  filePath: join(getAppDataDir(), 'content-cache.json'),
+  namespace: 'public-content-api-v2'
 })
 
 const contentGateway = createContentGateway({
+  api: apiContentProvider,
   direct: directProvider,
   browser: browserProvider,
   ttlMs: 60_000,
@@ -113,6 +134,14 @@ const contentGateway = createContentGateway({
 
 export async function clearContentCache(): Promise<void> {
   await contentGateway.clear()
+}
+
+export async function getPublicMangaDetail(mangaId: string) {
+  return (await contentGateway.detail(mangaId)).data
+}
+
+export async function getPublicChapterPages(chapterUrl: string) {
+  return (await contentGateway.pages(chapterUrl)).data
 }
 
 ipcMain.handle('content:homepage', async (_event, category?: string) => {
@@ -164,6 +193,31 @@ ipcMain.on('content:homepage:cancel', (_event, category?: string) => {
   if (entry) entry.signal.aborted = true
 })
 
+ipcMain.handle('content:recommendations', async (_event, tagOffset?: number) => {
+  try {
+    const settings = await getSettings()
+    const requestPlan = buildRecommendationSourceRequests(
+      settings.recommendationTags,
+      Number.isFinite(tagOffset) ? Number(tagOffset) : 0
+    )
+    const settled = await Promise.allSettled(requestPlan.sources.map(async (source) => {
+      const result = await contentGateway.category(source.request)
+      return {
+        source: source.source,
+        ...(source.tag ? { tag: source.tag } : {}),
+        cards: result.data.results
+      }
+    }))
+    const pools = settled
+      .flatMap((result) => result.status === 'fulfilled' ? [result.value] : [])
+      .filter((pool) => pool.cards.length > 0)
+    if (pools.length === 0) throw new Error('所有推荐候选源均加载失败')
+    return { ok: true, pools, nextTagOffset: requestPlan.nextTagOffset }
+  } catch (err) {
+    return { ok: false, pools: [], nextTagOffset: 0, error: String(err) }
+  }
+})
+
 ipcMain.handle('content:search', async (_event, query: string, page?: number, mainTag?: 0 | 1, category?: string, order?: string, time?: string) => {
   try {
     const request: SearchRequest = {
@@ -208,70 +262,30 @@ ipcMain.handle('content:detail', async (_event, mangaId: string) => {
 })
 
 ipcMain.handle('content:pages', async (_event, chapterUrl: string) => {
+  const perf = beginMainPerfSpan('content.pages')
   try {
     const result = await contentGateway.pages(chapterUrl)
+    perf.finish('ok', { count: result.data.pages.length, scramble: result.data.scrambleId > 0, provider: result.provider, fallback: result.fallback })
     return { ok: true, data: result.data.pages, scrambleId: result.data.scrambleId }
   } catch (err) {
+    perf.finish('error')
     console.error('[content:pages] error:', err)
     return { ok: false, error: String(err) }
   }
 })
 
-const pageStreams = new Map<string, { signal: { aborted: boolean } }>()
-
-ipcMain.on('content:pages:stream', async (event, chapterUrl?: string) => {
-  const perf = beginMainPerfSpan('content.pages')
-  const url = chapterUrl ?? ''
-  const prev = pageStreams.get(url)
-  if (prev) prev.signal.aborted = true
-  const signal = { aborted: false }
-  pageStreams.set(url, { signal })
-  const send = (payload: { chapterUrl: string; pages?: unknown[]; scrambleId?: number; done: boolean; error?: string }): void => {
-    if (!event.sender.isDestroyed()) event.sender.send('content:pages:batch', payload)
-  }
-  try {
-    const result = await contentGateway.pages(url)
-    if (signal.aborted) {
-      perf.finish('cancelled')
-      return
-    }
-    if (result.data.pages.length > 0) {
-      perf.mark('first-batch', { count: result.data.pages.length })
-    }
-    send({
-      chapterUrl: url,
-      pages: result.data.pages,
-      scrambleId: result.data.scrambleId,
-      done: true
-    })
-    perf.finish('ok', {
-      count: result.data.pages.length,
-      scramble: result.data.scrambleId > 0,
-      provider: result.provider,
-      fallback: result.fallback
-    })
-  } catch (err) {
-    perf.finish(signal.aborted ? 'cancelled' : 'error', {
-      count: 0,
-      scramble: false
-    })
-    if (!signal.aborted) send({ chapterUrl: url, error: String(err), done: true })
-  } finally {
-    if (pageStreams.get(url)?.signal === signal) pageStreams.delete(url)
-  }
-})
-
-ipcMain.on('content:pages:cancel', (_event, chapterUrl?: string) => {
-  const url = chapterUrl ?? ''
-  const entry = pageStreams.get(url)
-  if (entry) entry.signal.aborted = true
-})
-
 ipcMain.handle('content:warmupStatus', () => {
+  const state = getWarmupState()
   return {
-    warmedUp: isSessionWarmedUp(),
-    networkStatus: getNetworkStatus()
+    warmedUp: state.phase === 'verified',
+    state
   }
+})
+
+ipcMain.handle('content:warmupRetry', async () => {
+  const hostWindow = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed())
+  if (!hostWindow) return { phase: 'failed', reason: 'window-closed', retryable: true }
+  return retryWarmup(hostWindow)
 })
 
 app.on('before-quit', () => {

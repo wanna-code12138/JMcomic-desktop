@@ -1,0 +1,161 @@
+[
+  {
+    "flags": {
+      "JM_QA_MOTION_BASELINE": "outputs/reader-qa/120-motion-before-final/motion-observations.json",
+      "JM_QA_VISUAL": "1",
+      "JM_QA_VISIBLE": "1"
+    },
+    "elapsedSeconds": 35.87,
+    "id": "visual-complete",
+    "exitCode": 0
+  },
+  {
+    "flags": {
+      "JM_QA_VISIBLE": "1",
+      "JM_QA_MOTION": "1"
+    },
+    "elapsedSeconds": 6.25,
+    "id": "motion",
+    "exitCode": 1
+  },
+  {
+    "flags": {
+      "JM_QA_EXPERIENCE_SETTINGS": "1",
+      "JM_QA_GRAPHICS": "on",
+      "JM_QA_VISIBLE": "1"
+    },
+    "elapsedSeconds": 5.51,
+    "id": "settings",
+    "exitCode": 0
+  },
+  {
+    "flags": {
+      "JM_QA_RESTORE_WORKSPACE": "1",
+      "JM_QA_RESUME": "1",
+      "JM_QA_VISIBLE": "1"
+    },
+    "elapsedSeconds": 2.51,
+    "id": "settings-restart",
+    "exitCode": 0
+  },
+  {
+    "flags": {
+      "JM_QA_EXPERIENCE_TABS": "1",
+      "JM_QA_VISIBLE": "1"
+    },
+    "elapsedSeconds": 5.51,
+    "id": "tabs",
+    "exitCode": 0
+  },
+  {
+    "flags": {
+      "JM_QA_VISIBLE": "1",
+      "JM_QA_WORKSPACE": "1"
+    },
+    "elapsedSeconds": 14.49,
+    "id": "workspace",
+    "exitCode": 0
+  },
+  {
+    "flags": {
+      "JM_QA_BROWSE_LAYOUT": "1",
+      "JM_QA_VISIBLE": "1"
+    },
+    "elapsedSeconds": 8.19,
+    "id": "browse",
+    "exitCode": 0
+  },
+  {
+    "flags": {
+      "JM_QA_VISIBLE": "1",
+      "JM_QA_PDF": "1"
+    },
+    "elapsedSeconds": 7.74,
+    "id": "pdf",
+    "exitCode": 0
+  },
+  {
+    "flags": {
+      "JM_QA_VISIBLE": "1"
+    },
+    "elapsedSeconds": 14.6,
+    "id": "reader",
+    "exitCode": 0
+  },
+  {
+    "flags": {
+      "JM_QA_SCALE": "1",
+      "JM_QA_LAYOUT": "1",
+      "JM_QA_VISIBLE": "1"
+    },
+    "elapsedSeconds": 4.89,
+    "id": "dpi-1",
+    "exitCode": 0
+  },
+  {
+    "flags": {
+      "JM_QA_SCALE": "1.25",
+      "JM_QA_LAYOUT": "1",
+      "JM_QA_VISIBLE": "1"
+    },
+    "elapsedSeconds": 5.14,
+    "id": "dpi-1.25",
+    "exitCode": 0
+  },
+  {
+    "flags": {
+      "JM_QA_SCALE": "1.5",
+      "JM_QA_LAYOUT": "1",
+      "JM_QA_VISIBLE": "1"
+    },
+    "elapsedSeconds": 5.23,
+    "id": "dpi-1.5",
+    "exitCode": 0
+  },
+  {
+    "flags": {
+      "JM_QA_SCALE": "2",
+      "JM_QA_LAYOUT": "1",
+      "JM_QA_VISIBLE": "1"
+    },
+    "elapsedSeconds": 5.26,
+    "id": "dpi-2",
+    "exitCode": 0
+  },
+  {
+    "flags": {
+      "JM_QA_GRAPHICS": "on",
+      "JM_QA_RESOURCE_MATRIX": "on"
+    },
+    "elapsedSeconds": 30.87,
+    "id": "gpu-on-motion-on",
+    "exitCode": 1
+  },
+  {
+    "flags": {
+      "JM_QA_GRAPHICS": "on",
+      "JM_QA_RESOURCE_MATRIX": "off"
+    },
+    "elapsedSeconds": 8.88,
+    "id": "gpu-on-motion-off",
+    "exitCode": 0
+  },
+  {
+    "flags": {
+      "JM_QA_GRAPHICS": "off",
+      "JM_QA_RESOURCE_MATRIX": "on"
+    },
+    "elapsedSeconds": 21.37,
+    "id": "gpu-off-motion-on",
+    "exitCode": 1
+  },
+  {
+    "flags": {
+      "JM_QA_GRAPHICS": "off",
+      "JM_QA_RESOURCE_MATRIX": "off"
+    },
+    "elapsedSeconds": 8.23,
+    "id": "gpu-off-motion-off",
+    "exitCode": 0
+  }
+]

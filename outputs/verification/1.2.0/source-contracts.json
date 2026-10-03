@@ -1,0 +1,30 @@
+{
+  "base": "617eaea",
+  "motion": [
+    {
+      "file": "src/renderer/src/assets/global.css",
+      "unchangedDeclarations": 29
+    },
+    {
+      "file": "src/renderer/src/components/workspace.css",
+      "unchangedDeclarations": 0
+    },
+    {
+      "file": "src/renderer/src/reader/reader.css",
+      "unchangedDeclarations": 4
+    }
+  ],
+  "protectedFiles": [
+    "src/main (production code; theme unit test excluded)",
+    "src/preload",
+    "src/shared",
+    "src/renderer/src/stores",
+    "src/renderer/src/motion",
+    "src/renderer/src/navigation",
+    "src/renderer/src/components/AppFrame.tsx",
+    "src/renderer/src/components/PageHost.tsx",
+    "src/renderer/src/reader/ReaderWorkspace.tsx",
+    "src/renderer/src/pages/ReaderPage.tsx",
+    "src/renderer/src/components/ExperienceSettings.tsx"
+  ]
+}

@@ -1,8 +1,13 @@
 import { net, session } from 'electron'
 import { ipcMain } from 'electron'
-import { execSync } from 'child_process'
+import { exec } from 'child_process'
+import { promisify } from 'util'
 import { updateSettings } from './settingsStore'
 import { validateProxyUrl } from './settingsCore'
+import { beginIoPerfSpan } from './ioMetrics'
+import { accountProxyRegistry } from './account/sessionProxyRegistry'
+
+const execAsync = promisify(exec)
 
 export type NetworkStatus = 'online' | 'degraded' | 'offline'
 
@@ -57,47 +62,51 @@ export async function applyManualProxy(
     }
   }
 
-  manualProxyUrl = normalized
   try {
-    if (manualProxyUrl) {
-      await session.defaultSession.setProxy({ mode: 'fixed_servers', proxyRules: manualProxyUrl })
-    } else {
-      await session.defaultSession.setProxy({ mode: 'system' })
-    }
-    await session.defaultSession.closeAllConnections().catch(() => {})
+    await accountProxyRegistry.apply(normalized ? { mode: 'fixed_servers', proxyRules: normalized } : { mode: 'system' }, session.defaultSession)
   } catch (err) {
     return { ok: false, error: `设置代理失败：${err instanceof Error ? err.message : String(err)}` }
   }
 
+  manualProxyUrl = normalized
   await updateSettings({ proxyEnabled: enabled, proxyUrl: manualProxyUrl ?? '' })
   return { ok: true, proxyUrl: manualProxyUrl ?? undefined }
 }
 
 /**
- * Detect Windows system proxy from registry.
+ * Detect Windows system proxy from registry asynchronously.
  */
-function detectWindowsSystemProxy(): string | null {
+async function detectWindowsSystemProxyAsync(): Promise<string | null> {
+  const span = beginIoPerfSpan('network.proxy-probe')
   try {
-    // Read from Windows registry
-    const result = execSync(
+    // Read from Windows registry asynchronously
+    const { stdout: result } = await execAsync(
       'reg query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" /v ProxyEnable 2>nul & ' +
       'reg query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings" /v ProxyServer 2>nul',
       { encoding: 'utf-8', timeout: 3000 }
     )
 
     const enableMatch = result.match(/ProxyEnable\s+REG_DWORD\s+0x1/)
-    if (!enableMatch) return null
+    if (!enableMatch) {
+      span.finish('ok')
+      return null
+    }
 
     const serverMatch = result.match(/ProxyServer\s+REG_SZ\s+(.+)/)
-    if (!serverMatch) return null
+    if (!serverMatch) {
+      span.finish('ok')
+      return null
+    }
 
     let server = serverMatch[1].trim()
     // Add http:// prefix if missing
     if (!server.startsWith('http://') && !server.startsWith('socks')) {
       server = 'http://' + server
     }
+    span.finish('ok')
     return server
   } catch {
+    span.finish('error')
     return null
   }
 }
@@ -152,8 +161,8 @@ async function probeWithFetch(url: string, proxyUrl?: string): Promise<{ success
 }
 
 export async function runNetworkProbe(): Promise<ProbeResult> {
-  // Refresh system proxy detection on each probe
-  systemProxyUrl = detectWindowsSystemProxy()
+  // Refresh system proxy detection on each probe asynchronously
+  systemProxyUrl = await detectWindowsSystemProxyAsync()
 
   const effectiveProxy = manualProxyUrl ?? systemProxyUrl
 

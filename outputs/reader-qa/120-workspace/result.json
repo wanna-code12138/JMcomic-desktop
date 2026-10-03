@@ -1,0 +1,31 @@
+{
+  "runId": "120-workspace",
+  "mode": "visible Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "manual docked tools reclaim space; sidebar visibility preserves tabs, session, focus and reading position"
+    },
+    {
+      "name": "three panes, source-aware tabs, independent anchors, deduplication and background unmount"
+    },
+    {
+      "name": "failed saving retains the active tab; explicit retry completes the intended switch"
+    },
+    {
+      "name": "expand, fullscreen, restore and compact responsive controls preserve the active session"
+    },
+    {
+      "name": "rapid tab requests serialize; background close preserves active session; final close restores navigation"
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 9,
+    "image": 45,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}
