@@ -1,0 +1,22 @@
+{
+  "runId": "120-visual-before",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "capture unavailable while hidden",
+      "details": "Error: UnknownVizError"
+    },
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: toolsOut must have a recorded animation\n    at module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\visual-style-smoke.cjs:45:12)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:304:5)"
+  ],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 7
+  },
+  "summaryQueries": 0
+}

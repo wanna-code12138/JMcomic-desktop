@@ -1,0 +1,19 @@
+{
+  "runId": "110-tabs-release",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "plus, start search, rename, pin, close/reopen shortcuts, keyboard and pointer reorder, overflow"
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

@@ -6,17 +6,20 @@ import {
 import {
   ArrowPrevious20Regular, ArrowNext20Regular,
   Search20Regular, NumberSymbol20Regular,
-  Dismiss20Regular, History20Regular, Delete20Regular
+  Dismiss20Regular, History20Regular, Delete20Regular, Warning20Regular
 } from '@fluentui/react-icons'
 import { MangaCard, type MangaCardData } from '../components'
 import { useAppStore } from '../stores/appStore'
+import { usePageSnapshot } from '../navigation/pageStateCache'
+import { pageTitle, emptyState, sectionHeading } from '../theme/surfaceStyles'
 
 const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
+  title: { ...pageTitle, marginBottom: '20px' },
   searchBar: { display: 'flex', gap: '8px', maxWidth: '660px', marginBottom: '8px' },
   hint: {
     fontSize: '12px',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     marginTop: '4px',
     marginBottom: '20px'
   },
@@ -25,15 +28,7 @@ const useStyles = makeStyles({
     gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
     gap: '16px'
   },
-  statusMsg: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '60px 0',
-    color: 'var(--ac-text-3)',
-    gap: '12px'
-  },
+  statusMsg: emptyState,
   pagination: {
     display: 'flex',
     alignItems: 'center',
@@ -44,7 +39,7 @@ const useStyles = makeStyles({
   },
   pageText: {
     fontSize: '13px',
-    color: 'var(--ac-text-2)',
+    color: 'var(--ui-text-secondary)',
     minWidth: '80px',
     textAlign: 'center'
   },
@@ -55,7 +50,7 @@ const useStyles = makeStyles({
   },
   shimmerCard: {
     aspectRatio: '3/4',
-    borderRadius: 'var(--ac-radius-card)'
+    borderRadius: 'var(--ui-radius-md)'
   },
   historySection: {
     maxWidth: '660px',
@@ -68,12 +63,10 @@ const useStyles = makeStyles({
     marginBottom: '12px'
   },
   historyTitle: {
+    ...sectionHeading,
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    fontSize: '13px',
-    fontWeight: 600,
-    color: 'var(--ac-text-2)'
   },
   chipList: {
     display: 'flex',
@@ -86,16 +79,15 @@ const useStyles = makeStyles({
     gap: '4px',
     height: '32px',
     padding: '0 4px 0 12px',
-    borderRadius: 'var(--ac-radius-pill)',
-    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 12%, transparent)',
-    border: '1px solid color-mix(in srgb, var(--ac-brand) 18%, transparent)',
-    color: 'var(--ac-brand)',
+    borderRadius: 'var(--ui-radius-md)',
+    backgroundColor: 'var(--ui-bg-card)',
+    border: '1px solid var(--ui-stroke-card)',
+    color: 'var(--ui-brand)',
     fontSize: '13px',
     cursor: 'pointer',
-    transition: 'background-color 0.15s, transform 0.15s',
+    transition: 'background-color var(--ui-motion-fast) ease-out',
     ':hover': {
-      backgroundColor: 'color-mix(in srgb, var(--ac-brand) 20%, transparent)',
-      transform: 'translateY(-1px)'
+      backgroundColor: 'var(--ui-bg-hover)'
     },
     ':active': {
       transform: 'scale(0.97)'
@@ -113,17 +105,17 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     width: '20px',
     height: '20px',
-    borderRadius: 'var(--ac-radius-badge)',
+    borderRadius: 'var(--ui-radius-sm)',
     cursor: 'pointer',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     ':hover': {
-      backgroundColor: 'color-mix(in srgb, var(--ac-danger) 20%, transparent)',
-      color: 'var(--ac-danger)'
+      backgroundColor: 'var(--ui-bg-hover)',
+      color: 'var(--ui-danger)'
     }
   },
   historyEmpty: {
     fontSize: '13px',
-    color: 'var(--ac-text-3)',
+    color: 'var(--ui-text-tertiary)',
     padding: '8px 0'
   }
 })
@@ -159,6 +151,16 @@ export default function SearchPage(): JSX.Element {
   const [totalPages, setTotalPages] = React.useState(1)
   const [jumpedCarPlate, setJumpedCarPlate] = React.useState(false)
   const [history, setHistory] = React.useState<string[]>([])
+  const rootRef = React.useRef<HTMLDivElement | null>(null)
+
+  usePageSnapshot('search', rootRef, () => ({ query: submittedQuery, page, mainTag }), (filters: any) => {
+    if (filters?.query) {
+      setQuery(filters.query)
+      setSubmittedQuery(filters.query)
+    }
+    if (typeof filters?.page === 'number') setPage(filters.page)
+    if (typeof filters?.mainTag === 'number') setMainTag(filters.mainTag)
+  })
 
   const refreshHistory = React.useCallback(async (): Promise<void> => {
     try {
@@ -265,8 +267,8 @@ export default function SearchPage(): JSX.Element {
   const showEmpty = hasQuery && !loading && !error && results.length === 0 && !jumpedCarPlate
 
   return (
-    <div className={styles.root}>
-      <Text size={600} weight="semibold" style={{ marginBottom: '16px', display: 'block' }}>搜索漫画</Text>
+    <div className={styles.root} ref={rootRef}>
+      <Text size={600} weight="semibold" className={`${styles.title} ui-page-title`}>搜索漫画</Text>
       <div className={styles.searchBar}>
         <SearchBox
           placeholder="输入关键词或 6-7 位车号搜索..."
@@ -279,7 +281,7 @@ export default function SearchPage(): JSX.Element {
             }
           }}
           size="large"
-          style={{ flex: 1 }}
+          style={{ flex: 1, minWidth: 0 }}
         />
         <Button appearance="primary" size="large" icon={<Search20Regular />} onClick={() => handleSubmit(query)}>
           搜索
@@ -341,14 +343,15 @@ export default function SearchPage(): JSX.Element {
 
       {hasQuery && !loading && error && (
         <div className={styles.statusMsg}>
-          <Text size={500} weight="semibold">⚠️ {jumpedCarPlate ? '正在跳转...' : '搜索出错'}</Text>
+          <Warning20Regular aria-hidden="true" />
+          <Text size={400} weight="semibold">{jumpedCarPlate ? '正在跳转...' : '搜索出错'}</Text>
           <Text size={300} style={{ maxWidth: '600px', textAlign: 'center' }}>{error}</Text>
         </div>
       )}
 
       {showEmpty && (
         <div className={styles.statusMsg}>
-          <Search20Regular style={{ width: '40px', height: '40px', opacity: 0.4 }} />
+          <Search20Regular aria-hidden="true" />
           <Text size={400}>未找到 "{submittedQuery}" 的相关漫画</Text>
         </div>
       )}

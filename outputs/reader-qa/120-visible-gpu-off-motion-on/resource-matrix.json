@@ -1,0 +1,1084 @@
+{
+  "scope": "Isolated visible Electron, synthetic content, 12 new/close/hide/show cycles and 600ms idle. Includes test fixture memory; CPU is an instantaneous process sample, not a GPU utilization or presented-FPS measurement.",
+  "cycles": 12,
+  "idleMs": 600,
+  "gpu": {
+    "requested": false,
+    "runningPreference": false,
+    "restartRequired": false,
+    "initialized": true,
+    "hardwareActive": false,
+    "compositor": "disabled_software"
+  },
+  "motion": true,
+  "elapsedMs": 10958,
+  "samples": [
+    {
+      "phase": "before",
+      "processes": [
+        {
+          "type": "Browser",
+          "privateKB": 202504,
+          "cpu": 0
+        },
+        {
+          "type": "GPU",
+          "privateKB": 47424,
+          "cpu": 0
+        },
+        {
+          "type": "Utility",
+          "privateKB": 11976,
+          "cpu": 0
+        },
+        {
+          "type": "Tab",
+          "privateKB": 76700,
+          "cpu": 0
+        }
+      ],
+      "renderer": {
+        "readers": 1,
+        "images": 6,
+        "tabs": 1,
+        "animations": 0,
+        "animationDetails": [],
+        "heap": 16100000
+      }
+    },
+    {
+      "phase": "cycle-1",
+      "processes": [
+        {
+          "type": "Browser",
+          "privateKB": 203012,
+          "cpu": 0.6987938071885653
+        },
+        {
+          "type": "GPU",
+          "privateKB": 31880,
+          "cpu": 5.704147777904035
+        },
+        {
+          "type": "Utility",
+          "privateKB": 11976,
+          "cpu": 0
+        },
+        {
+          "type": "Tab",
+          "privateKB": 80520,
+          "cpu": 3.408464797977306
+        }
+      ],
+      "renderer": {
+        "readers": 1,
+        "images": 6,
+        "tabs": 1,
+        "animations": 11,
+        "animationDetails": [
+          {
+            "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 100,
+              "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+              "endDelay": 0,
+              "fill": "backwards",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 100,
+              "currentIteration": 0,
+              "endTime": 100,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 100,
+              "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+              "endDelay": 0,
+              "fill": "backwards",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 100,
+              "currentIteration": 0,
+              "endTime": 100,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-root",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 160,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 160,
+              "currentIteration": 0,
+              "endTime": 160,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-image-state",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 120,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 120,
+              "currentIteration": 0,
+              "endTime": 120,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "reader-loading",
+            "target": "reader-loading-dot",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 900,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": null,
+              "activeDuration": null,
+              "currentIteration": 0,
+              "endTime": null,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-image-state",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 120,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 120,
+              "currentIteration": 0,
+              "endTime": 120,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "reader-loading",
+            "target": "reader-loading-dot",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 900,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": null,
+              "activeDuration": null,
+              "currentIteration": 0,
+              "endTime": null,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-image-state",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 120,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 120,
+              "currentIteration": 0,
+              "endTime": 120,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "reader-loading",
+            "target": "reader-loading-dot",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 900,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": null,
+              "activeDuration": null,
+              "currentIteration": 0,
+              "endTime": null,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "target": "___r9a7ja0 fz7g6wx f22iagw f1vx9l62 f1a3p1vp fy77jfu browse-pane",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 200,
+              "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 200,
+              "currentIteration": 0,
+              "endTime": 200,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "target": "reading-pane",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 200,
+              "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 200,
+              "currentIteration": 0,
+              "endTime": 200,
+              "localTime": 0,
+              "progress": 0
+            }
+          }
+        ],
+        "heap": 16100000
+      }
+    },
+    {
+      "phase": "cycle-4",
+      "processes": [
+        {
+          "type": "Browser",
+          "privateKB": 205544,
+          "cpu": 0.5544784465129329
+        },
+        {
+          "type": "GPU",
+          "privateKB": 32024,
+          "cpu": 6.218011083695176
+        },
+        {
+          "type": "Utility",
+          "privateKB": 11980,
+          "cpu": 0.00020005366377785883
+        },
+        {
+          "type": "Tab",
+          "privateKB": 96204,
+          "cpu": 3.0149965047441825
+        }
+      ],
+      "renderer": {
+        "readers": 1,
+        "images": 6,
+        "tabs": 1,
+        "animations": 11,
+        "animationDetails": [
+          {
+            "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 100,
+              "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+              "endDelay": 0,
+              "fill": "backwards",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 100,
+              "currentIteration": 0,
+              "endTime": 100,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 100,
+              "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+              "endDelay": 0,
+              "fill": "backwards",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 100,
+              "currentIteration": 0,
+              "endTime": 100,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-root",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 160,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 160,
+              "currentIteration": 0,
+              "endTime": 160,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-image-state",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 120,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 120,
+              "currentIteration": 0,
+              "endTime": 120,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "reader-loading",
+            "target": "reader-loading-dot",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 900,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": null,
+              "activeDuration": null,
+              "currentIteration": 0,
+              "endTime": null,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-image-state",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 120,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 120,
+              "currentIteration": 0,
+              "endTime": 120,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "reader-loading",
+            "target": "reader-loading-dot",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 900,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": null,
+              "activeDuration": null,
+              "currentIteration": 0,
+              "endTime": null,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-image-state",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 120,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 120,
+              "currentIteration": 0,
+              "endTime": 120,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "reader-loading",
+            "target": "reader-loading-dot",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 900,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": null,
+              "activeDuration": null,
+              "currentIteration": 0,
+              "endTime": null,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "target": "___r9a7ja0 fz7g6wx f22iagw f1vx9l62 f1a3p1vp fy77jfu browse-pane",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 200,
+              "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 200,
+              "currentIteration": 0,
+              "endTime": 200,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "target": "reading-pane",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 200,
+              "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 200,
+              "currentIteration": 0,
+              "endTime": 200,
+              "localTime": 0,
+              "progress": 0
+            }
+          }
+        ],
+        "heap": 16100000
+      }
+    },
+    {
+      "phase": "cycle-7",
+      "processes": [
+        {
+          "type": "Browser",
+          "privateKB": 206676,
+          "cpu": 0.4893137733367851
+        },
+        {
+          "type": "GPU",
+          "privateKB": 31960,
+          "cpu": 6.2302764390865075
+        },
+        {
+          "type": "Utility",
+          "privateKB": 11980,
+          "cpu": 0
+        },
+        {
+          "type": "Tab",
+          "privateKB": 108232,
+          "cpu": 2.851254737129221
+        }
+      ],
+      "renderer": {
+        "readers": 1,
+        "images": 6,
+        "tabs": 1,
+        "animations": 11,
+        "animationDetails": [
+          {
+            "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 100,
+              "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+              "endDelay": 0,
+              "fill": "backwards",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 100,
+              "currentIteration": 0,
+              "endTime": 100,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 100,
+              "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+              "endDelay": 0,
+              "fill": "backwards",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 100,
+              "currentIteration": 0,
+              "endTime": 100,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-root",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 160,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 160,
+              "currentIteration": 0,
+              "endTime": 160,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-image-state",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 120,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 120,
+              "currentIteration": 0,
+              "endTime": 120,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "reader-loading",
+            "target": "reader-loading-dot",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 900,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": null,
+              "activeDuration": null,
+              "currentIteration": 0,
+              "endTime": null,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-image-state",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 120,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 120,
+              "currentIteration": 0,
+              "endTime": 120,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "reader-loading",
+            "target": "reader-loading-dot",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 900,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": null,
+              "activeDuration": null,
+              "currentIteration": 0,
+              "endTime": null,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-image-state",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 120,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 120,
+              "currentIteration": 0,
+              "endTime": 120,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "reader-loading",
+            "target": "reader-loading-dot",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 900,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": null,
+              "activeDuration": null,
+              "currentIteration": 0,
+              "endTime": null,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "target": "___r9a7ja0 fz7g6wx f22iagw f1vx9l62 f1a3p1vp fy77jfu browse-pane",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 200,
+              "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 200,
+              "currentIteration": 0,
+              "endTime": 200,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "target": "reading-pane",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 200,
+              "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 200,
+              "currentIteration": 0,
+              "endTime": 200,
+              "localTime": 0,
+              "progress": 0
+            }
+          }
+        ],
+        "heap": 16100000
+      }
+    },
+    {
+      "phase": "cycle-10",
+      "processes": [
+        {
+          "type": "Browser",
+          "privateKB": 161152,
+          "cpu": 0.6687764869785832
+        },
+        {
+          "type": "GPU",
+          "privateKB": 31996,
+          "cpu": 6.290425772778658
+        },
+        {
+          "type": "Utility",
+          "privateKB": 11984,
+          "cpu": 0.013955988516891357
+        },
+        {
+          "type": "Tab",
+          "privateKB": 109684,
+          "cpu": 2.861231362417166
+        }
+      ],
+      "renderer": {
+        "readers": 1,
+        "images": 6,
+        "tabs": 1,
+        "animations": 11,
+        "animationDetails": [
+          {
+            "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 100,
+              "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+              "endDelay": 0,
+              "fill": "backwards",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 100,
+              "currentIteration": 0,
+              "endTime": 100,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "target": "fui-Button r1f29ykk ___1fjjlsv fhovq9v f1p3nwhy f11589ue f1q5o8ev f1pdflbu fkfq4zb f1t94bn6 f1s2uweq fr80ssc f1ukrpxl fecsdlb fnwyq0v ft1hn21 fuxngvv fy5bs14 f1q1yqic fhvnf4x fb6swo4 f1klyf7k f232fm2 fwga7ee f1nhwcv0 f1gm6xmp f1xxsver f1v3eptx fivsta0 fd4bjan f3m6zum f17fgpbq fu97m5z ft85np5 fy9rknc figsok6 fwrc4pm fazmxh f1jt17bm",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 100,
+              "easing": "cubic-bezier(0.33, 0, 0.67, 1)",
+              "endDelay": 0,
+              "fill": "backwards",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 100,
+              "currentIteration": 0,
+              "endTime": 100,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-root",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 160,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 160,
+              "currentIteration": 0,
+              "endTime": 160,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-image-state",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 120,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 120,
+              "currentIteration": 0,
+              "endTime": 120,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "reader-loading",
+            "target": "reader-loading-dot",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 900,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": null,
+              "activeDuration": null,
+              "currentIteration": 0,
+              "endTime": null,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-image-state",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 120,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 120,
+              "currentIteration": 0,
+              "endTime": 120,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "reader-loading",
+            "target": "reader-loading-dot",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 900,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": null,
+              "activeDuration": null,
+              "currentIteration": 0,
+              "endTime": null,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "ui-content-in",
+            "target": "reader-image-state",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 120,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 120,
+              "currentIteration": 0,
+              "endTime": 120,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "name": "reader-loading",
+            "target": "reader-loading-dot",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 900,
+              "easing": "linear",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": null,
+              "activeDuration": null,
+              "currentIteration": 0,
+              "endTime": null,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "target": "___r9a7ja0 fz7g6wx f22iagw f1vx9l62 f1a3p1vp fy77jfu browse-pane",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 200,
+              "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 200,
+              "currentIteration": 0,
+              "endTime": 200,
+              "localTime": 0,
+              "progress": 0
+            }
+          },
+          {
+            "target": "reading-pane",
+            "currentTime": 0,
+            "timing": {
+              "delay": 0,
+              "direction": "normal",
+              "duration": 200,
+              "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+              "endDelay": 0,
+              "fill": "none",
+              "iterationStart": 0,
+              "iterations": 1,
+              "activeDuration": 200,
+              "currentIteration": 0,
+              "endTime": 200,
+              "localTime": 0,
+              "progress": 0
+            }
+          }
+        ],
+        "heap": 16100000
+      }
+    },
+    {
+      "phase": "settled",
+      "processes": [
+        {
+          "type": "Browser",
+          "privateKB": 149276,
+          "cpu": 0.6716771823733152
+        },
+        {
+          "type": "GPU",
+          "privateKB": 48352,
+          "cpu": 4.508123522503501
+        },
+        {
+          "type": "Utility",
+          "privateKB": 11992,
+          "cpu": 0.00010184811742087976
+        },
+        {
+          "type": "Tab",
+          "privateKB": 110088,
+          "cpu": 2.1586352446554815
+        }
+      ],
+      "renderer": {
+        "readers": 1,
+        "images": 6,
+        "tabs": 1,
+        "animations": 0,
+        "animationDetails": [],
+        "heap": 16100000
+      }
+    }
+  ],
+  "peakPrivateMB": 350.4375
+}

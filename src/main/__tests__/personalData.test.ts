@@ -41,6 +41,8 @@ async function createDb(): Promise<SqlJsDatabase> {
       cover_url TEXT,
       page_index INTEGER NOT NULL,
       total_pages INTEGER DEFAULT 0,
+      page_offset REAL DEFAULT 0,
+      is_local INTEGER DEFAULT 0,
       read_at INTEGER DEFAULT (strftime('%s','now'))
     )
   `)
@@ -57,6 +59,7 @@ async function createDb(): Promise<SqlJsDatabase> {
       total_pages INTEGER DEFAULT 0,
       downloaded_pages INTEGER DEFAULT 0,
       save_path TEXT,
+      storage_relpath TEXT,
       created_at INTEGER DEFAULT (strftime('%s','now'))
     )
   `)
@@ -70,6 +73,8 @@ async function createDb(): Promise<SqlJsDatabase> {
     )
   `)
   db.run('CREATE TABLE auth (key TEXT PRIMARY KEY, value TEXT)')
+  db.run('CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)')
+  db.run('CREATE TABLE pdf_downloads (id INTEGER PRIMARY KEY AUTOINCREMENT, manga_id TEXT, identity TEXT, status TEXT, payload_json TEXT)')
   db.run(`
     CREATE TABLE search_history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -111,6 +116,45 @@ function emptyPayload(): Record<string, unknown> {
 }
 
 async function run(): Promise<void> {
+  await test('PDF manifests and tab metadata survive backup; unfinished imports stay dormant and clear removes them', async () => {
+    const db = await createDb(), restored = await createDb()
+    const pdf = { kind: 'pdf', id: 7, mangaId: '123', mangaTitle: 'Book', chapters: [{ index: 0, title: 'One', url: '/photo/123' }],
+      identity: 'old', stagingId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', status: 'merging', totalPages: 2, downloadedPages: 2,
+      mergedPages: 1, savePath: 'C:\\Downloads', outputFile: 'Book.pdf', createdAt: 100 }
+    db.run('INSERT INTO pdf_downloads(manga_id,identity,status,payload_json) VALUES (?,?,?,?)', ['123', 'old', 'merging', JSON.stringify(pdf)])
+    db.run('INSERT INTO settings(key,value) VALUES (?,?)', ['readerWorkspaceSnapshot', JSON.stringify({ version: 1, tabs: [{ id: 'start:1', kind: 'start', pinned: false }], activeId: 'start:1' })])
+    const payload = exportPersonalData(db) as any
+    assert.equal(payload.data.pdfDownloads.length, 1)
+    assert.equal(payload.data.workspace.tabs[0].id, 'start:1')
+    importPersonalData(restored, payload)
+    const [status, raw] = restored.exec('SELECT status,payload_json FROM pdf_downloads')[0].values[0]
+    const imported = JSON.parse(String(raw))
+    assert.equal(status, 'failed'); assert.equal(imported.chapters.length, 1)
+    assert.notEqual(imported.stagingId, pdf.stagingId, 'foreign staging cannot alias a live task')
+    importPersonalData(restored, payload)
+    assert.equal(countRows(restored, 'pdf_downloads'), 1)
+    const counts = clearPersonalData(restored)
+    assert.equal(counts.downloads, 1); assert.equal(countRows(restored, 'pdf_downloads'), 0)
+    assert.equal(restored.exec("SELECT value FROM settings WHERE key='readerWorkspaceSnapshot'").length, 0)
+    db.close(); restored.close()
+  })
+  await test('cross-device task ids do not collide and reading offset/local source survive import', async () => {
+    const db = await createDb()
+    seedPersonalData(db)
+    const payload = emptyPayload()
+    payload.data = {
+      favorites: [], searchHistory: [],
+      readingHistory: [{ manga_id: 'm2', chapter_index: 1, page_index: 2, page_offset: 0.45, is_local: 1 }],
+      downloads: [{ id: 1, manga_id: 'm2', chapter_index: 1, chapter_url: '/photo/203', status: 'completed', storage_relpath: 'manga-m2/chapter-203' }]
+    }
+    importPersonalData(db, payload)
+    assert.equal(countRows(db, 'downloads'), 2)
+    assert.deepStrictEqual(db.exec("SELECT page_offset, is_local FROM reading_history WHERE manga_id='m2'")[0].values[0], [0.45, 1])
+    assert.equal(db.exec("SELECT storage_relpath FROM downloads WHERE manga_id='m2'")[0].values[0][0], 'manga-m2/chapter-203')
+    importPersonalData(db, payload)
+    assert.equal(countRows(db, 'downloads'), 2, 'reimport is idempotent')
+    db.close()
+  })
   // ─── exportPersonalData ──────────────────────────────────────────
 
   await test('exportPersonalData returns format marker and version', async () => {

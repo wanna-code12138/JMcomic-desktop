@@ -1,0 +1,84 @@
+import React from 'react'
+import HomePage from '../pages/HomePage'
+import CategoriesPage from '../pages/CategoriesPage'
+import SearchPage from '../pages/SearchPage'
+import FavoritesPage from '../pages/FavoritesPage'
+import PerformanceDiagnosticsPage from '../pages/PerformanceDiagnosticsPage'
+import PageLoadBoundary from './PageLoadBoundary'
+import { createRetryableLazyPage } from './retryableLazyPage'
+
+const MangaDetailPage = createRetryableLazyPage(() => import('../pages/MangaDetailPage'))
+const DownloadsPage = createRetryableLazyPage(() => import('../pages/DownloadsPage'))
+const SettingsPage = createRetryableLazyPage(() => import('../pages/SettingsPage'))
+const AccountPage = createRetryableLazyPage(() => import('../pages/AccountPage'))
+
+export type PageId =
+  | 'home'
+  | 'categories'
+  | 'search'
+  | 'favorites'
+  | 'downloads'
+  | 'settings'
+  | 'detail'
+  | 'diagnostics'
+  | 'account'
+
+const lazyPages = { detail: MangaDetailPage, downloads: DownloadsPage, settings: SettingsPage, account: AccountPage }
+
+const pageComponents: Partial<Record<PageId, React.ComponentType>> = {
+  home: HomePage,
+  categories: CategoriesPage,
+  search: SearchPage,
+  favorites: FavoritesPage,
+  diagnostics: PerformanceDiagnosticsPage
+}
+
+const pageNames: Record<PageId, string> = {
+  home: '首页',
+  categories: '分类',
+  search: '搜索',
+  favorites: '收藏',
+  downloads: '下载',
+  settings: '设置',
+  detail: '漫画详情',
+  diagnostics: '性能诊断',
+  account: '账户'
+}
+
+export interface PageHostProps {
+  currentPage: PageId
+  mountedPages: readonly PageId[]
+}
+
+function PageHost({ currentPage, mountedPages }: PageHostProps): JSX.Element {
+  return (
+    <div className="app-page-stack">
+      {mountedPages.map((page) => {
+        const isCurrent = page === currentPage
+        return (
+          <div
+            key={page}
+            className="app-page-surface"
+            data-current={isCurrent}
+            ref={element => { if (element) element.inert = !isCurrent }}
+            data-page-id={page}
+            style={{
+              display: isCurrent ? 'block' : 'none'
+            }}
+            aria-hidden={!isCurrent}
+          >
+            <PageLoadBoundary pageName={pageNames[page]}>
+              {(attempt) => {
+                const lazyPage = lazyPages[page as keyof typeof lazyPages]
+                const Component = lazyPage ? lazyPage.get(attempt) : pageComponents[page] ?? HomePage
+                return <Component />
+              }}
+            </PageLoadBoundary>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+export default React.memo(PageHost)

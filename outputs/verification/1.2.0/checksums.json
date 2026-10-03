@@ -1,0 +1,21 @@
+{
+  "version": "1.2.0",
+  "algorithm": "SHA256",
+  "files": [
+    {
+      "path": "outputs/releases/1.2.0/JMComic Desktop Portable 1.2.0.exe",
+      "bytes": 108420389,
+      "sha256": "37df45f0ec6fbf8de145443bf24bddb58add87a292ccd0cf2ecdeb2baaf350fd"
+    },
+    {
+      "path": "outputs/releases/1.2.0/win-unpacked/JMComic Desktop.exe",
+      "bytes": 225622016,
+      "sha256": "18bc02e20afc21895b664f804020dd420223af2d222079ce3ad50ece2f17bac0"
+    },
+    {
+      "path": "outputs/releases/1.2.0/win-unpacked/resources/app.asar",
+      "bytes": 200459281,
+      "sha256": "f9000fc7b2cff94e3e064f559717fc8e75212955dfa4d0a41da244a4a9992155"
+    }
+  ]
+}

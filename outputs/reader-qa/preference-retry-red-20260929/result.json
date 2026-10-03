@@ -1,0 +1,18 @@
+{
+  "runId": "preference-retry-red-20260929",
+  "mode": "hidden Chromium / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: leaving after a transient write failure must retry the unsaved zoom\n\n1 !== 1.1\n\n    at run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:217:12)"
+  ],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 3
+  },
+  "summaryQueries": 0
+}

@@ -1,65 +1,30 @@
 import { app, dialog, ipcMain } from 'electron'
+import type { ReadingHistory, HistoryPositionContext } from '../shared/readerContracts'
 import { writeFileSync, readFileSync } from 'fs'
-import { getDatabase, saveDatabase } from './database'
+import { getDatabase, saveDatabase, scheduleDatabaseSave } from './database'
 import { clearScraperCache } from './scraperWindow'
-import { clearImageCache, setImageCacheLimit } from './imageLoader'
+import { clearImageCacheAsync, setImageCacheLimit } from './imageLoader'
 import { getSettings, updateSettings } from './settingsStore'
 import { applyWindowBackground } from './windowChrome'
+import { invalidateLocalImageAllowedRoots } from './localImageProtocol'
+import { clearContentCache } from './contentApi'
+import { clearOnlineAccount } from './account/accountRuntime'
+import { readWorkspaceSnapshot, writeWorkspaceSnapshot } from './workspacePersistence'
+import { stopDownloadManager, resumeDownloadManager, clearStoppedDownloadQueue } from './downloadManager'
+import { stopDownloadExports, resumeDownloadExports } from './downloadExport'
+import { stopPdfDownloads, resumePdfDownloads, clearStoppedPdfTasks } from './pdfDownloadManager'
 import {
   exportPersonalData,
   importPersonalData,
   clearPersonalData
 } from './personalData'
 
+let clearingPersonalData: Promise<unknown> | undefined
+export async function waitForPersonalDataClear(): Promise<void> { await clearingPersonalData }
+
 export function registerIpcHandlers(): void {
-  // Database queries (generic)
-  ipcMain.handle('db:run', async (_event, sql: string, params?: unknown[]) => {
-    const db = await getDatabase()
-    db.run(sql, params)
-    saveDatabase()
-  })
-
-  ipcMain.handle('db:get', async (_event, sql: string, params?: unknown[]) => {
-    const db = await getDatabase()
-    const stmt = db.prepare(sql)
-    if (params) stmt.bind(params)
-    const row = stmt.get()
-    stmt.free()
-    return row ? toObject(row) : null
-  })
-
-  ipcMain.handle('db:all', async (_event, sql: string, params?: unknown[]) => {
-    const db = await getDatabase()
-    const stmt = db.prepare(sql)
-    if (params) stmt.bind(params)
-    const rows: unknown[] = []
-    while (stmt.step()) {
-      rows.push(toObject(stmt.getAsObject()))
-    }
-    stmt.free()
-    return rows
-  })
-
-  // Manga cache
-  ipcMain.handle('cache:setManga', async (_event, manga: MangaCache) => {
-    const db = await getDatabase()
-    db.run(
-      `INSERT OR REPLACE INTO manga_cache (id, title, author, cover_url, tags, description, chapters_json, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%s','now'))`,
-      [manga.id, manga.title, manga.author ?? null, manga.coverUrl ?? null,
-       manga.tags ? JSON.stringify(manga.tags) : null, manga.description ?? null,
-       manga.chapters ? JSON.stringify(manga.chapters) : null]
-    )
-    saveDatabase()
-  })
-
-  ipcMain.handle('cache:getManga', async (_event, id: string) => {
-    const db = await getDatabase()
-    const row = db.exec(`SELECT * FROM manga_cache WHERE id = '${id.replace(/'/g, "''")}'`)
-    // ... would need proper param binding
-    return null
-  })
-
+  ipcMain.handle('workspace:get', readWorkspaceSnapshot)
+  ipcMain.handle('workspace:set', (_event, snapshot: unknown) => writeWorkspaceSnapshot(snapshot))
   // Favorites
   ipcMain.handle('favorites:add', async (_event, manga: { mangaId: string; title?: string; coverUrl?: string }) => {
     const db = await getDatabase()
@@ -67,13 +32,13 @@ export function registerIpcHandlers(): void {
       'INSERT OR IGNORE INTO favorites (manga_id, title, cover_url) VALUES (?, ?, ?)',
       [manga.mangaId, manga.title ?? null, manga.coverUrl ?? null]
     )
-    saveDatabase()
+    await saveDatabase()
   })
 
   ipcMain.handle('favorites:remove', async (_event, mangaId: string) => {
     const db = await getDatabase()
     db.run('DELETE FROM favorites WHERE manga_id = ?', [mangaId])
-    saveDatabase()
+    await saveDatabase()
   })
 
   ipcMain.handle('favorites:list', async () => {
@@ -99,7 +64,7 @@ export function registerIpcHandlers(): void {
       'DELETE FROM search_history WHERE id NOT IN ' +
       '(SELECT id FROM search_history ORDER BY searched_at DESC LIMIT 20)'
     )
-    saveDatabase()
+    await saveDatabase()
   })
 
   ipcMain.handle('searchHistory:list', async () => {
@@ -111,26 +76,23 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('searchHistory:remove', async (_event, query: string) => {
     const db = await getDatabase()
     db.run('DELETE FROM search_history WHERE query = ?', [query])
-    saveDatabase()
+    await saveDatabase()
   })
 
   ipcMain.handle('searchHistory:clear', async () => {
     const db = await getDatabase()
     db.run('DELETE FROM search_history')
-    saveDatabase()
+    await saveDatabase()
   })
 
   // History (local reading history — one row per manga, UPSERT semantics)
-  ipcMain.handle('history:upsert', async (_event, data: {
-    manga_id: string; manga_title?: string; chapter_index: number
-    chapter_title?: string; chapter_url?: string; cover_url?: string
-    page_index: number; total_pages?: number
-  }) => {
+  ipcMain.handle('history:upsert', async (_event, data: ReadingHistory) => {
+    if (!data.manga_id || !Number.isInteger(data.chapter_index) || !Number.isInteger(data.page_index)) throw new Error('阅读记录无效')
     const db = await getDatabase()
     db.run(
       `INSERT INTO reading_history
-         (manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, read_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%s','now'))
+         (manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, page_offset, is_local, reader_session, read_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%s','now'))
        ON CONFLICT(manga_id) DO UPDATE SET
          manga_title = excluded.manga_title,
          chapter_index = excluded.chapter_index,
@@ -139,28 +101,35 @@ export function registerIpcHandlers(): void {
          cover_url = excluded.cover_url,
          page_index = excluded.page_index,
          total_pages = excluded.total_pages,
+         page_offset = excluded.page_offset,
+         is_local = excluded.is_local,
+         reader_session = excluded.reader_session,
          read_at = strftime('%s','now')`,
       [data.manga_id, data.manga_title ?? null, data.chapter_index,
        data.chapter_title ?? null, data.chapter_url ?? null, data.cover_url ?? null,
-       data.page_index, data.total_pages ?? 0]
+       Math.max(0, data.page_index), data.total_pages ?? 0,
+       Math.max(0, Math.min(1, Number(data.page_offset) || 0)), data.is_local ? 1 : 0, data.reader_session ?? null]
     )
-    saveDatabase()
+    await saveDatabase()
   })
 
-  ipcMain.handle('history:upsertPage', async (_event, mangaId: string, pageIndex: number) => {
+  ipcMain.handle('history:upsertPage', async (_event, mangaId: string, pageIndex: number, context?: HistoryPositionContext) => {
+    if (!Number.isInteger(pageIndex) || !context || !Number.isInteger(context.chapterIndex) || !context.session) return
     const db = await getDatabase()
     db.run(
-      `UPDATE reading_history SET page_index = ?, read_at = strftime('%s','now')
-       WHERE manga_id = ?`,
-      [pageIndex, mangaId]
+      `UPDATE reading_history SET page_index = MIN(MAX(0, ?), MAX(total_pages - 1, 0)), page_offset = ?, read_at = strftime('%s','now')
+       WHERE manga_id = ? AND chapter_index = ? AND reader_session = ?`,
+      [pageIndex, Math.max(0, Math.min(1, Number(context.pageOffset) || 0)), mangaId, context.chapterIndex, context.session]
     )
-    saveDatabase()
+    if (db.getRowsModified() === 0) return
+    if (context.flush) await saveDatabase()
+    else scheduleDatabaseSave('history')
   })
 
   ipcMain.handle('history:listLocal', async () => {
     const db = await getDatabase()
     const results = db.exec(
-      'SELECT manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, read_at FROM reading_history ORDER BY read_at DESC'
+      'SELECT * FROM reading_history ORDER BY read_at DESC'
     )
     if (results.length === 0) return []
     const cols = results[0].columns
@@ -174,7 +143,7 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('history:getLocal', async (_event, mangaId: string) => {
     const db = await getDatabase()
     const stmt = db.prepare(
-      'SELECT manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, read_at FROM reading_history WHERE manga_id = ?'
+      'SELECT * FROM reading_history WHERE manga_id = ?'
     )
     stmt.bind([mangaId])
     let row: Record<string, unknown> | null = null
@@ -186,32 +155,20 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('history:removeLocal', async (_event, mangaId: string) => {
     const db = await getDatabase()
     db.run('DELETE FROM reading_history WHERE manga_id = ?', [mangaId])
-    saveDatabase()
+    await saveDatabase()
   })
 
   ipcMain.handle('history:clearLocal', async () => {
     const db = await getDatabase()
     db.run('DELETE FROM reading_history')
-    saveDatabase()
-  })
-
-  // Auth
-  ipcMain.handle('auth:save', async (_event, key: string, value: string) => {
-    const db = await getDatabase()
-    db.run('INSERT OR REPLACE INTO auth (key, value) VALUES (?, ?)', [key, value])
-    saveDatabase()
-  })
-
-  ipcMain.handle('auth:get', async (_event, key: string) => {
-    const db = await getDatabase()
-    const row = db.exec(`SELECT value FROM auth WHERE key = '${key.replace(/'/g, "''")}'`)
-    return row.length > 0 && row[0].values.length > 0 ? row[0].values[0][0] : null
+    await saveDatabase()
   })
 
   // Clear all caches (scraper content cache + image disk cache)
   ipcMain.handle('cache:clearAll', async () => {
-    const imgCount = clearImageCache()
+    const imgCount = await clearImageCacheAsync()
     clearScraperCache()
+    await clearContentCache()
     return { imageFilesRemoved: imgCount }
   })
 
@@ -225,6 +182,9 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('settings:set', async (_event, patch: Record<string, unknown>) => {
     const settings = await updateSettings(patch)
+    if (Object.prototype.hasOwnProperty.call(patch, 'downloadDir')) {
+      invalidateLocalImageAllowedRoots()
+    }
     setImageCacheLimit(settings.cacheLimitMb * 1024 * 1024)
     applyWindowBackground(settings)
     return settings
@@ -262,37 +222,30 @@ export function registerIpcHandlers(): void {
     const db = await getDatabase()
     try {
       const result = importPersonalData(db, payload)
-      saveDatabase()
+      await saveDatabase()
+      invalidateLocalImageAllowedRoots()
       return { canceled: false, ...result, path: filePaths[0] }
     } catch (err) {
       return { canceled: false, error: err instanceof Error ? err.message : String(err) }
     }
   })
 
-  ipcMain.handle('data:clearPersonal', async () => {
-    const db = await getDatabase()
-    const counts = clearPersonalData(db)
-    saveDatabase()
-    return counts
+  ipcMain.handle('data:clearPersonal', () => {
+    if (clearingPersonalData) return clearingPersonalData
+    const operation = (async () => {
+      try {
+        await clearOnlineAccount()
+        await Promise.all([stopDownloadManager(), stopDownloadExports(), stopPdfDownloads()])
+        clearStoppedDownloadQueue(); await clearStoppedPdfTasks()
+        const db = await getDatabase()
+        const counts = clearPersonalData(db)
+        await saveDatabase()
+        invalidateLocalImageAllowedRoots()
+        return counts
+      } finally { resumeDownloadExports(); resumeDownloadManager(); resumePdfDownloads() }
+    })()
+    clearingPersonalData = operation
+    void operation.finally(() => { clearingPersonalData = undefined }).catch(() => {})
+    return operation
   })
-}
-
-interface MangaCache {
-  id: string
-  title: string
-  author?: string
-  coverUrl?: string
-  tags?: string[]
-  description?: string
-  chapters?: ChapterInfo[]
-}
-
-interface ChapterInfo {
-  index: number
-  title: string
-  url: string
-}
-
-function toObject(row: Record<string, unknown>): Record<string, unknown> {
-  return row
 }

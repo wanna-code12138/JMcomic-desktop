@@ -1,0 +1,25 @@
+{
+  "executable": "D:\\soft\\Opencode\\JMComic\\dist-electron\\1.0.6\\JMComic Desktop Portable 1.0.6.exe",
+  "sha256": "5df7bd17b00148531d0437629ee4e1a6dfc71b6c29b69e015a0600a055ee118b",
+  "mode": "direct packaged EXE / real network",
+  "assertions": [
+    "delivered EXE loads packaged main, preload, renderer and isolated data without a development loader",
+    "normal window close completes and exits the actual EXE with code 0"
+  ],
+  "errors": [],
+  "runtime": {
+    "packaged": true,
+    "version": "1.0.6",
+    "appPath": "C:\\Users\\David\\AppData\\Local\\Temp\\3JzP7QQ9Nz3diX2mdlmQPwmQwm7\\resources\\app.asar",
+    "userData": "D:\\soft\\Opencode\\JMComic\\work\\portable-exe-startup-final-20260929\\profile",
+    "electron": "43.2.0",
+    "node": "24.18.0"
+  },
+  "appArchiveSha256": "09cc66b487c6ef64a46d30016638cc92914410029461d2bcee10776e038ff5fb",
+  "warmupAtStartup": {
+    "phase": "verifying",
+    "attempt": 1,
+    "reason": "startup",
+    "startedAt": 1790660777155
+  }
+}

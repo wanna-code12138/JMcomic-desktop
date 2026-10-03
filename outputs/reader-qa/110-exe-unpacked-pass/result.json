@@ -1,0 +1,9 @@
+{
+  "executable": "D:\\soft\\Opencode\\JMComic\\outputs\\releases\\1.1.0\\win-unpacked\\JMComic Desktop.exe",
+  "sha256": "4bc4df3803b04daadea979e16a7f382d85a11ad01b44875c125e2fe2f2fddc96",
+  "mode": "direct packaged EXE / synthetic network and save dialog",
+  "assertions": [],
+  "errors": [
+    "Error: Timed out: debug target on 3659\n    at waitFor (file:///D:/soft/Opencode/JMComic/scripts/package-launch-smoke.mjs:51:9)\n    at async connect (file:///D:/soft/Opencode/JMComic/scripts/package-launch-smoke.mjs:54:16)\n    at async file:///D:/soft/Opencode/JMComic/scripts/package-launch-smoke.mjs:99:8"
+  ]
+}

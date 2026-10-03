@@ -1,38 +1,45 @@
 import React from 'react'
 import {
-  makeStyles, Text, Switch, Slider, Button,
-  Card, Input
+  makeStyles, Text, Switch, Slider, Button, Select,
+  Card, Input, Dialog, DialogSurface, DialogBody,
+  DialogTitle, DialogContent, DialogActions
 } from '@fluentui/react-components'
-import { ArrowSync20Regular } from '@fluentui/react-icons'
+import { ArrowSync20Regular, Wifi3Regular, Wifi1Regular, WifiOff20Regular } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
+import { RECOMMENDATION_TAGS } from '../../../shared/recommendationCore'
+import ExperienceSettings from '../components/ExperienceSettings'
 
 const useStyles = makeStyles({
   root: {
     padding: '24px',
     height: '100%',
-    overflow: 'auto',
-    maxWidth: '720px'
+    overflow: 'auto'
   },
-  section: { marginBottom: '32px' },
+  section: {
+    marginBottom: '32px',
+    maxWidth: '672px',
+    marginLeft: 'auto',
+    marginRight: 'auto'
+  },
   sectionTitle: {
-    marginBottom: '16px',
+    marginBottom: '12px',
     display: 'block',
-    color: 'var(--ac-text-1)'
+    fontSize: 'var(--ui-font-section)',
+    lineHeight: 'var(--ui-line-section)',
+    color: 'var(--ui-text-primary)'
   },
   card: {
-    marginBottom: '16px',
-    backgroundColor: 'var(--ac-glass-bg)',
-    backdropFilter: 'blur(var(--ac-blur-panel))',
-    WebkitBackdropFilter: 'blur(var(--ac-blur-panel))',
-    border: '1px solid var(--ac-glass-border)',
-    borderRadius: 'var(--ac-radius-card)',
-    boxShadow: 'inset 0 1px 0 var(--ac-glass-inset-hi), var(--ac-glass-shadow)'
+    backgroundColor: 'var(--ui-bg-card)',
+    border: '0',
+    borderRadius: '0',
+    boxShadow: 'none'
   },
   row: {
-    display: 'flex',
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) auto',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '24px'
+    gap: '16px',
+    '& > :first-child': { minWidth: 0, overflowWrap: 'anywhere' }
   },
   buttonRow: {
     display: 'flex',
@@ -43,13 +50,28 @@ const useStyles = makeStyles({
   statusText: {
     display: 'block',
     marginTop: '10px',
-    color: 'var(--ac-text-2)',
+    color: 'var(--ui-text-secondary)',
     wordBreak: 'break-all'
   },
   subPanel: {
     marginTop: '14px',
     paddingTop: '12px',
-    borderTop: '1px dashed var(--ac-glass-border)'
+    borderTop: '1px solid var(--ui-stroke-card)'
+  },
+  tagGrid: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '8px',
+    marginTop: '14px',
+    maxHeight: '280px',
+    overflowY: 'auto'
+  },
+  dialogHint: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '16px',
+    marginTop: '10px',
+    color: 'var(--ui-text-tertiary)'
   }
 })
 
@@ -71,11 +93,12 @@ export default function SettingsPage(): JSX.Element {
   const styles = useStyles()
   const {
     themeMode, setThemeMode, networkStatus, setNetworkStatus,
-    micaEnabled, solidWindow, setMicaEnabled, setSolidWindow
+    micaEnabled, solidWindow, setMicaEnabled, setSolidWindow,
+    bumpRecommendationRevision
   } = useAppStore()
 
   const [dataStatus, setDataStatus] = React.useState('')
-  const [appVersion, setAppVersion] = React.useState('1.0.3')
+  const [appVersion, setAppVersion] = React.useState('…')
 
   // 手动代理
   const [proxyEnabled, setProxyEnabled] = React.useState(false)
@@ -98,7 +121,14 @@ export default function SettingsPage(): JSX.Element {
   const [downloadConcurrency, setDownloadConcurrency] = React.useState(4)
   const [downloadRetries, setDownloadRetries] = React.useState(3)
   const [downloadResumeOnStartup, setDownloadResumeOnStartup] = React.useState(true)
+  const [downloadFormat, setDownloadFormat] = React.useState<'ask' | 'images' | 'pdf'>('ask')
   const downloadTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // 推荐偏好（显式选择，不读取收藏、历史或搜索数据）
+  const [recommendationTags, setRecommendationTags] = React.useState<string[]>([])
+  const [draftRecommendationTags, setDraftRecommendationTags] = React.useState<string[]>([])
+  const [recommendationTagQuery, setRecommendationTagQuery] = React.useState('')
+  const [recommendationDialogOpen, setRecommendationDialogOpen] = React.useState(false)
 
   React.useEffect(() => {
     window.electronAPI?.appVersion().then((v) => {
@@ -114,6 +144,8 @@ export default function SettingsPage(): JSX.Element {
       setDownloadConcurrency(s.downloadConcurrency)
       setDownloadRetries(s.downloadRetries)
       setDownloadResumeOnStartup(s.downloadResumeOnStartup)
+      setDownloadFormat(s.downloadFormat)
+      setRecommendationTags(s.recommendationTags ?? [])
     })
 
     window.electronAPI?.imageCacheSize().then((bytes) => {
@@ -250,6 +282,31 @@ export default function SettingsPage(): JSX.Element {
     window.electronAPI?.settingsSet({ downloadResumeOnStartup: checked })
   }
 
+  const openRecommendationDialog = (): void => {
+    setDraftRecommendationTags(recommendationTags)
+    setRecommendationTagQuery('')
+    setRecommendationDialogOpen(true)
+  }
+
+  const toggleRecommendationTag = (tag: string): void => {
+    setDraftRecommendationTags((current) => {
+      if (current.includes(tag)) return current.filter((selected) => selected !== tag)
+      if (current.length >= 8) return current
+      return [...current, tag]
+    })
+  }
+
+  const saveRecommendationTags = async (): Promise<void> => {
+    await window.electronAPI?.settingsSet({ recommendationTags: draftRecommendationTags })
+    setRecommendationTags([...draftRecommendationTags])
+    setRecommendationDialogOpen(false)
+    bumpRecommendationRevision()
+  }
+
+  const filteredRecommendationTags = RECOMMENDATION_TAGS.filter((tag) =>
+    tag.toLowerCase().includes(recommendationTagQuery.trim().toLowerCase())
+  )
+
   const handleExportPersonalData = async (): Promise<void> => {
     const result = await window.electronAPI?.personalDataExport()
     if (!result) return
@@ -282,38 +339,47 @@ export default function SettingsPage(): JSX.Element {
   const handleClearPersonalData = async (): Promise<void> => {
     const confirmed = window.confirm(
       '确定要清除所有内部个人数据吗？\n\n' +
-      '收藏、阅读历史、搜索历史、下载记录和登录凭据都会被删除，且无法恢复。'
+      '收藏、阅读历史、搜索历史、标签记录、下载记录和登录凭据都会被删除，且无法恢复。\n正在进行的下载会停止，已完成的文件保留。'
     )
     if (!confirmed) return
+    try {
+    useAppStore.setState({ readerClosing: true })
+    await useAppStore.getState().flushReaderWorkspace()
+    useAppStore.setState({ readerTabs: [], closedReaderTabs: [], activeReaderId: null, readerVisible: false, readerExpanded: false,
+      readerAutoCollapse: false, readerSidebarCollapsed: useAppStore.getState().navigationCollapsed })
     const counts = await window.electronAPI?.personalDataClear()
     if (!counts) return
     setDataStatus(
       `已清除：收藏 ${counts.favorites} 条、历史 ${counts.readingHistory} 条、` +
       `搜索 ${counts.searchHistory} 条、下载 ${counts.downloads} 条、登录凭据 ${counts.auth} 条`
     )
+    } catch (error) { setDataStatus(`清除失败：${String(error)}`) }
+    finally { useAppStore.getState().cancelReaderClose() }
   }
 
   return (
-    <div className={styles.root}>
+    <div className={`${styles.root} settings-page`}>
       {/* Appearance */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>外观</Text>
+        <div className="settings-group">
         <Card className={styles.card}>
-          <div className={styles.row}>
+          <div className={`${styles.row} settings-theme-row`}>
             <div>
-              <Text weight="semibold" style={{ color: 'var(--ac-text-1)' }}>主题模式</Text>
+              <Text weight="semibold" style={{ color: 'var(--ui-text-primary)' }}>主题模式</Text>
               <div>
-                <Text size={200} style={{ color: 'var(--ac-text-3)' }}>
+                <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>
                   跟随系统 / 浅色 / 深色
                 </Text>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '6px' }}>
+            <div className="settings-theme-options">
               {(['system', 'light', 'dark'] as const).map((m) => (
                 <Button
                   key={m}
                   size="small"
                   appearance={themeMode === m ? 'primary' : 'subtle'}
+                  aria-pressed={themeMode === m}
                   onClick={() => {
                     setThemeMode(m)
                     window.electronAPI?.settingsSet({ themeMode: m })
@@ -329,34 +395,109 @@ export default function SettingsPage(): JSX.Element {
           <div className={styles.row}>
             <div>
               <Text weight="semibold">Mica 云母材质</Text>
-              <div><Text size={200} style={{ color: 'var(--ac-text-3)' }}>Windows 11 半透明背景效果</Text></div>
+              <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>Windows 11 半透明背景效果</Text></div>
             </div>
-            <Switch checked={micaEnabled} onChange={(_e, d) => handleMicaChange(d.checked)} />
+            <Switch aria-label="Mica 云母材质" checked={micaEnabled} onChange={(_e, d) => handleMicaChange(d.checked)} />
           </div>
           {!micaEnabled && (
             <div className={styles.subPanel}>
               <div className={styles.row}>
                 <div>
                   <Text weight="semibold">纯色不透明窗口</Text>
-                  <div><Text size={200} style={{ color: 'var(--ac-text-3)' }}>关闭时为亚克力；打开此开关用纯色背景，节省 GPU</Text></div>
+                  <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>关闭时为亚克力；打开此开关用纯色背景，节省 GPU</Text></div>
                 </div>
-                <Switch checked={solidWindow} onChange={(_e, d) => handleSolidChange(d.checked)} />
+                <Switch aria-label="纯色不透明窗口" checked={solidWindow} onChange={(_e, d) => handleSolidChange(d.checked)} />
               </div>
             </div>
           )}
         </Card>
+        </div>
       </div>
+
+      <div className={styles.section}>
+        <Text size={500} weight="semibold" className={styles.sectionTitle}>阅读与交互</Text>
+        <div className="settings-group">
+        <ExperienceSettings cardClass={styles.card} rowClass={styles.row} />
+        </div>
+      </div>
+      {/* Recommendations */}
+      <div className={styles.section}>
+        <Text size={500} weight="semibold" className={styles.sectionTitle}>推荐</Text>
+        <div className="settings-group">
+        <Card className={styles.card}>
+          <div className={styles.row}>
+            <div>
+              <Text weight="semibold">推荐偏好</Text>
+              <div>
+                <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>
+                  {recommendationTags.length > 0
+                    ? `已选择：${recommendationTags.join('、')}`
+                    : '未选择标签，将按最新、热门与高质量内容推荐'}
+                </Text>
+              </div>
+            </div>
+            <Button size="small" appearance="secondary" onClick={openRecommendationDialog}>配置…</Button>
+          </div>
+        </Card>
+        </div>
+      </div>
+
+      <Dialog
+        open={recommendationDialogOpen}
+        onOpenChange={(_event, data) => setRecommendationDialogOpen(data.open)}
+      >
+        <DialogSurface>
+          <DialogBody>
+            <DialogTitle>推荐偏好</DialogTitle>
+            <DialogContent>
+              <Text size={300}>选择更偏好的内容标签。标签只做软加权，不会过滤其他题材。</Text>
+              <Input
+                value={recommendationTagQuery}
+                onChange={(_event, data) => setRecommendationTagQuery(data.value)}
+                placeholder="搜索标签"
+                style={{ width: '100%', marginTop: '14px' }}
+              />
+              <div className={styles.dialogHint}>
+                <Text size={200}>最多选择 8 个标签</Text>
+                <Text size={200}>{draftRecommendationTags.length} / 8</Text>
+              </div>
+              <div className={styles.tagGrid}>
+                {filteredRecommendationTags.map((tag) => {
+                  const selected = draftRecommendationTags.includes(tag)
+                  return (
+                    <Button
+                      key={tag}
+                      size="small"
+                      appearance={selected ? 'primary' : 'secondary'}
+                      disabled={!selected && draftRecommendationTags.length >= 8}
+                      onClick={() => toggleRecommendationTag(tag)}
+                    >
+                      {tag}
+                    </Button>
+                  )
+                })}
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button appearance="subtle" onClick={() => setDraftRecommendationTags([])}>清空</Button>
+              <Button appearance="secondary" onClick={() => setRecommendationDialogOpen(false)}>取消</Button>
+              <Button appearance="primary" onClick={saveRecommendationTags}>保存</Button>
+            </DialogActions>
+          </DialogBody>
+        </DialogSurface>
+      </Dialog>
 
       {/* Network */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>网络</Text>
+        <div className="settings-group">
         <Card className={styles.card}>
           <div className={styles.row}>
             <div>
               <Text weight="semibold">手动代理</Text>
-              <div><Text size={200} style={{ color: 'var(--ac-text-3)' }}>覆盖系统代理，填写 HTTP/SOCKS5 地址</Text></div>
+              <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>覆盖系统代理，填写 HTTP/SOCKS5 地址</Text></div>
             </div>
-            <Switch checked={proxyEnabled} onChange={(_e, d) => handleProxyToggle(d.checked)} />
+            <Switch aria-label="手动代理" checked={proxyEnabled} onChange={(_e, d) => handleProxyToggle(d.checked)} />
           </div>
           <div className={styles.buttonRow} style={{ marginTop: '12px' }}>
             <Input
@@ -383,10 +524,11 @@ export default function SettingsPage(): JSX.Element {
             <div>
               <Text weight="semibold">当前网络状态</Text>
               <div>
-                <Text size={200} style={{ color: 'var(--ac-text-3)' }}>
-                  {networkStatus === 'online' ? '🟢 直连正常 — 可直接访问禁漫天堂'
-                    : networkStatus === 'degraded' ? '🟡 代理连接 — 通过代理访问中'
-                    : '🔴 无法访问 — 请检查代理或网络'}
+                <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>
+                  <span className="settings-network-icon" data-state={networkStatus} aria-hidden="true">{networkStatus === 'online' ? <Wifi3Regular /> : networkStatus === 'degraded' ? <Wifi1Regular /> : <WifiOff20Regular />}</span>
+                  {networkStatus === 'online' ? '直连正常 — 可直接访问禁漫天堂'
+                    : networkStatus === 'degraded' ? '代理连接 — 通过代理访问中'
+                    : '无法访问 — 请检查代理或网络'}
                 </Text>
               </div>
               {probeInfo && <Text size={200} className={styles.statusText}>{probeInfo}</Text>}
@@ -396,18 +538,27 @@ export default function SettingsPage(): JSX.Element {
             </Button>
           </div>
         </Card>
+        </div>
       </div>
 
       {/* Downloads */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>下载</Text>
+        <div className="settings-group">
+        <Card className={styles.card}><div className={styles.row}>
+          <div><Text weight="semibold">默认下载格式</Text><p className="settings-caption">未选择默认格式时，每次下载都会询问。</p></div>
+          <Select aria-label="默认下载格式" value={downloadFormat} onChange={async (_event, data) => {
+            try { const settings = await window.electronAPI?.settingsSet({ downloadFormat: data.value }); if (settings) setDownloadFormat(settings.downloadFormat) }
+            catch { setDataStatus('下载格式未能保存，请重试。') }
+          }}><option value="ask">每次询问</option><option value="images">逐张图片</option><option value="pdf">合并为 PDF</option></Select>
+        </div></Card>
         <Card className={styles.card}>
           <div className={styles.row}>
             <div>
               <Text weight="semibold">下载目录</Text>
               <div>
-                <Text size={200} style={{ color: 'var(--ac-text-3)' }}>
-                  漫画按「目录/漫画名/章节名」保存，新任务使用此目录
+                <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>
+                  图片按漫画和章节分目录保存；PDF 直接保存到此目录
                 </Text>
               </div>
             </div>
@@ -427,7 +578,7 @@ export default function SettingsPage(): JSX.Element {
         <Card className={styles.card}>
           <div style={{ marginBottom: '8px' }}>
             <Text weight="semibold">同时下载章节数</Text>
-            <Text size={200} style={{ color: 'var(--ac-text-3)', display: 'block', marginTop: '2px' }}>
+            <Text size={200} style={{ color: 'var(--ui-text-tertiary)', display: 'block', marginTop: '2px' }}>
               当前 {downloadConcurrency} 个任务并行（1–8）
             </Text>
           </div>
@@ -442,7 +593,7 @@ export default function SettingsPage(): JSX.Element {
         <Card className={styles.card}>
           <div style={{ marginBottom: '8px' }}>
             <Text weight="semibold">图片失败重试次数</Text>
-            <Text size={200} style={{ color: 'var(--ac-text-3)', display: 'block', marginTop: '2px' }}>
+            <Text size={200} style={{ color: 'var(--ui-text-tertiary)', display: 'block', marginTop: '2px' }}>
               当前 {downloadRetries} 次（0–6，单张图片下载失败后自动重试）
             </Text>
           </div>
@@ -459,24 +610,33 @@ export default function SettingsPage(): JSX.Element {
             <div>
               <Text weight="semibold">启动时自动续传</Text>
               <div>
-                <Text size={200} style={{ color: 'var(--ac-text-3)' }}>
+                <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>
                   打开应用后自动继续未完成（含上次中断）的下载任务
                 </Text>
               </div>
             </div>
-            <Switch checked={downloadResumeOnStartup} onChange={(_e, d) => handleResumeChange(d.checked)} />
+            <Switch aria-label="启动时自动续传" checked={downloadResumeOnStartup} onChange={(_e, d) => handleResumeChange(d.checked)} />
           </div>
         </Card>
+        </div>
       </div>
 
       {/* Personal data */}
       <div className={styles.section}>
+        <Text size={500} weight="semibold" className={styles.sectionTitle}>账户与隐私</Text>
+        <div className="settings-group"><Card className={styles.card}><div className={styles.row}>
+          <div><Text weight="semibold">在线账户</Text><div><Text size={200}>管理登录、记住会话及通知。个人数据导出不包含登录会话。</Text></div></div>
+          <Button onClick={() => useAppStore.getState().setCurrentPage('account')}>管理账户</Button>
+        </div></Card></div>
+      </div>
+      <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>个人数据</Text>
+        <div className="settings-group">
         <Card className={styles.card}>
           <div style={{ marginBottom: '12px' }}>
             <Text weight="semibold">数据随程序文件存放</Text>
             <div>
-              <Text size={200} style={{ color: 'var(--ac-text-3)' }}>
+              <Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>
                 便携版的数据保存在 exe 同目录的 JMComicData 文件夹中，复制整个文件夹即可随程序迁移
               </Text>
             </div>
@@ -491,7 +651,7 @@ export default function SettingsPage(): JSX.Element {
             <Button
               size="small"
               appearance="secondary"
-              style={{ color: 'var(--ac-danger, #d13438)' }}
+              style={{ color: 'var(--ui-danger)' }}
               onClick={handleClearPersonalData}
             >
               清除个人数据
@@ -501,18 +661,20 @@ export default function SettingsPage(): JSX.Element {
             <Text size={200} className={styles.statusText}>{dataStatus}</Text>
           )}
         </Card>
+        </div>
       </div>
 
       {/* Cache */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>缓存</Text>
+        <div className="settings-group">
         <Card className={styles.card}>
           <div className={styles.row}>
             <div>
               <Text weight="semibold">图片缓存</Text>
-              <div><Text size={200} style={{ color: 'var(--ac-text-3)' }}>缓存已浏览的漫画图片，重开阅读器不再重复下载</Text></div>
+              <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>缓存已浏览的漫画图片，重开阅读器不再重复下载</Text></div>
               {cacheSize > 0 && (
-                <Text size={200} style={{ color: 'var(--ac-text-3)', display: 'block', marginTop: '4px' }}>
+                <Text size={200} style={{ color: 'var(--ui-text-tertiary)', display: 'block', marginTop: '4px' }}>
                   当前占用 {formatBytes(cacheSize)}
                 </Text>
               )}
@@ -532,19 +694,40 @@ export default function SettingsPage(): JSX.Element {
             value={cacheLimitMb}
             onChange={(_e, d) => handleCacheLimitChange(d.value)}
           />
-          <Text size={200} style={{ color: 'var(--ac-text-3)', marginTop: '4px' }}>
+          <Text size={200} style={{ color: 'var(--ui-text-tertiary)', marginTop: '4px' }}>
             当前限制: {formatLimit(cacheLimitMb)}（超出后自动删除最旧的图片）
           </Text>
         </Card>
+        </div>
+      </div>
+
+      {/* Diagnostics */}
+      <div className={styles.section}>
+        <Text size={500} weight="semibold" className={styles.sectionTitle}>性能与诊断</Text>
+        <div className="settings-group">
+        <Card className={styles.card}>
+          <div className={styles.row}>
+            <div>
+              <Text weight="semibold">高级性能诊断</Text>
+              <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>查看 GPU 硬件加速、进程资源、Long Task 与加载指标</Text></div>
+            </div>
+            <Button size="small" appearance="secondary" onClick={() => useAppStore.getState().setCurrentPage('diagnostics' as any)}>
+              打开诊断页
+            </Button>
+          </div>
+        </Card>
+        </div>
       </div>
 
       {/* About */}
       <div className={styles.section}>
         <Text size={500} weight="semibold" className={styles.sectionTitle}>关于</Text>
+        <div className="settings-group">
         <Card className={styles.card}>
           <Text weight="semibold">JMComic Desktop</Text>
-          <div><Text size={200} style={{ color: 'var(--ac-text-3)' }}>版本 {appVersion} · Electron + React + Fluent UI</Text></div>
+          <div><Text size={200} style={{ color: 'var(--ui-text-tertiary)' }}>版本 {appVersion} · Electron + React + Fluent UI</Text></div>
         </Card>
+        </div>
       </div>
     </div>
   )

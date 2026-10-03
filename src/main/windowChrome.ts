@@ -1,10 +1,10 @@
 import { BrowserWindow, nativeTheme } from 'electron'
 import type { AppSettings } from './settingsCore'
 
-// 与 renderer 端 --ac-base-bg 保持一致（浅色 #f4f6ff / 深色 #0f0f1e），
+// 与 renderer 端 --ui-bg-app-solid 保持一致，
 // 用于纯色模式窗口未绘制完成前的背景兜底，避免黑屏/白屏闪烁。
-const SOLID_LIGHT = '#f4f6ff'
-const SOLID_DARK = '#0f0f1e'
+const SOLID_LIGHT = '#eef2f7'
+const SOLID_DARK = '#151a21'
 
 export function backgroundMaterialFor(settings: AppSettings): 'mica' | 'acrylic' | 'none' {
   if (settings.micaEnabled) return 'mica'

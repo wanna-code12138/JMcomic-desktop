@@ -1,0 +1,102 @@
+{
+  "runId": "detail-entries-after",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "detail entry observed",
+      "details": {
+        "entry": "分类",
+        "id": "110001",
+        "ok": true
+      }
+    },
+    {
+      "name": "detail entry observed",
+      "details": {
+        "entry": "分类",
+        "id": "110002",
+        "ok": true
+      }
+    },
+    {
+      "name": "detail entry observed",
+      "details": {
+        "entry": "首页",
+        "id": "110001",
+        "ok": true
+      }
+    },
+    {
+      "name": "detail entry observed",
+      "details": {
+        "entry": "首页",
+        "id": "110002",
+        "ok": true
+      }
+    },
+    {
+      "name": "detail entry observed",
+      "details": {
+        "entry": "新标签页",
+        "id": "110001",
+        "ok": true
+      }
+    },
+    {
+      "name": "detail entry observed",
+      "details": {
+        "entry": "新标签页",
+        "id": "110002",
+        "ok": true
+      }
+    },
+    {
+      "name": "single album chapter enters the reader and exposes the correct pages"
+    },
+    {
+      "name": "visible retry recovers the same album without leaving detail"
+    },
+    {
+      "name": "genuine API failure still falls back to a valid browser detail"
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 12,
+    "image": 10,
+    "blocked": 0
+  },
+  "summaryQueries": 0,
+  "detailEntries": [
+    {
+      "entry": "分类",
+      "id": "110001",
+      "ok": true
+    },
+    {
+      "entry": "分类",
+      "id": "110002",
+      "ok": true
+    },
+    {
+      "entry": "首页",
+      "id": "110001",
+      "ok": true
+    },
+    {
+      "entry": "首页",
+      "id": "110002",
+      "ok": true
+    },
+    {
+      "entry": "新标签页",
+      "id": "110001",
+      "ok": true
+    },
+    {
+      "entry": "新标签页",
+      "id": "110002",
+      "ok": true
+    }
+  ]
+}

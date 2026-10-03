@@ -1,4 +1,6 @@
-import { existsSync, readdirSync, statSync } from 'fs'
+import { readdir, stat, open } from 'fs/promises'
+import { createHash } from 'crypto'
+import { imageMimeType } from '../shared/imageFormat'
 import { basename, isAbsolute, join, relative, resolve } from 'path'
 
 /**
@@ -6,35 +8,9 @@ import { basename, isAbsolute, join, relative, resolve } from 'path'
  * 与 Electron 解耦，便于用 tsx 直接测试。
  */
 
-export interface DownloadTaskRow {
-  id: number
-  mangaId: string
-  mangaTitle: string
-  chapterIndex: number
-  chapterTitle: string
-  status: string
-  totalPages: number
-  downloadedPages: number
-  savePath: string
-  createdAt: number
-  coverUrl?: string
-  chapterUrl?: string
-  error?: string
-}
-
-export interface MangaDownloadGroup {
-  mangaId: string
-  mangaTitle: string
-  coverUrl: string
-  createdAt: number
-  tasks: DownloadTaskRow[]
-  /** 去重后的章节总数 */
-  totalChapters: number
-  /** 至少有一个任务完成的章节数 */
-  completedChapters: number
-  activeTasks: number
-  failedTasks: number
-}
+import type { DownloadTaskRow, DownloadAvailability } from '../shared/downloadContracts'
+export type { DownloadTaskRow, DownloadAvailability, DownloadAvailabilityReason, MangaDownloadGroup } from '../shared/downloadContracts'
+export { groupTasksByManga } from '../shared/downloadContracts'
 
 /**
  * 把 sql.js 返回的 snake_case 数据库行（manga_id / chapter_url / save_path...）
@@ -53,6 +29,7 @@ export function normalizeTaskRow(raw: Record<string, unknown>): DownloadTaskRow 
     totalPages: Number(raw.total_pages ?? 0),
     downloadedPages: Number(raw.downloaded_pages ?? 0),
     savePath: typeof raw.save_path === 'string' ? raw.save_path : '',
+    storageRelpath: typeof raw.storage_relpath === 'string' && raw.storage_relpath ? raw.storage_relpath : undefined,
     createdAt: Number(raw.created_at ?? 0),
     chapterUrl: typeof raw.chapter_url === 'string' && raw.chapter_url
       ? raw.chapter_url
@@ -70,7 +47,15 @@ export function pickRetryableTasks(rows: DownloadTaskRow[]): DownloadTaskRow[] {
 }
 
 export function sanitizeFileName(name: string): string {
-  return name.replace(/[<>:"/\\|?*]/g, '_').replace(/\s+/g, ' ').trim()
+  const value = name.replace(/\s+/g, ' ').replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').trim().replace(/[. ]+$/, '')
+  return /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(value) ? `_${value}` : value
+}
+
+export function isChapterDirectorySafe(root: string, target: string): boolean {
+  if (!isAbsolute(root) || !isAbsolute(target)) return false
+  const path = relative(resolve(root), resolve(target))
+  const parts = path.split(/[\\/]/)
+  return !isAbsolute(path) && parts.length === 2 && parts.every((part) => part !== '..' && part !== '.' && part.length > 0)
 }
 
 export function buildChapterSaveDir(
@@ -98,32 +83,76 @@ export function toLocalImageUrl(absolutePath: string): string {
   return `jmlocal://img/${base64UrlEncode(absolutePath)}`
 }
 
-const IMAGE_EXT_RE = /\.(jpg|jpeg|png|webp|gif|bmp)$/i
+const IMAGE_EXT_RE = /\.(jpg|jpeg|png|webp|gif|bmp|avif)$/i
 
-/**
- * 扫描章节保存目录，返回按序号排序的本地图片（不存在的目录返回空数组）。
- * 字段与阅读器 PageData 保持一致：index + imageUrl（jmlocal:// 直读 URL）。
- */
-export function resolveLocalChapterPages(saveDir: string): Array<{ index: number; imageUrl: string }> {
-  if (!existsSync(saveDir)) return []
-  const names = readdirSync(saveDir).filter((name) => {
-    if (!IMAGE_EXT_RE.test(name)) return false
+export function buildStorageRelativePath(mangaId: string, chapterUrl: string | undefined, chapterIndex: number): string {
+  const manga = /^\d+$/.test(mangaId) ? mangaId : createHash('sha256').update(mangaId).digest('hex').slice(0, 24)
+  const chapter = chapterUrl?.match(/\/(?:photo|chapter)\/(\d+)/)?.[1] ?? `index-${chapterIndex}`
+  return join(`manga-${manga}`, `chapter-${chapter}`)
+}
+
+export function resolveTaskDirectory(task: Pick<DownloadTaskRow, 'savePath' | 'mangaTitle' | 'chapterTitle' | 'chapterIndex' | 'storageRelpath'>): string {
+  const target = task.storageRelpath ? resolve(task.savePath, task.storageRelpath)
+    : buildChapterSaveDir(task.savePath, task.mangaTitle, task.chapterTitle, task.chapterIndex)
+  if (!isChapterDirectorySafe(task.savePath, target)) throw new Error('下载目录超出允许范围')
+  return target
+}
+
+export interface ChapterFile { index: number; path: string; format: string }
+export interface ChapterInspection {
+  available: boolean
+  files: ChapterFile[]
+  missingIndices: number[]
+  duplicateIndices: number[]
+}
+
+/** One bounded scanner for resume, local reading, availability and export. */
+export async function inspectChapterFiles(saveDir: string, expectedPages = 0): Promise<ChapterInspection> {
+  const files = new Map<number, ChapterFile>()
+  const duplicates = new Set<number>()
+  let names: string[] = []
+  try { names = (await readdir(saveDir)).sort() } catch {}
+  for (const name of names) {
+    const match = name.match(/^(\d+)\.(jpg|jpeg|png|webp|gif|bmp|avif)$/i)
+    const ordinal = Number(match?.[1])
+    if (!match || ordinal < 1 || (expectedPages > 0 && ordinal > expectedPages)) continue
+    const path = join(saveDir, name)
     try {
-      return statSync(join(saveDir, name)).isFile()
-    } catch {
-      return false
-    }
-  })
-  names.sort((a, b) => {
-    const na = Number(a.match(/^(\d+)/)?.[1] ?? Infinity)
-    const nb = Number(b.match(/^(\d+)/)?.[1] ?? Infinity)
-    if (na !== nb) return na - nb
-    return a.localeCompare(b)
-  })
-  return names.map((name, index) => ({
-    index,
-    imageUrl: toLocalImageUrl(join(saveDir, name))
-  }))
+      if (!(await stat(path)).isFile()) continue
+      const file = await open(path, 'r')
+      const header = Buffer.alloc(32)
+      let bytesRead = 0
+      try { bytesRead = (await file.read(header, 0, header.length, 0)).bytesRead }
+      finally { await file.close() }
+      const mime = imageMimeType(header.subarray(0, bytesRead))
+      if (!mime) continue
+      const index = ordinal - 1
+      if (files.has(index)) duplicates.add(index)
+      else files.set(index, { index, path, format: mime === 'image/jpeg' ? 'jpg' : mime.split('/')[1] })
+    } catch {}
+  }
+  const ordered = [...files.values()].sort((a, b) => a.index - b.index)
+  const total = expectedPages || (ordered.at(-1)?.index ?? -1) + 1
+  const missingIndices = Array.from({ length: total }, (_, index) => index).filter(index => !files.has(index))
+  return { available: total > 0 && missingIndices.length === 0, files: ordered, missingIndices, duplicateIndices: [...duplicates] }
+}
+
+export async function inspectDownloadedChapter(task: DownloadTaskRow): Promise<DownloadAvailability> {
+  try {
+    if (!task.savePath || !(await stat(task.savePath)).isDirectory()) return { available: false, pageCount: 0, reason: 'missing-root' }
+  } catch { return { available: false, pageCount: 0, reason: 'missing-root' } }
+  let directory: string
+  try {
+    directory = resolveTaskDirectory(task)
+    if (!(await stat(directory)).isDirectory()) throw new Error('missing')
+  } catch { return { available: false, pageCount: 0, reason: 'missing-chapter' } }
+  const result = await inspectChapterFiles(directory, task.totalPages)
+  return result.available ? { available: true, pageCount: result.files.length }
+    : { available: false, pageCount: result.files.length, reason: 'missing-pages' }
+}
+
+export async function resolveLocalChapterPagesAsync(saveDir: string): Promise<Array<{ index: number; imageUrl: string }>> {
+  return (await inspectChapterFiles(saveDir)).files.map(file => ({ index: file.index, imageUrl: toLocalImageUrl(file.path) }))
 }
 
 /**
@@ -142,53 +171,4 @@ export function isLocalImagePathSafe(absolutePath: string, allowedRoots: string[
     if (parts.length === 3) return true
   }
   return false
-}
-
-/** 把下载任务行按漫画聚合，输出本地详情页与下载页所需的分组摘要。 */
-export function groupTasksByManga(rows: DownloadTaskRow[]): MangaDownloadGroup[] {
-  const byManga = new Map<string, MangaDownloadGroup>()
-  for (const task of rows) {
-    let group = byManga.get(task.mangaId)
-    if (!group) {
-      group = {
-        mangaId: task.mangaId,
-        mangaTitle: task.mangaTitle,
-        coverUrl: task.coverUrl ?? '',
-        createdAt: task.createdAt,
-        tasks: [],
-        totalChapters: 0,
-        completedChapters: 0,
-        activeTasks: 0,
-        failedTasks: 0
-      }
-      byManga.set(task.mangaId, group)
-    }
-    group.tasks.push(task)
-    if (task.createdAt > group.createdAt) {
-      group.createdAt = task.createdAt
-      group.mangaTitle = task.mangaTitle
-      if (task.coverUrl) group.coverUrl = task.coverUrl
-    }
-  }
-
-  const groups = [...byManga.values()]
-  for (const group of groups) {
-    group.tasks.sort((a, b) => a.chapterIndex - b.chapterIndex || a.id - b.id)
-    const chapterStatus = new Map<number, Set<string>>()
-    for (const task of group.tasks) {
-      let statuses = chapterStatus.get(task.chapterIndex)
-      if (!statuses) {
-        statuses = new Set()
-        chapterStatus.set(task.chapterIndex, statuses)
-      }
-      statuses.add(task.status)
-      if (task.status === 'pending' || task.status === 'downloading') group.activeTasks++
-      if (task.status === 'failed' || task.status === 'cancelled') group.failedTasks++
-    }
-    group.totalChapters = chapterStatus.size
-    group.completedChapters = [...chapterStatus.values()].filter((s) => s.has('completed')).length
-  }
-
-  groups.sort((a, b) => b.createdAt - a.createdAt)
-  return groups
 }

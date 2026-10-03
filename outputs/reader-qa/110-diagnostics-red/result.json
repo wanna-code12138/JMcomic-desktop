@@ -1,0 +1,18 @@
+{
+  "runId": "110-diagnostics-red",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    }
+  ],
+  "errors": [
+    "Error: Timed out: visible selector nav [aria-label=\"展开导航\"]\nJMComic Desktop\n导航\n首页\n分类\n搜索\n收藏\n下载\n设置\n外观\n主题模式\n跟随系统 / 浅色 / 深色\n跟随系统\n浅色\n深色\nMica 云母材质\nWindows 11 半透明背景效果\n阅读与交互\n界面动画\n\n页面、标签、分栏和控件的轻量过渡；遵循系统的减少动态效果设置。\n\nGPU 硬件加速\n\n让可用的图形硬件辅助渲染，兼容集成与独立显卡。驱动不支持时自动回退。\n\n当前已启用硬件加速\n\n下次启动恢复阅读标签\n\n恢复打开的漫画、标签名称、顺序和阅读位置。\n\n推荐\n推荐偏好\n未选择标签，将按最新、热门与高质量内容推荐\n配置…\n网络\n手动代理\n覆盖系统代理，填写 HTTP/SOCKS5 地址\n应用并测试\n当前网络状态\n🔴 无法访问 — 请检查代理或网络\n延迟 0 ms · 直连\n重新探测\n下载\n默认下载格式\n\n未选择默认格式时，每次下载都会询问。\n\n每次询问\n逐张图片\n合并为 PDF\n下载目录\n图片按漫画和章节分目录保存；PDF 直接保存到此目录\n选择…\n应用\n同时下载章节数\n当前 4 个任务并行（1–8）\n图片失败重试次数\n当前 3 次（0–6，单张图片下载失败后自动重试）\n启动时自动续传\n打开应用后自动继续未完成（含上次中断）的下载任务\n个人数据\n数据随程序文件存放\n便携版的数据保存在 exe 同目录的 JMComicData 文件夹中，复制整个文件夹即可随程序迁移\n导出个人数据\n导入个人数据\n清除个人数据\n缓存\n图片缓存\n缓存已浏览的漫画图片，重开阅读器不再重复下载\n当前占用 35 KB\n清空缓存\n缓存大小限制\n当前限制: 1000 MB（超出后自动删除最旧的图片）\n性能与诊断\n高级性能诊断\n查看 GPU 硬件加速、进程资源、Long Task 与加载指标\n打开诊断页\n关于\nJMComic Desktop\n版本 43.2.0 · Electron + React + Fluent UI\n无法访问\nJMComic Desktop v43.2.0\n[]\n    at wait (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:166:11)\n    at async clickSelector (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:179:5)\n    at async module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\browse-layout-smoke.cjs:47:3)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:326:5)"
+  ],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 7
+  },
+  "summaryQueries": 0
+}

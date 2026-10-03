@@ -1,0 +1,3 @@
+
+CANVAS GOLDEN PASS: production decoder, 23 rows, exact pixels, lossless output and unscrambled passthrough
+PDF FORMAT PASS: real Chromium WebP decode and lossless PNG normalization with scrambleId=0

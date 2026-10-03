@@ -1,0 +1,18 @@
+{
+  "runId": "120-motion-before",
+  "mode": "visible Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:\n+ actual - expected\n\n  {\n    header: 44,\n    tabsPadding: '5px',\n+   toolbar: 39.99999237060547\n-   toolbar: 40\n  }\n\n    at module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\visual-style-smoke.cjs:40:10)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:304:5)"
+  ],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

@@ -1,0 +1,16 @@
+{
+  "runId": "reader-final-20260929",
+  "mode": "visible Chromium / synthetic network",
+  "assertions": [
+    {
+      "name": "cold process restart restores offline mode, last page, preferences and chapter directory"
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 1,
+    "image": 0,
+    "blocked": 3
+  },
+  "summaryQueries": 0
+}

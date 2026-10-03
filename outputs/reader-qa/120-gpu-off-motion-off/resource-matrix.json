@@ -1,0 +1,216 @@
+{
+  "scope": "Isolated hidden Electron, synthetic content, 12 new/close/hide/show cycles and 600ms idle. Includes test fixture memory; CPU is an instantaneous process sample, not a GPU utilization or presented-FPS measurement.",
+  "cycles": 12,
+  "idleMs": 600,
+  "gpu": {
+    "requested": false,
+    "runningPreference": false,
+    "restartRequired": false,
+    "initialized": true,
+    "hardwareActive": false,
+    "compositor": "disabled_software"
+  },
+  "motion": false,
+  "elapsedMs": 3016,
+  "samples": [
+    {
+      "phase": "before",
+      "processes": [
+        {
+          "type": "Browser",
+          "privateKB": 160400,
+          "cpu": 0
+        },
+        {
+          "type": "GPU",
+          "privateKB": 49400,
+          "cpu": 0
+        },
+        {
+          "type": "Utility",
+          "privateKB": 11800,
+          "cpu": 0
+        },
+        {
+          "type": "Tab",
+          "privateKB": 73996,
+          "cpu": 0
+        }
+      ],
+      "renderer": {
+        "readers": 1,
+        "images": 6,
+        "tabs": 1,
+        "animations": 0,
+        "animationDetails": [],
+        "heap": 16100000
+      }
+    },
+    {
+      "phase": "cycle-1",
+      "processes": [
+        {
+          "type": "Browser",
+          "privateKB": 159932,
+          "cpu": 1.3268019193880485
+        },
+        {
+          "type": "GPU",
+          "privateKB": 48264,
+          "cpu": 0.22868402372418
+        },
+        {
+          "type": "Utility",
+          "privateKB": 11800,
+          "cpu": 0
+        },
+        {
+          "type": "Tab",
+          "privateKB": 77152,
+          "cpu": 6.855870153185448
+        }
+      ],
+      "renderer": {
+        "readers": 1,
+        "images": 6,
+        "tabs": 1,
+        "animations": 0,
+        "animationDetails": [],
+        "heap": 16100000
+      }
+    },
+    {
+      "phase": "cycle-4",
+      "processes": [
+        {
+          "type": "Browser",
+          "privateKB": 161024,
+          "cpu": 1.1337495608442842
+        },
+        {
+          "type": "GPU",
+          "privateKB": 48264,
+          "cpu": 0.11537842841578375
+        },
+        {
+          "type": "Utility",
+          "privateKB": 11800,
+          "cpu": 0
+        },
+        {
+          "type": "Tab",
+          "privateKB": 85400,
+          "cpu": 3.705618046276248
+        }
+      ],
+      "renderer": {
+        "readers": 1,
+        "images": 0,
+        "tabs": 1,
+        "animations": 0,
+        "animationDetails": [],
+        "heap": 16100000
+      }
+    },
+    {
+      "phase": "cycle-7",
+      "processes": [
+        {
+          "type": "Browser",
+          "privateKB": 162244,
+          "cpu": 1.0386534689815754
+        },
+        {
+          "type": "GPU",
+          "privateKB": 48264,
+          "cpu": 0.11103542892476546
+        },
+        {
+          "type": "Utility",
+          "privateKB": 11800,
+          "cpu": 0
+        },
+        {
+          "type": "Tab",
+          "privateKB": 91816,
+          "cpu": 3.6753141996000656
+        }
+      ],
+      "renderer": {
+        "readers": 1,
+        "images": 6,
+        "tabs": 1,
+        "animations": 0,
+        "animationDetails": [],
+        "heap": 16100000
+      }
+    },
+    {
+      "phase": "cycle-10",
+      "processes": [
+        {
+          "type": "Browser",
+          "privateKB": 163356,
+          "cpu": 1.1270471356730436
+        },
+        {
+          "type": "GPU",
+          "privateKB": 48296,
+          "cpu": 0.1161036190847853
+        },
+        {
+          "type": "Utility",
+          "privateKB": 11804,
+          "cpu": 0.0010810487170446457
+        },
+        {
+          "type": "Tab",
+          "privateKB": 94400,
+          "cpu": 3.973919778411535
+        }
+      ],
+      "renderer": {
+        "readers": 1,
+        "images": 0,
+        "tabs": 1,
+        "animations": 0,
+        "animationDetails": [],
+        "heap": 16100000
+      }
+    },
+    {
+      "phase": "settled",
+      "processes": [
+        {
+          "type": "Browser",
+          "privateKB": 165036,
+          "cpu": 0.7914460777334592
+        },
+        {
+          "type": "GPU",
+          "privateKB": 48340,
+          "cpu": 0.32884193318516747
+        },
+        {
+          "type": "Utility",
+          "privateKB": 11804,
+          "cpu": 0
+        },
+        {
+          "type": "Tab",
+          "privateKB": 94640,
+          "cpu": 1.272880862177098
+        }
+      ],
+      "renderer": {
+        "readers": 1,
+        "images": 6,
+        "tabs": 1,
+        "animations": 0,
+        "animationDetails": [],
+        "heap": 16100000
+      }
+    }
+  ],
+  "peakPrivateMB": 312.32421875
+}

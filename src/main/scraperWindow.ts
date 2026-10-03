@@ -3,7 +3,9 @@ import { writeFileSync, mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
 import { getActiveDomain } from './networkProbe'
 import { buildHomepageUrl, buildHomepageCacheKey, type HomepageCategory } from './homepageLogic'
-import { diffCards, shouldStopPolling } from './homepageStream'
+import { beginMainPerfSpan } from './performanceTrace'
+import { buildDetailMetadataExtractionScript } from './mangaDetailMetadataCore'
+import { validateDetail } from './contentValidation'
 
 let scraperWin: BrowserWindow | null = null
 
@@ -100,12 +102,14 @@ export function getScraperWindow(): BrowserWindow {
  */
 export async function navigateAndWait(url: string, waitMs = 1500): Promise<void> {
   const win = getScraperWindow()
+  const perf = beginMainPerfSpan('scraper.navigate', { waitMs })
   return new Promise<void>((resolve, reject) => {
     let settled = false
     const timeout = setTimeout(() => {
       if (settled) return
       settled = true
       console.log('[scraper] navigate timeout, proceeding anyway:', url.slice(0, 80))
+      perf.finish('timeout')
       resolve()
     }, 15000)
 
@@ -116,6 +120,7 @@ export async function navigateAndWait(url: string, waitMs = 1500): Promise<void>
         if (settled) return
         settled = true
         clearTimeout(timeout)
+        perf.finish('ok')
         resolve()
       }, waitMs)
     })
@@ -128,8 +133,12 @@ export async function navigateAndWait(url: string, waitMs = 1500): Promise<void>
       // 等待一下让重定向完成，然后 resolve 让提取逻辑尝试
       if (code === -3) {
         console.log('[scraper] ERR_ABORTED (redirect?), waiting and proceeding:', url.slice(0, 80))
-        setTimeout(resolve, waitMs)
+        setTimeout(() => {
+          perf.finish('ok', { redirected: true })
+          resolve()
+        }, waitMs)
       } else {
+        perf.finish('error', { code })
         reject(new Error(`Load failed: ${code} ${desc}`))
       }
     })
@@ -144,6 +153,7 @@ export async function navigateAndWait(url: string, waitMs = 1500): Promise<void>
       }
       settled = true
       clearTimeout(timeout)
+      perf.finish('error')
       reject(err)
     })
   })
@@ -384,84 +394,6 @@ export async function extractHomepage(category: HomepageCategory): Promise<{
   })
 }
 
-const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms))
-
-export async function extractHomepageStream(
-  category: HomepageCategory,
-  onBatch: (cards: MangaCard[], done: boolean) => void,
-  signal: { aborted: boolean }
-): Promise<{ cards: MangaCard[]; debug?: string }> {
-  const cacheKey = buildHomepageCacheKey(category)
-  const cached = cacheGet<{ cards: MangaCard[]; debug?: string }>(cacheKey)
-  if (cached) {
-    console.log('[scraper] homepage stream cache hit:', cacheKey)
-    onBatch(cached.cards, true)
-    return cached
-  }
-
-  return withScraperLock(async () => {
-    if (signal.aborted) return { cards: [], debug: 'aborted before navigate' }
-
-    const domain = getActiveDomain()
-    const url = buildHomepageUrl(domain, category)
-    console.log('[scraper] extractHomepageStream navigating to:', url.slice(0, 120))
-    await navigateAndWait(url, 200)
-
-    const knownIds = new Set<string>()
-    const countHistory: number[] = []
-    const startTime = Date.now()
-    let lastCards: MangaCard[] = []
-    let everHadCards = false
-
-    while (true) {
-      if (signal.aborted) {
-        console.log('[scraper] stream aborted for:', category)
-        onBatch([], true)
-        return { cards: [], debug: 'aborted' }
-      }
-
-      const { cards } = await extractAllCards()
-      lastCards = cards
-
-      if (cards.length > 0) everHadCards = true
-
-      const newCards = diffCards(knownIds, cards)
-      if (signal.aborted) break
-      if (newCards.length > 0) {
-        onBatch(newCards, false)
-        newCards.forEach((c) => knownIds.add(c.id))
-      }
-
-      countHistory.push(cards.length)
-
-      if (cards.length > 0 && shouldStopPolling(countHistory, 3)) {
-        break
-      }
-
-      if (!everHadCards && Date.now() - startTime > 3000 && cards.length === 0) {
-        console.log('[scraper] stream no cards after 3s, exiting early for:', category)
-        break
-      }
-
-      if (Date.now() - startTime > 10000) {
-        console.log('[scraper] stream timeout for:', category, 'got', knownIds.size, 'cards')
-        break
-      }
-
-      await sleep(150)
-    }
-
-    onBatch([], true)
-
-    if (lastCards.length > 0) {
-      cacheSet(cacheKey, { cards: lastCards, debug: '' })
-    } else if (knownIds.size === 0) {
-      console.warn('[scraper] stream extracted 0 cards for:', category)
-    }
-
-    return { cards: lastCards }
-  })
-}
 
 type MangaDetailResult = {
   id: string; title: string; author: string; coverUrl: string
@@ -500,10 +432,7 @@ export async function extractMangaDetail(mangaId: string): Promise<MangaDetailRe
         if (el) title = el.textContent.trim();
         if (!title) title = document.title.replace(/\\|.*/, '').trim();
 
-        var author = '';
-        document.querySelectorAll('span[itemprop="author"] a, .author a, [data-type="author"] a').forEach(function(a) {
-          author += (author ? ', ' : '') + a.textContent.trim();
-        });
+        ${buildDetailMetadataExtractionScript()}
 
         var coverImg = document.querySelector('img.img-responsive, .album-cover img, img.cover, .book-cover img, .video-cover img');
         var coverUrl = '';
@@ -512,12 +441,6 @@ export async function extractMangaDetail(mangaId: string): Promise<MangaDetailRe
         }
         if (!coverUrl) coverUrl = 'https://cdn-msp3.18comic.vip/media/albums/' + id + '.jpg';
         if (coverUrl.startsWith('//')) coverUrl = 'https:' + coverUrl;
-
-        var tags = [];
-        document.querySelectorAll('span[itemprop="genre"] a, .tags a, .tag-list a, .label-tag').forEach(function(el) {
-          var t = el.textContent.trim();
-          if (t) tags.push(t);
-        });
 
         var desc = '';
         var descEl = document.querySelector('.description, [itemprop="description"], .summary, .intro, .album-description, #album-description');
@@ -573,7 +496,7 @@ export async function extractMangaDetail(mangaId: string): Promise<MangaDetailRe
       })()
     `)
 
-    cacheSet(cacheKey, result)
+    if (validateDetail(result).ok) cacheSet(cacheKey, result)
     return result
   })
 }
@@ -721,68 +644,6 @@ export async function extractChapterPages(chapterUrl: string): Promise<{
   })
 }
 
-export async function extractChapterPagesStream(
-  chapterUrl: string,
-  onPages: (pages: { index: number; imageUrl: string }[], scrambleId: number, done: boolean, debug?: string) => void,
-  signal: { aborted: boolean }
-): Promise<{ debug?: string }> {
-  const cacheKey = `pages:${chapterUrl}`
-  const cached = cacheGet<{ pages: { index: number; imageUrl: string }[]; scrambleId?: number; debug?: string }>(cacheKey)
-  if (cached) {
-    console.log('[scraper] pages stream cache hit:', chapterUrl)
-    onPages(cached.pages, cached.scrambleId ?? 0, true, cached.debug)
-    return cached
-  }
-
-  return withScraperLock(async () => {
-    if (signal.aborted) {
-      console.log('[scraper] pages stream aborted before navigate:', chapterUrl)
-      onPages([], 0, true)
-      return { debug: 'aborted before navigate' }
-    }
-
-    const domain = getActiveDomain()
-    const fullUrl = chapterUrl.startsWith('http') ? chapterUrl : `https://${domain}${chapterUrl}`
-    console.log('[scraper] extractChapterPagesStream navigating to:', fullUrl)
-    await navigateAndWait(fullUrl, 200)
-
-    const startTime = Date.now()
-
-    while (true) {
-      if (signal.aborted) {
-        console.log('[scraper] pages stream aborted for:', chapterUrl)
-        onPages([], 0, true)
-        return { debug: 'aborted' }
-      }
-
-      const ready = await extract<boolean>(
-        "(typeof page_arr !== 'undefined' && Array.isArray(page_arr) && page_arr.length > 0)"
-      )
-
-      if (ready) {
-        const result = await extractChapterPagesFromDom()
-        onPages(result.pages, result.scrambleId, true, result.debug)
-        if (result.pages.length > 0) {
-          cacheSet(cacheKey, result)
-        }
-        console.log('[scraper] pages stream ready:', result.pages.length, 'pages, domain from poll')
-        return { debug: result.debug }
-      }
-
-      if (Date.now() - startTime > 10000) {
-        console.log('[scraper] pages stream timeout, fallback extraction for:', chapterUrl)
-        const result = await extractChapterPagesFromDom()
-        onPages(result.pages, result.scrambleId, true, result.debug)
-        if (result.pages.length > 0) {
-          cacheSet(cacheKey, result)
-        }
-        return { debug: result.debug }
-      }
-
-      await sleep(150)
-    }
-  })
-}
 
 export async function extractSearch(
   query: string,

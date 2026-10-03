@@ -6,9 +6,11 @@ import {
 } from '@fluentui/react-components'
 import {
   ArrowPrevious20Regular, ArrowNext20Regular,
-  Dismiss20Regular, Search20Regular
+  Dismiss20Regular, Search20Regular, Warning20Regular, Library20Regular
 } from '@fluentui/react-icons'
 import { MangaCard, type MangaCardData } from '../components'
+import { usePageSnapshot } from '../navigation/pageStateCache'
+import { pageTitle, emptyState } from '../theme/surfaceStyles'
 import {
   CATEGORIES, ORDERS, TIMES, POPULAR_TAGS,
   type CategoryOption
@@ -16,7 +18,7 @@ import {
 
 const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
-  title: { marginBottom: '16px', display: 'block', color: 'var(--ac-text-1)' },
+  title: { ...pageTitle, marginBottom: '20px' },
   filterBar: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -32,9 +34,9 @@ const useStyles = makeStyles({
   },
   filterLabel: {
     fontSize: '12px',
-    color: 'var(--ac-text-2)',
+    color: 'var(--ui-text-secondary)',
     fontWeight: 600,
-    paddingLeft: '4px'
+    lineHeight: 'var(--ui-line-caption)'
   },
   tagSection: { marginBottom: '16px' },
   tagHeader: {
@@ -43,7 +45,7 @@ const useStyles = makeStyles({
     gap: '6px',
     fontSize: '13px',
     fontWeight: 600,
-    color: 'var(--ac-text-2)',
+    color: 'var(--ui-text-secondary)',
     marginBottom: '10px'
   },
   tagList: {
@@ -57,32 +59,31 @@ const useStyles = makeStyles({
     gap: '4px',
     height: '30px',
     padding: '0 12px',
-    borderRadius: 'var(--ac-radius-pill)',
-    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 10%, transparent)',
-    border: '1px solid color-mix(in srgb, var(--ac-brand) 15%, transparent)',
-    color: 'var(--ac-text-2)',
+    borderRadius: 'var(--ui-radius-md)',
+    backgroundColor: 'var(--ui-bg-card)',
+    border: '1px solid var(--ui-stroke-card)',
+    color: 'var(--ui-text-secondary)',
     fontSize: '13px',
     cursor: 'pointer',
-    transition: 'background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s',
+    transition: 'background-color var(--ui-motion-fast), border-color var(--ui-motion-fast), color var(--ui-motion-fast)',
     ':hover': {
-      backgroundColor: 'color-mix(in srgb, var(--ac-brand) 18%, transparent)',
-      border: '1px solid color-mix(in srgb, var(--ac-brand) 25%, transparent)',
-      color: 'var(--ac-brand)',
-      transform: 'translateY(-1px)'
+      backgroundColor: 'var(--ui-bg-hover)',
+      border: '1px solid var(--ui-stroke-strong)',
+      color: 'var(--ui-brand)'
     },
     ':active': {
       transform: 'scale(0.97)'
     }
   },
   tagChipActive: {
-    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 25%, transparent)',
-    border: '1px solid color-mix(in srgb, var(--ac-brand) 40%, transparent)',
-    color: 'var(--ac-brand)',
+    backgroundColor: 'var(--ui-bg-selected)',
+    border: '1px solid var(--ui-brand)',
+    color: 'var(--ui-brand)',
     fontWeight: 600,
     ':hover': {
-      backgroundColor: 'color-mix(in srgb, var(--ac-brand) 32%, transparent)',
-      border: '1px solid color-mix(in srgb, var(--ac-brand) 50%, transparent)',
-      color: 'var(--ac-brand)'
+      backgroundColor: 'var(--ui-bg-selected)',
+      border: '1px solid var(--ui-brand)',
+      color: 'var(--ui-brand)'
     }
   },
   selectedTagWrap: {
@@ -97,10 +98,10 @@ const useStyles = makeStyles({
     gap: '6px',
     height: '32px',
     padding: '0 4px 0 12px',
-    borderRadius: 'var(--ac-radius-pill)',
-    backgroundColor: 'color-mix(in srgb, var(--ac-brand) 22%, transparent)',
-    border: '1px solid color-mix(in srgb, var(--ac-brand) 35%, transparent)',
-    color: 'var(--ac-brand)',
+    borderRadius: 'var(--ui-radius-lg)',
+    backgroundColor: 'var(--ui-bg-selected)',
+    border: '1px solid var(--ui-brand)',
+    color: 'var(--ui-brand)',
     fontSize: '13px',
     fontWeight: 600
   },
@@ -110,12 +111,12 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     width: '24px',
     height: '24px',
-    borderRadius: 'var(--ac-radius-badge)',
+    borderRadius: 'var(--ui-radius-sm)',
     cursor: 'pointer',
-    color: 'var(--ac-brand)',
+    color: 'var(--ui-brand)',
     ':hover': {
-      backgroundColor: 'color-mix(in srgb, var(--ac-danger) 20%, transparent)',
-      color: 'var(--ac-danger)'
+      backgroundColor: 'var(--ui-bg-hover)',
+      color: 'var(--ui-danger)'
     }
   },
   grid: {
@@ -123,15 +124,7 @@ const useStyles = makeStyles({
     gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
     gap: '16px'
   },
-  statusMsg: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '60px 0',
-    color: 'var(--ac-text-3)',
-    gap: '12px'
-  },
+  statusMsg: emptyState,
   pagination: {
     display: 'flex',
     alignItems: 'center',
@@ -142,7 +135,7 @@ const useStyles = makeStyles({
   },
   pageText: {
     fontSize: '13px',
-    color: 'var(--ac-text-2)',
+    color: 'var(--ui-text-secondary)',
     minWidth: '80px',
     textAlign: 'center'
   },
@@ -153,7 +146,7 @@ const useStyles = makeStyles({
   },
   shimmerCard: {
     aspectRatio: '3/4',
-    borderRadius: 'var(--ac-radius-card)'
+    borderRadius: 'var(--ui-radius-md)'
   }
 })
 
@@ -187,6 +180,16 @@ export default function CategoriesPage(): JSX.Element {
   const [page, setPage] = React.useState(1)
   const [totalPages, setTotalPages] = React.useState(1)
   const [hasSearched, setHasSearched] = React.useState(false)
+  const rootRef = React.useRef<HTMLDivElement | null>(null)
+
+  usePageSnapshot('categories', rootRef, () => ({ category, subCategory, order, time, selectedTag, page }), (filters: any) => {
+    if (filters?.category) setCategory(filters.category)
+    if (filters?.subCategory !== undefined) setSubCategory(filters.subCategory)
+    if (filters?.order) setOrder(filters.order)
+    if (filters?.time) setTime(filters.time)
+    if (filters?.selectedTag !== undefined) setSelectedTag(filters.selectedTag)
+    if (typeof filters?.page === 'number') setPage(filters.page)
+  })
 
   const currentCat: CategoryOption | undefined = CATEGORIES.find((c) => c.value === category)
   const showSubCategory = !!(currentCat?.subCategories && currentCat.subCategories.length > 0)
@@ -276,8 +279,8 @@ export default function CategoriesPage(): JSX.Element {
   }
 
   return (
-    <div className={styles.root}>
-      <Text size={600} weight="semibold" className={styles.title}>分类浏览</Text>
+    <div className={styles.root} ref={rootRef}>
+      <Text size={600} weight="semibold" className={`${styles.title} ui-page-title`}>分类浏览</Text>
 
       <div className={styles.filterBar}>
         <div className={styles.filterItem}>
@@ -388,7 +391,8 @@ export default function CategoriesPage(): JSX.Element {
 
       {!loading && error && (
         <div className={styles.statusMsg}>
-          <Text size={500} weight="semibold">⚠️ {error === '当前筛选条件下没有漫画' ? '暂无漫画' : '加载出错'}</Text>
+          <Warning20Regular aria-hidden="true" />
+          <Text size={400} weight="semibold">{error === '当前筛选条件下没有漫画' ? '暂无漫画' : '加载出错'}</Text>
           <Text size={300} style={{ maxWidth: '600px', textAlign: 'center' }}>{error}</Text>
         </div>
       )}
@@ -429,8 +433,9 @@ export default function CategoriesPage(): JSX.Element {
 
       {!loading && !error && hasSearched && results.length === 0 && (
         <div className={styles.statusMsg}>
+          <Library20Regular aria-hidden="true" />
           <Text size={400}>当前筛选条件下没有漫画</Text>
-          <Text size={200} style={{ opacity: 0.6 }}>试试切换类型或清除标签</Text>
+          <Text size={200}>试试切换类型或清除标签</Text>
         </div>
       )}
     </div>

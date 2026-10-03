@@ -1,0 +1,38 @@
+{
+  "runId": "workspace-chapter-focus-red-20260929",
+  "mode": "visible Chromium / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "visible page persisted through the actual history IPC",
+      "details": {
+        "visible": 8,
+        "mounted": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "scrollTop": 12725
+      }
+    },
+    {
+      "name": "scroll / single mode preserves page and within-page offset"
+    },
+    {
+      "name": "fit, persisted zoom, focus isolation and both keyboard directions"
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: chapter change returns focus to the new viewport for continued keyboard reading\n    at run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:327:10)"
+  ],
+  "network": {
+    "api": 8,
+    "image": 14,
+    "blocked": 3
+  },
+  "summaryQueries": 0
+}

@@ -1,0 +1,28 @@
+import assert from 'node:assert/strict'
+import { parseLogin, parseLibrary, parseNotifications } from '../account/accountParser'
+
+const library = parseLibrary({ list: [{ id: '123', name: '<b>作品</b>', author: ['甲', '乙'] }], total: '24',
+  folder_list: [{ FID: '0', name: '默认' }, { FID: '11', name: '自建夹', count: '3' }] }, 1, 'https://cdn-msp.18comic.vip')
+assert.equal(library.items.length, 1, '在线资料库必须保留有效作品')
+assert.equal(library.items[0].title, '作品')
+assert.equal(library.items[0].coverUrl, 'https://cdn-msp.18comic.vip/media/albums/123.jpg')
+assert.equal(library.total, 24)
+assert.equal(library.hasMore, true, 'total 是条数而不是页数')
+assert.equal(library.folders[1].id, '11')
+assert.equal(parseLibrary({ list: [], total: '24' }, 2, '').hasMore, false)
+assert.equal(parseLibrary({ list: [{ id: '1' }], total_pages: '3' }, 2, '').hasMore, true)
+for (const raw of [{}, null, { list: 'bad' }, { list: [{ name: 'missing id' }] }]) assert.throws(() => parseLibrary(raw, 1, ''), /无法识别/)
+const login = parseLogin({ uid: '7', username: 'synthetic', s: 'session-token', album_favorites: '24' }, 100)
+assert.equal(login.profile.uid, '7'); assert.equal(login.profile.coins, null)
+assert.equal(login.avs, 'session-token'); assert.equal(login.profile.checkedAt, 100)
+assert.throws(() => parseLogin({ username: 'synthetic' }, 0), /登录未成功/)
+const notices = parseNotifications([{ id: 'notice-1', title: '通知', content: '<a href="https://evil.test">正文</a><script>x()</script>', read: '0', date: '2026-10-02' }])
+assert.equal(notices[0].text, '正文'); assert.equal(notices[0].read, false)
+assert.equal(parseNotifications({ list: [{ id: '2', read: '1' }] })[0].read, true)
+assert.throws(() => parseNotifications({ error: 'denied' }), /无法识别/)
+assert.deepEqual(parseLibrary({ totalCnt: '0' }, 1, '', 'tracking').items, [], '已验证的空追更结构允许省略 list')
+assert.throws(() => parseLibrary({ totalCnt: '0', error: 'denied' }, 1, '', 'tracking'), /无法识别/)
+assert.throws(() => parseLibrary({ totalCnt: '0' }, 1, ''), /无法识别/, '不能把追更特例用于认证证明')
+assert.equal(parseLibrary({ item: [{ id: '123', name: '连载' }], totalCnt: '1' }, 1, '', 'tracking').items[0].id, '123', '真实非空追更使用 item')
+assert.throws(() => parseLibrary({ item: [], totalCnt: '0' }, 1, ''), /无法识别/)
+console.log('PASS account parsers: identity, unknown fields, item/page totals, folders, malformed data, sanitized notifications')

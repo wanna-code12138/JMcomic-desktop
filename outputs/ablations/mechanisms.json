@@ -1,0 +1,3891 @@
+{
+  "timestamp": "2026-09-28T17:13:56.392Z",
+  "environment": {
+    "node": "v24.18.0",
+    "os": "win32 10.0.26100",
+    "cpu": "AMD Ryzen AI 7 H 350 w/ Radeon 860M ",
+    "ramBytes": 33413771264
+  },
+  "scope": "Controlled production-module experiments; fixed synthetic latency and shared bandwidth; no live Internet or UI claims.",
+  "sources": {
+    "src/main/contentCache.ts": "22e706c9891f0178fde932f2a917cd020f861e39b21341fc2fb32458fefc3023",
+    "src/main/imageRequestScheduler.ts": "0738897560ae18cbf919acecd35bac893c1a9380159533927fc6cb358fa564f7",
+    "src/main/database.ts": "e35547c7d71199bc3109223ff92e5eb8271c764a94c38bb791fb56ce45e5fe6f",
+    "src/main/databaseWriteCoordinator.ts": "89bcc11140047e9ea68b14858ce225c0bf76a5577212ce2b2b6d9b4f959a5c75",
+    "src/main/contentGateway.ts": "7278252ec1713fca1a5c716a485e8c42d1e2e177a112cb2bbb42507694c638c6"
+  },
+  "groups": {
+    "scheduler/exploration/current": {
+      "durationMs": {
+        "n": 10,
+        "min": 317.641,
+        "p50": 339.024,
+        "p95": 382.899,
+        "max": 382.899
+      },
+      "criticalWaitMs": {
+        "n": 10,
+        "min": 0.034,
+        "p50": 0.051,
+        "p95": 0.131,
+        "max": 0.131
+      }
+    },
+    "scheduler/exploration/noBackgroundBudget": {
+      "durationMs": {
+        "n": 10,
+        "min": 215.995,
+        "p50": 229.588,
+        "p95": 231.7,
+        "max": 231.7
+      },
+      "criticalWaitMs": {
+        "n": 10,
+        "min": 47.094,
+        "p50": 61.173,
+        "p95": 62.662,
+        "max": 62.662
+      }
+    },
+    "scheduler/exploration/concurrency2": {
+      "durationMs": {
+        "n": 10,
+        "min": 342.867,
+        "p50": 358.093,
+        "p95": 394.407,
+        "max": 394.407
+      },
+      "criticalWaitMs": {
+        "n": 10,
+        "min": 15.785,
+        "p50": 30.338,
+        "p95": 31.517,
+        "max": 31.517
+      }
+    },
+    "scheduler/exploration/concurrency8": {
+      "durationMs": {
+        "n": 10,
+        "min": 295.892,
+        "p50": 340.424,
+        "p95": 370.251,
+        "max": 370.251
+      },
+      "criticalWaitMs": {
+        "n": 10,
+        "min": 0.026,
+        "p50": 0.051,
+        "p95": 0.071,
+        "max": 0.071
+      }
+    },
+    "scheduler/confirmation/current": {
+      "durationMs": {
+        "n": 50,
+        "min": 310.553,
+        "p50": 340.388,
+        "p95": 371.475,
+        "max": 383.671
+      },
+      "criticalWaitMs": {
+        "n": 50,
+        "min": 0.011,
+        "p50": 0.039,
+        "p95": 0.063,
+        "max": 0.08
+      }
+    },
+    "scheduler/confirmation/noBackgroundBudget": {
+      "durationMs": {
+        "n": 50,
+        "min": 200.767,
+        "p50": 230.071,
+        "p95": 233.595,
+        "max": 234.489
+      },
+      "criticalWaitMs": {
+        "n": 50,
+        "min": 47.025,
+        "p50": 61.177,
+        "p95": 62.942,
+        "max": 62.996
+      }
+    },
+    "content-cache/exploration/on": {
+      "durationMs": {
+        "n": 10,
+        "min": 10.498,
+        "p50": 15.274,
+        "p95": 16.435,
+        "max": 16.435
+      },
+      "providerCalls": {
+        "n": 10,
+        "min": 1,
+        "p50": 1,
+        "p95": 1,
+        "max": 1
+      }
+    },
+    "content-cache/exploration/off": {
+      "durationMs": {
+        "n": 10,
+        "min": 302.188,
+        "p50": 306.552,
+        "p95": 310.235,
+        "max": 310.235
+      },
+      "providerCalls": {
+        "n": 10,
+        "min": 20,
+        "p50": 20,
+        "p95": 20,
+        "max": 20
+      }
+    },
+    "content-cache/confirmation/on": {
+      "durationMs": {
+        "n": 50,
+        "min": 7.078,
+        "p50": 13.013,
+        "p95": 16.047,
+        "max": 16.12
+      },
+      "providerCalls": {
+        "n": 50,
+        "min": 1,
+        "p50": 1,
+        "p95": 1,
+        "max": 1
+      }
+    },
+    "content-cache/confirmation/off": {
+      "durationMs": {
+        "n": 50,
+        "min": 301.489,
+        "p50": 308.215,
+        "p95": 311.921,
+        "max": 314.494
+      },
+      "providerCalls": {
+        "n": 50,
+        "min": 20,
+        "p50": 20,
+        "p95": 20,
+        "max": 20
+      }
+    },
+    "database/exploration/coalesced": {
+      "durationMs": {
+        "n": 10,
+        "min": 176.335,
+        "p50": 187.096,
+        "p95": 193.383,
+        "max": 193.383
+      },
+      "writes": {
+        "n": 10,
+        "min": 10,
+        "p50": 10,
+        "p95": 12,
+        "max": 12
+      },
+      "exportMaxMs": {
+        "n": 10,
+        "min": 0.335,
+        "p50": 0.432,
+        "p95": 0.592,
+        "max": 0.592
+      }
+    },
+    "database/exploration/each-update": {
+      "durationMs": {
+        "n": 10,
+        "min": 306.581,
+        "p50": 315.628,
+        "p95": 337.8,
+        "max": 337.8
+      },
+      "writes": {
+        "n": 10,
+        "min": 20,
+        "p50": 20,
+        "p95": 20,
+        "max": 20
+      },
+      "exportMaxMs": {
+        "n": 10,
+        "min": 0.402,
+        "p50": 0.484,
+        "p95": 0.606,
+        "max": 0.606
+      }
+    },
+    "database/confirmation/coalesced": {
+      "durationMs": {
+        "n": 50,
+        "min": 175.513,
+        "p50": 190.564,
+        "p95": 203.526,
+        "max": 208.82
+      },
+      "writes": {
+        "n": 50,
+        "min": 10,
+        "p50": 12,
+        "p95": 13,
+        "max": 13
+      },
+      "exportMaxMs": {
+        "n": 50,
+        "min": 0.218,
+        "p50": 0.32,
+        "p95": 0.638,
+        "max": 0.923
+      }
+    },
+    "database/confirmation/each-update": {
+      "durationMs": {
+        "n": 50,
+        "min": 307.409,
+        "p50": 317.858,
+        "p95": 328.922,
+        "max": 340.445
+      },
+      "writes": {
+        "n": 50,
+        "min": 20,
+        "p50": 20,
+        "p95": 20,
+        "max": 20
+      },
+      "exportMaxMs": {
+        "n": 50,
+        "min": 0.252,
+        "p50": 0.322,
+        "p95": 1.075,
+        "max": 1.345
+      }
+    }
+  },
+  "samples": [
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "current",
+      "repeat": 0,
+      "durationMs": 317.6407,
+      "criticalWaitMs": 0.129099999999994,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "noBackgroundBudget",
+      "repeat": 0,
+      "durationMs": 216.6481,
+      "criticalWaitMs": 61.90259999999989,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency2",
+      "repeat": 0,
+      "durationMs": 358.07849999999996,
+      "criticalWaitMs": 16.034099999999967,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency8",
+      "repeat": 0,
+      "durationMs": 357.77829999999994,
+      "criticalWaitMs": 0.07080000000019027,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency8",
+      "repeat": 1,
+      "durationMs": 340.9703999999999,
+      "criticalWaitMs": 0.05410000000006221,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency2",
+      "repeat": 1,
+      "durationMs": 357.8674000000001,
+      "criticalWaitMs": 30.9695999999999,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "noBackgroundBudget",
+      "repeat": 1,
+      "durationMs": 229.91139999999996,
+      "criticalWaitMs": 61.172799999999825,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "current",
+      "repeat": 1,
+      "durationMs": 326.5942,
+      "criticalWaitMs": 0.05069999999977881,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "current",
+      "repeat": 2,
+      "durationMs": 325.78279999999995,
+      "criticalWaitMs": 0.05349999999998545,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "noBackgroundBudget",
+      "repeat": 2,
+      "durationMs": 215.99490000000014,
+      "criticalWaitMs": 47.13650000000007,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency2",
+      "repeat": 2,
+      "durationMs": 358.09299999999985,
+      "criticalWaitMs": 29.872100000000046,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency8",
+      "repeat": 2,
+      "durationMs": 295.89159999999947,
+      "criticalWaitMs": 0.049399999999877764,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency8",
+      "repeat": 3,
+      "durationMs": 340.4237000000003,
+      "criticalWaitMs": 0.06129999999939173,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency2",
+      "repeat": 3,
+      "durationMs": 389.8107,
+      "criticalWaitMs": 31.00579999999991,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "noBackgroundBudget",
+      "repeat": 3,
+      "durationMs": 230.7569999999996,
+      "criticalWaitMs": 61.79979999999978,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "current",
+      "repeat": 3,
+      "durationMs": 382.89949999999953,
+      "criticalWaitMs": 0.0488999999997759,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "current",
+      "repeat": 4,
+      "durationMs": 352.9480000000003,
+      "criticalWaitMs": 0.047200000000884756,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "noBackgroundBudget",
+      "repeat": 4,
+      "durationMs": 229.58759999999984,
+      "criticalWaitMs": 61.07920000000013,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency2",
+      "repeat": 4,
+      "durationMs": 384.3109999999997,
+      "criticalWaitMs": 30.720299999999952,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency8",
+      "repeat": 4,
+      "durationMs": 356.6899000000003,
+      "criticalWaitMs": 0.06970000000001164,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency8",
+      "repeat": 5,
+      "durationMs": 338.09810000000016,
+      "criticalWaitMs": 0.05010000000038417,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency2",
+      "repeat": 5,
+      "durationMs": 394.40740000000005,
+      "criticalWaitMs": 30.337500000000546,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "noBackgroundBudget",
+      "repeat": 5,
+      "durationMs": 231.69980000000032,
+      "criticalWaitMs": 61.77379999999994,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "current",
+      "repeat": 5,
+      "durationMs": 322.04359999999997,
+      "criticalWaitMs": 0.06040000000029977,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "current",
+      "repeat": 6,
+      "durationMs": 354.1929,
+      "criticalWaitMs": 0.13070000000061555,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "noBackgroundBudget",
+      "repeat": 6,
+      "durationMs": 228.38370000000032,
+      "criticalWaitMs": 60.702399999998306,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency2",
+      "repeat": 6,
+      "durationMs": 383.9441000000006,
+      "criticalWaitMs": 15.785100000000966,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency8",
+      "repeat": 6,
+      "durationMs": 370.2508999999991,
+      "criticalWaitMs": 0.026499999999941792,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency8",
+      "repeat": 7,
+      "durationMs": 352.6160999999993,
+      "criticalWaitMs": 0.05799999999908323,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency2",
+      "repeat": 7,
+      "durationMs": 384.26530000000093,
+      "criticalWaitMs": 31.51730000000134,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "noBackgroundBudget",
+      "repeat": 7,
+      "durationMs": 230.94560000000092,
+      "criticalWaitMs": 62.662099999999555,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "current",
+      "repeat": 7,
+      "durationMs": 339.02429999999913,
+      "criticalWaitMs": 0.0375000000003638,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "current",
+      "repeat": 8,
+      "durationMs": 353.22829999999885,
+      "criticalWaitMs": 0.033699999999953434,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "noBackgroundBudget",
+      "repeat": 8,
+      "durationMs": 230.26540000000023,
+      "criticalWaitMs": 62.237199999999575,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency2",
+      "repeat": 8,
+      "durationMs": 352.1332000000002,
+      "criticalWaitMs": 31.038100000001577,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency8",
+      "repeat": 8,
+      "durationMs": 324.03800000000047,
+      "criticalWaitMs": 0.04020000000127766,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency8",
+      "repeat": 9,
+      "durationMs": 309.0092000000004,
+      "criticalWaitMs": 0.050900000000183354,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "concurrency2",
+      "repeat": 9,
+      "durationMs": 342.8665999999994,
+      "criticalWaitMs": 16.019000000000233,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "noBackgroundBudget",
+      "repeat": 9,
+      "durationMs": 218.91330000000016,
+      "criticalWaitMs": 47.09360000000015,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "exploration",
+      "variant": "current",
+      "repeat": 9,
+      "durationMs": 357.7415999999994,
+      "criticalWaitMs": 0.05529999999998836,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 0,
+      "durationMs": 310.5535,
+      "criticalWaitMs": 0.038799999998445855,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 0,
+      "durationMs": 230.84629999999925,
+      "criticalWaitMs": 61.062700000000405,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 1,
+      "durationMs": 232.0048999999999,
+      "criticalWaitMs": 61.756499999999505,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 1,
+      "durationMs": 325.6383000000005,
+      "criticalWaitMs": 0.0588000000007014,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 2,
+      "durationMs": 383.6705000000002,
+      "criticalWaitMs": 0.02509999999892898,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 2,
+      "durationMs": 231.16330000000016,
+      "criticalWaitMs": 62.3171999999995,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 3,
+      "durationMs": 231.42079999999987,
+      "criticalWaitMs": 61.0005000000001,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 3,
+      "durationMs": 340.3883000000005,
+      "criticalWaitMs": 0.039999999999054126,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 4,
+      "durationMs": 354.72839999999997,
+      "criticalWaitMs": 0.08029999999962456,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 4,
+      "durationMs": 203.96320000000014,
+      "criticalWaitMs": 48.10199999999895,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 5,
+      "durationMs": 216.8188999999984,
+      "criticalWaitMs": 61.70999999999913,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 5,
+      "durationMs": 312.82670000000144,
+      "criticalWaitMs": 0.04219999999986612,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 6,
+      "durationMs": 325.3365999999987,
+      "criticalWaitMs": 0.03440000000045984,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 6,
+      "durationMs": 218.84649999999965,
+      "criticalWaitMs": 62.99209999999948,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 7,
+      "durationMs": 229.52959999999803,
+      "criticalWaitMs": 61.323999999996886,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 7,
+      "durationMs": 354.8608999999997,
+      "criticalWaitMs": 0.028800000000046566,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 8,
+      "durationMs": 327.7670999999973,
+      "criticalWaitMs": 0.030599999998230487,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 8,
+      "durationMs": 200.76670000000013,
+      "criticalWaitMs": 47.09150000000227,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 9,
+      "durationMs": 230.6975999999995,
+      "criticalWaitMs": 60.855899999998655,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 9,
+      "durationMs": 354.6741000000002,
+      "criticalWaitMs": 0.02479999999923166,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 10,
+      "durationMs": 370.0688999999984,
+      "criticalWaitMs": 0.06309999999939464,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 10,
+      "durationMs": 203.0515000000014,
+      "criticalWaitMs": 47.025399999998626,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 11,
+      "durationMs": 233.83919999999853,
+      "criticalWaitMs": 62.995999999999185,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 11,
+      "durationMs": 354.91409999999814,
+      "criticalWaitMs": 0.02509999999892898,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 12,
+      "durationMs": 313.5682000000015,
+      "criticalWaitMs": 0.04280000000289874,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 12,
+      "durationMs": 230.50369999999748,
+      "criticalWaitMs": 61.28809999999794,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 13,
+      "durationMs": 203.57330000000002,
+      "criticalWaitMs": 47.22690000000148,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 13,
+      "durationMs": 356.9602999999988,
+      "criticalWaitMs": 0.043300000001181616,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 14,
+      "durationMs": 325.3869999999988,
+      "criticalWaitMs": 0.03779999999824213,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 14,
+      "durationMs": 230.4871000000021,
+      "criticalWaitMs": 61.487700000001496,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 15,
+      "durationMs": 230.3581000000013,
+      "criticalWaitMs": 61.60190000000148,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 15,
+      "durationMs": 352.71659999999974,
+      "criticalWaitMs": 0.03960000000006403,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 16,
+      "durationMs": 369.251400000001,
+      "criticalWaitMs": 0.04790000000139116,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 16,
+      "durationMs": 231.5103999999992,
+      "criticalWaitMs": 61.96740000000136,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 17,
+      "durationMs": 230.48329999999987,
+      "criticalWaitMs": 61.728399999999965,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 17,
+      "durationMs": 357.0686999999998,
+      "criticalWaitMs": 0.02659999999741558,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 18,
+      "durationMs": 367.95170000000144,
+      "criticalWaitMs": 0.012899999997898703,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 18,
+      "durationMs": 231.54330000000118,
+      "criticalWaitMs": 60.74090000000069,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 19,
+      "durationMs": 203.28029999999853,
+      "criticalWaitMs": 61.59450000000288,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 19,
+      "durationMs": 368.4995999999992,
+      "criticalWaitMs": 0.03660000000309083,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 20,
+      "durationMs": 326.8148000000001,
+      "criticalWaitMs": 0.05040000000008149,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 20,
+      "durationMs": 232.94400000000314,
+      "criticalWaitMs": 61.87489999999889,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 21,
+      "durationMs": 215.8560000000034,
+      "criticalWaitMs": 47.802700000000186,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 21,
+      "durationMs": 371.47520000000077,
+      "criticalWaitMs": 0.026799999999639113,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 22,
+      "durationMs": 323.40290000000095,
+      "criticalWaitMs": 0.03740000000107102,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 22,
+      "durationMs": 231.76510000000053,
+      "criticalWaitMs": 61.27189999999973,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 23,
+      "durationMs": 231.81139999999868,
+      "criticalWaitMs": 60.67280000000028,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 23,
+      "durationMs": 370.5410000000011,
+      "criticalWaitMs": 0.0385999999998603,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 24,
+      "durationMs": 340.17099999999846,
+      "criticalWaitMs": 0.056300000000192085,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 24,
+      "durationMs": 233.59530000000086,
+      "criticalWaitMs": 62.65060000000085,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 25,
+      "durationMs": 231.47279999999955,
+      "criticalWaitMs": 62.77760000000126,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 25,
+      "durationMs": 337.96870000000126,
+      "criticalWaitMs": 0.03289999999833526,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 26,
+      "durationMs": 356.2589999999982,
+      "criticalWaitMs": 0.03240000000005239,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 26,
+      "durationMs": 232.82090000000244,
+      "criticalWaitMs": 61.86650000000009,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 27,
+      "durationMs": 217.65630000000237,
+      "criticalWaitMs": 60.76310000000012,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 27,
+      "durationMs": 368.5738999999994,
+      "criticalWaitMs": 0.03979999999864958,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 28,
+      "durationMs": 354.29379999999946,
+      "criticalWaitMs": 0.021300000000337604,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 28,
+      "durationMs": 231.60299999999916,
+      "criticalWaitMs": 60.96480000000156,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 29,
+      "durationMs": 231.8653000000013,
+      "criticalWaitMs": 62.33130000000165,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 29,
+      "durationMs": 337.7736999999979,
+      "criticalWaitMs": 0.04829999999856227,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 30,
+      "durationMs": 313.6741000000002,
+      "criticalWaitMs": 0.010600000001431908,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 30,
+      "durationMs": 219.54719999999725,
+      "criticalWaitMs": 61.68319999999949,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 31,
+      "durationMs": 232.77939999999944,
+      "criticalWaitMs": 61.17710000000079,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 31,
+      "durationMs": 341.07280000000173,
+      "criticalWaitMs": 0.04730000000199652,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 32,
+      "durationMs": 340.14220000000205,
+      "criticalWaitMs": 0.04199999999764259,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 32,
+      "durationMs": 230.054500000002,
+      "criticalWaitMs": 60.89930000000095,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 33,
+      "durationMs": 231.40030000000115,
+      "criticalWaitMs": 62.328300000001036,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 33,
+      "durationMs": 327.5178999999989,
+      "criticalWaitMs": 0.0220999999983178,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 34,
+      "durationMs": 340.15040000000226,
+      "criticalWaitMs": 0.05610000000160653,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 34,
+      "durationMs": 234.48890000000392,
+      "criticalWaitMs": 62.211300000002666,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 35,
+      "durationMs": 233.4725000000035,
+      "criticalWaitMs": 62.94210000000021,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 35,
+      "durationMs": 339.6081999999951,
+      "criticalWaitMs": 0.0385999999998603,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 36,
+      "durationMs": 357.46970000000147,
+      "criticalWaitMs": 0.03440000000409782,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 36,
+      "durationMs": 216.4896000000008,
+      "criticalWaitMs": 47.074899999999616,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 37,
+      "durationMs": 215.70880000000034,
+      "criticalWaitMs": 47.07800000000134,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 37,
+      "durationMs": 326.87890000000334,
+      "criticalWaitMs": 0.036699999996926636,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 38,
+      "durationMs": 339.78139999999985,
+      "criticalWaitMs": 0.04099999999743886,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 38,
+      "durationMs": 229.20930000000226,
+      "criticalWaitMs": 61.0344000000041,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 39,
+      "durationMs": 215.73329999999987,
+      "criticalWaitMs": 60.39310000000114,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 39,
+      "durationMs": 325.5350000000035,
+      "criticalWaitMs": 0.04250000000320142,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 40,
+      "durationMs": 352.49930000000313,
+      "criticalWaitMs": 0.03899999999703141,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 40,
+      "durationMs": 214.82599999999366,
+      "criticalWaitMs": 47.78429999999935,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 41,
+      "durationMs": 217.27659999999742,
+      "criticalWaitMs": 47.12520000000222,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 41,
+      "durationMs": 369.9340999999986,
+      "criticalWaitMs": 0.03919999999925494,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 42,
+      "durationMs": 339.414300000004,
+      "criticalWaitMs": 0.032100000003993046,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 42,
+      "durationMs": 230.07139999999345,
+      "criticalWaitMs": 61.012399999999616,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 43,
+      "durationMs": 230.15800000000309,
+      "criticalWaitMs": 60.99149999999645,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 43,
+      "durationMs": 325.7818000000043,
+      "criticalWaitMs": 0.039400000001478475,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 44,
+      "durationMs": 354.5878999999986,
+      "criticalWaitMs": 0.06409999999596039,
+      "peakTransfers": 2,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 44,
+      "durationMs": 229.9079000000056,
+      "criticalWaitMs": 61.2016999999978,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 45,
+      "durationMs": 229.57300000000396,
+      "criticalWaitMs": 60.938200000004144,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 45,
+      "durationMs": 355.6901999999973,
+      "criticalWaitMs": 0.051200000001699664,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 46,
+      "durationMs": 368.81350000000384,
+      "criticalWaitMs": 0.031500000004598405,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 46,
+      "durationMs": 229.6542999999947,
+      "criticalWaitMs": 61.78269999999611,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 47,
+      "durationMs": 203.34730000000127,
+      "criticalWaitMs": 47.04400000000169,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 47,
+      "durationMs": 336.5345000000016,
+      "criticalWaitMs": 0.04110000000218861,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 48,
+      "durationMs": 338.7884999999951,
+      "criticalWaitMs": 0.04039999999804422,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 48,
+      "durationMs": 202.52189999999973,
+      "criticalWaitMs": 47.628899999996065,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "noBackgroundBudget",
+      "repeat": 49,
+      "durationMs": 217.668700000002,
+      "criticalWaitMs": 62.06549999999697,
+      "peakTransfers": 6,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "scheduler",
+      "phase": "confirmation",
+      "variant": "current",
+      "repeat": 49,
+      "durationMs": 371.7733999999982,
+      "criticalWaitMs": 0.04170000000158325,
+      "peakTransfers": 3,
+      "bytes": 1114112
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "on",
+      "repeat": 0,
+      "durationMs": 16.12999999999738,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "off",
+      "repeat": 0,
+      "durationMs": 303.327200000007,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "off",
+      "repeat": 1,
+      "durationMs": 307.04039999999804,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "on",
+      "repeat": 1,
+      "durationMs": 16.32320000000618,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "on",
+      "repeat": 2,
+      "durationMs": 11.732700000000477,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "off",
+      "repeat": 2,
+      "durationMs": 302.1880000000019,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "off",
+      "repeat": 3,
+      "durationMs": 309.31730000000243,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "on",
+      "repeat": 3,
+      "durationMs": 15.273699999997916,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "on",
+      "repeat": 4,
+      "durationMs": 11.853200000005018,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "off",
+      "repeat": 4,
+      "durationMs": 307.063900000001,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "off",
+      "repeat": 5,
+      "durationMs": 306.9106000000029,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "on",
+      "repeat": 5,
+      "durationMs": 15.849000000001979,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "on",
+      "repeat": 6,
+      "durationMs": 11.522499999999127,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "off",
+      "repeat": 6,
+      "durationMs": 305.11149999999907,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "off",
+      "repeat": 7,
+      "durationMs": 305.29990000000544,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "on",
+      "repeat": 7,
+      "durationMs": 16.4346000000005,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "on",
+      "repeat": 8,
+      "durationMs": 10.497600000002421,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "off",
+      "repeat": 8,
+      "durationMs": 306.55249999999796,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "off",
+      "repeat": 9,
+      "durationMs": 310.2350000000006,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "exploration",
+      "variant": "on",
+      "repeat": 9,
+      "durationMs": 15.48059999999532,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 10,
+      "durationMs": 11.829600000004575,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 10,
+      "durationMs": 302.3470000000016,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 11,
+      "durationMs": 310.4288000000015,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 11,
+      "durationMs": 14.806900000003225,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 12,
+      "durationMs": 11.134100000002945,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 12,
+      "durationMs": 307.66680000000633,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 13,
+      "durationMs": 310.90469999999914,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 13,
+      "durationMs": 15.559399999998277,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 14,
+      "durationMs": 12.710900000005495,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 14,
+      "durationMs": 305.12109999999666,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 15,
+      "durationMs": 310.2558999999965,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 15,
+      "durationMs": 16.000199999994948,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 16,
+      "durationMs": 12.093799999995099,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 16,
+      "durationMs": 307.50359999999637,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 17,
+      "durationMs": 309.83580000000075,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 17,
+      "durationMs": 15.452299999997194,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 18,
+      "durationMs": 10.813200000004144,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 18,
+      "durationMs": 305.5709999999963,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 19,
+      "durationMs": 310.2419000000009,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 19,
+      "durationMs": 15.259500000000116,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 20,
+      "durationMs": 11.550100000000384,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 20,
+      "durationMs": 306.7042999999976,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 21,
+      "durationMs": 311.83870000000024,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 21,
+      "durationMs": 15.138899999998102,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 22,
+      "durationMs": 11.835399999996298,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 22,
+      "durationMs": 306.08870000000024,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 23,
+      "durationMs": 308.34159999999974,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 23,
+      "durationMs": 15.055200000002515,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 24,
+      "durationMs": 11.458099999996193,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 24,
+      "durationMs": 309.8758999999991,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 25,
+      "durationMs": 310.8590999999942,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 25,
+      "durationMs": 16.120199999997567,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 26,
+      "durationMs": 12.090699999993376,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 26,
+      "durationMs": 305.3472000000038,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 27,
+      "durationMs": 311.96420000000217,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 27,
+      "durationMs": 15.290899999999965,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 28,
+      "durationMs": 13.013200000001234,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 28,
+      "durationMs": 306.5390000000043,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 29,
+      "durationMs": 311.77739999999903,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 29,
+      "durationMs": 14.836600000002363,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 30,
+      "durationMs": 12.070599999999104,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 30,
+      "durationMs": 306.3220999999976,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 31,
+      "durationMs": 309.6788000000015,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 31,
+      "durationMs": 15.8978000000061,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 32,
+      "durationMs": 12.56079999999929,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 32,
+      "durationMs": 307.33200000000215,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 33,
+      "durationMs": 307.74059999999736,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 33,
+      "durationMs": 14.870900000001711,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 34,
+      "durationMs": 7.077799999999115,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 34,
+      "durationMs": 306.2940000000017,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 35,
+      "durationMs": 311.8387999999977,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 35,
+      "durationMs": 15.77719999999681,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 36,
+      "durationMs": 11.956599999997707,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 36,
+      "durationMs": 308.21540000000095,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 37,
+      "durationMs": 310.4487000000008,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 37,
+      "durationMs": 16.04740000000311,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 38,
+      "durationMs": 10.902399999999034,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 38,
+      "durationMs": 306.3793000000005,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 39,
+      "durationMs": 311.1944999999978,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 39,
+      "durationMs": 14.865600000004633,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 40,
+      "durationMs": 12.143499999998312,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 40,
+      "durationMs": 306.5566000000035,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 41,
+      "durationMs": 306.80629999999655,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 41,
+      "durationMs": 15.205799999996088,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 42,
+      "durationMs": 11.872099999993225,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 42,
+      "durationMs": 304.7262999999948,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 43,
+      "durationMs": 309.0260000000053,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 43,
+      "durationMs": 16.04899999999907,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 44,
+      "durationMs": 12.512099999999919,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 44,
+      "durationMs": 308.9879000000001,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 45,
+      "durationMs": 309.3924000000043,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 45,
+      "durationMs": 14.990700000002107,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 46,
+      "durationMs": 10.900300000001153,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 46,
+      "durationMs": 302.38580000000366,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 47,
+      "durationMs": 309.75270000000455,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 47,
+      "durationMs": 14.794600000001083,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 48,
+      "durationMs": 12.244800000000396,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 48,
+      "durationMs": 307.33410000000003,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 49,
+      "durationMs": 311.92109999999957,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 49,
+      "durationMs": 15.361400000001595,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 50,
+      "durationMs": 11.613899999996647,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 50,
+      "durationMs": 301.4893000000011,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 51,
+      "durationMs": 309.18269999999757,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 51,
+      "durationMs": 14.900699999998324,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 52,
+      "durationMs": 11.330000000001746,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 52,
+      "durationMs": 306.2439999999988,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 53,
+      "durationMs": 310.48279999999795,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 53,
+      "durationMs": 16.00669999999809,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 54,
+      "durationMs": 11.906200000004901,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 54,
+      "durationMs": 306.7448000000004,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 55,
+      "durationMs": 306.9231,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 55,
+      "durationMs": 14.798800000004121,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 56,
+      "durationMs": 12.64140000000043,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 56,
+      "durationMs": 305.6589000000022,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 57,
+      "durationMs": 311.66419999999925,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 57,
+      "durationMs": 15.180500000002212,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 58,
+      "durationMs": 11.814600000005157,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 58,
+      "durationMs": 308.53719999999885,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "off",
+      "repeat": 59,
+      "durationMs": 314.4941000000035,
+      "providerCalls": 20
+    },
+    {
+      "experiment": "content-cache",
+      "phase": "confirmation",
+      "variant": "on",
+      "repeat": 59,
+      "durationMs": 15.673699999999371,
+      "providerCalls": 1
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "coalesced",
+      "repeat": 0,
+      "durationMs": 176.33490000000165,
+      "writes": 10,
+      "bytes": 323584,
+      "exportMaxMs": 0.4401999999972759
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "each-update",
+      "repeat": 0,
+      "durationMs": 337.799500000001,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.4548999999969965
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "each-update",
+      "repeat": 1,
+      "durationMs": 327.19520000000193,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.5835999999981141
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "coalesced",
+      "repeat": 1,
+      "durationMs": 181.95969999999943,
+      "writes": 10,
+      "bytes": 323584,
+      "exportMaxMs": 0.335399999996298
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "coalesced",
+      "repeat": 2,
+      "durationMs": 185.20560000000114,
+      "writes": 10,
+      "bytes": 323584,
+      "exportMaxMs": 0.359599999996135
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "each-update",
+      "repeat": 2,
+      "durationMs": 328.7311999999947,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.4017999999996391
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "each-update",
+      "repeat": 3,
+      "durationMs": 316.6238000000012,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.5674999999973807
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "coalesced",
+      "repeat": 3,
+      "durationMs": 188.18099999999686,
+      "writes": 11,
+      "bytes": 323584,
+      "exportMaxMs": 0.3856000000014319
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "coalesced",
+      "repeat": 4,
+      "durationMs": 189.0642000000007,
+      "writes": 10,
+      "bytes": 323584,
+      "exportMaxMs": 0.4318000000057509
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "each-update",
+      "repeat": 4,
+      "durationMs": 313.37409999999363,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.4548999999969965
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "each-update",
+      "repeat": 5,
+      "durationMs": 309.2010999999984,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.48440000000118744
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "coalesced",
+      "repeat": 5,
+      "durationMs": 187.02290000000357,
+      "writes": 10,
+      "bytes": 323584,
+      "exportMaxMs": 0.38369999999849824
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "coalesced",
+      "repeat": 6,
+      "durationMs": 189.27640000000247,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.5256999999983236
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "each-update",
+      "repeat": 6,
+      "durationMs": 315.6278999999995,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.4056999999957043
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "each-update",
+      "repeat": 7,
+      "durationMs": 319.32220000000234,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.488100000002305
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "coalesced",
+      "repeat": 7,
+      "durationMs": 191.05079999999725,
+      "writes": 11,
+      "bytes": 323584,
+      "exportMaxMs": 0.575700000001234
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "coalesced",
+      "repeat": 8,
+      "durationMs": 187.09590000000026,
+      "writes": 11,
+      "bytes": 323584,
+      "exportMaxMs": 0.5923000000038883
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "each-update",
+      "repeat": 8,
+      "durationMs": 306.58129999999073,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.6064999999944121
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "each-update",
+      "repeat": 9,
+      "durationMs": 313.0143000000098,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.5181000000011409
+    },
+    {
+      "experiment": "database",
+      "phase": "exploration",
+      "variant": "coalesced",
+      "repeat": 9,
+      "durationMs": 193.38310000000638,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.5573000000003958
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 10,
+      "durationMs": 195.54689999998664,
+      "writes": 10,
+      "bytes": 323584,
+      "exportMaxMs": 0.6383000000059837
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 10,
+      "durationMs": 319.70500000000175,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.44479999999748543
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 11,
+      "durationMs": 328.9216000000015,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.533899999994901
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 11,
+      "durationMs": 191.75680000000284,
+      "writes": 11,
+      "bytes": 323584,
+      "exportMaxMs": 0.39400000000023283
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 12,
+      "durationMs": 176.53629999999248,
+      "writes": 10,
+      "bytes": 323584,
+      "exportMaxMs": 0.46249999999417923
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 12,
+      "durationMs": 324.9109999999928,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.31560000000172295
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 13,
+      "durationMs": 323.0932999999932,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.40270000000600703
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 13,
+      "durationMs": 193.6250999999902,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.5565999999962514
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 14,
+      "durationMs": 196.07270000000426,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.4094000000040978
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 14,
+      "durationMs": 310.4063000000024,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.4285999999992782
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 15,
+      "durationMs": 317.857600000003,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.4873000000079628
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 15,
+      "durationMs": 175.51309999999648,
+      "writes": 11,
+      "bytes": 323584,
+      "exportMaxMs": 0.3911999999982072
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 16,
+      "durationMs": 189.9533999999985,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.923399999999674
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 16,
+      "durationMs": 311.00740000000224,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.31190000000060536
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 17,
+      "durationMs": 315.81579999999667,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.3929999999963911
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 17,
+      "durationMs": 176.4478999999992,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.3515999999945052
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 18,
+      "durationMs": 181.48489999999583,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.3032999999995809
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 18,
+      "durationMs": 316.4887000000017,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.2997999999934109
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 19,
+      "durationMs": 317.3353000000061,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.4095999999990454
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 19,
+      "durationMs": 193.53519999999844,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.3199000000022352
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 20,
+      "durationMs": 178.53289999999106,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.2956000000122003
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 20,
+      "durationMs": 319.4667999999947,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.3023000000102911
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 21,
+      "durationMs": 321.9137999999948,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.3610999999946216
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 21,
+      "durationMs": 185.4716000000044,
+      "writes": 11,
+      "bytes": 323584,
+      "exportMaxMs": 0.22239999999874271
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 22,
+      "durationMs": 187.414300000004,
+      "writes": 11,
+      "bytes": 323584,
+      "exportMaxMs": 0.40429999999469146
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 22,
+      "durationMs": 317.9904999999999,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.32180000000516884
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 23,
+      "durationMs": 322.45679999999993,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.2840999999898486
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 23,
+      "durationMs": 192.7768999999971,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.45130000000062864
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 24,
+      "durationMs": 196.6866999999911,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.3528000000078464
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 24,
+      "durationMs": 311.8332999999984,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.2661999999982072
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 25,
+      "durationMs": 314.6710999999923,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.252200000002631
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 25,
+      "durationMs": 197.1637000000046,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.34419999999227
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 26,
+      "durationMs": 178.9725999999937,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.27030000000377186
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 26,
+      "durationMs": 322.90479999998934,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.2758999999932712
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 27,
+      "durationMs": 315.67170000000624,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 1.0810999999957858
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 27,
+      "durationMs": 192.00259999999253,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.34029999999620486
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 28,
+      "durationMs": 183.60130000000936,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.2179000000032829
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 28,
+      "durationMs": 311.8481000000029,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.2550000000046566
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 29,
+      "durationMs": 314.4356000000116,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.30389999999897555
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 29,
+      "durationMs": 194.03130000000237,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.31789999999455176
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 30,
+      "durationMs": 191.2372000000032,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.2636999999958789
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 30,
+      "durationMs": 309.3868999999977,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.2554999999993015
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 31,
+      "durationMs": 320.667300000001,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.26750000000174623
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 31,
+      "durationMs": 196.29809999999998,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.8461999999999534
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 32,
+      "durationMs": 195.2722000000067,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.3739999999961583
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 32,
+      "durationMs": 307.40929999999935,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.677800000004936
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 33,
+      "durationMs": 318.64910000000964,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.36139999999431893
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 33,
+      "durationMs": 208.82040000001143,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.4327999999950407
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 34,
+      "durationMs": 200.1527999999962,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.30019999999785796
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 34,
+      "durationMs": 320.3660999999993,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.7086999999883119
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 35,
+      "durationMs": 318.6012000000046,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.9581000000034692
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 35,
+      "durationMs": 187.17429999999877,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.2845999999990454
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 36,
+      "durationMs": 190.5639000000083,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.3176999999996042
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 36,
+      "durationMs": 339.42540000000736,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.27799999999115244
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 37,
+      "durationMs": 319.8594000000012,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.25190000000293367
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 37,
+      "durationMs": 192.6255000000092,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.6036000000021886
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 38,
+      "durationMs": 190.21510000000126,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.2641999999905238
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 38,
+      "durationMs": 318.9710999999952,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.4793999999965308
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 39,
+      "durationMs": 316.8246999999974,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.3319999999948777
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 39,
+      "durationMs": 187.06329999999434,
+      "writes": 11,
+      "bytes": 323584,
+      "exportMaxMs": 0.2729000000108499
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 40,
+      "durationMs": 186.2393999999913,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.5368000000016764
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 40,
+      "durationMs": 340.44460000000254,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.3396000000066124
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 41,
+      "durationMs": 313.7695999999996,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.33749999999417923
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 41,
+      "durationMs": 193.33809999999357,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.2729000000108499
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 42,
+      "durationMs": 198.5972000000038,
+      "writes": 11,
+      "bytes": 323584,
+      "exportMaxMs": 0.445400000011432
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 42,
+      "durationMs": 321.33920000000217,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.5288000000000466
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 43,
+      "durationMs": 315.6667000000016,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.5090999999956694
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 43,
+      "durationMs": 184.44139999999607,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.27580000000307336
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 44,
+      "durationMs": 191.51480000000447,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.36539999999513384
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 44,
+      "durationMs": 310.6290000000008,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.2927999999956228
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 45,
+      "durationMs": 318.5645000000077,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.32110000000102445
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 45,
+      "durationMs": 195.75780000000668,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.40920000000915024
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 46,
+      "durationMs": 194.7789000000048,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.3769999999931315
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 46,
+      "durationMs": 322.87170000000333,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.3667999999888707
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 47,
+      "durationMs": 318.0195999999996,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.3107000000018161
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 47,
+      "durationMs": 178.56759999999485,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.2495000000053551
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 48,
+      "durationMs": 203.52560000000813,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.22689999999420252
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 48,
+      "durationMs": 321.4228000000003,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 1.0751999999920372
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 49,
+      "durationMs": 314.75539999999455,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.32229999999981374
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 49,
+      "durationMs": 179.0402999999933,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.2265999999945052
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 50,
+      "durationMs": 183.63990000000922,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.2323000000033062
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 50,
+      "durationMs": 310.06230000000505,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.3209000000060769
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 51,
+      "durationMs": 309.95960000000196,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.3815000000031432
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 51,
+      "durationMs": 194.91730000000098,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.32729999998991843
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 52,
+      "durationMs": 189.3908000000083,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.4895000000105938
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 52,
+      "durationMs": 321.14429999999993,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.3635000000067521
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 53,
+      "durationMs": 314.8225999999995,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.9475000000093132
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 53,
+      "durationMs": 206.91830000000482,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.30740000000514556
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 54,
+      "durationMs": 189.49959999999555,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.2338000000017928
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 54,
+      "durationMs": 321.81699999999546,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.2918999999965308
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 55,
+      "durationMs": 314.51209999999264,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.2549999999901047
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 55,
+      "durationMs": 185.00950000000012,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.23960000000079162
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 56,
+      "durationMs": 186.891100000008,
+      "writes": 11,
+      "bytes": 323584,
+      "exportMaxMs": 0.2789000000047963
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 56,
+      "durationMs": 318.1939999999886,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.2828999999910593
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 57,
+      "durationMs": 316.8877999999968,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 1.3450000000011642
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 57,
+      "durationMs": 196.17480000000796,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.32309999999415595
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 58,
+      "durationMs": 185.9902000000002,
+      "writes": 12,
+      "bytes": 323584,
+      "exportMaxMs": 0.24939999998605344
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 58,
+      "durationMs": 312.8171000000002,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.30140000001119915
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "each-update",
+      "repeat": 59,
+      "durationMs": 316.934699999998,
+      "writes": 20,
+      "bytes": 323584,
+      "exportMaxMs": 0.2515000000130385
+    },
+    {
+      "experiment": "database",
+      "phase": "confirmation",
+      "variant": "coalesced",
+      "repeat": 59,
+      "durationMs": 182.60560000000987,
+      "writes": 13,
+      "bytes": 323584,
+      "exportMaxMs": 0.2582999999867752
+    },
+    {
+      "experiment": "page-cache",
+      "variant": "limit-1",
+      "mounts": 60,
+      "retainedPages": 1,
+      "restoredOffset": 1234
+    },
+    {
+      "experiment": "page-cache",
+      "variant": "limit-3",
+      "mounts": 3,
+      "retainedPages": 3,
+      "restoredOffset": 1234
+    },
+    {
+      "experiment": "fallback",
+      "variant": "remove-none",
+      "ok": 20,
+      "failed": 0,
+      "providerCalls": {
+        "api": 20,
+        "direct": 5,
+        "browser": 3
+      }
+    },
+    {
+      "experiment": "fallback",
+      "variant": "remove-api",
+      "ok": 20,
+      "failed": 0,
+      "providerCalls": {
+        "api": 0,
+        "direct": 20,
+        "browser": 3
+      }
+    },
+    {
+      "experiment": "fallback",
+      "variant": "remove-direct",
+      "ok": 20,
+      "failed": 0,
+      "providerCalls": {
+        "api": 20,
+        "direct": 5,
+        "browser": 5
+      }
+    },
+    {
+      "experiment": "fallback",
+      "variant": "remove-browser",
+      "ok": 17,
+      "failed": 3,
+      "providerCalls": {
+        "api": 20,
+        "direct": 5,
+        "browser": 3
+      }
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+import { RECOMMENDATION_TAGS } from '../../../shared/recommendationCore'
+
 export interface CategoryOption {
   value: string
   label: string
@@ -70,10 +72,4 @@ export const TIMES: TimeOption[] = [
   { value: 'm', label: '本月' }
 ]
 
-export const POPULAR_TAGS: string[] = [
-  '全彩', '中文', '無修正', '純愛', 'NTR', '後宮', '巨乳', '熟女',
-  '校園', '連載', '劇情', '全年齡', 'SM', '調教', '觸手', '百合',
-  '貧乳', '偽娘', '性轉', '人外', '足交', '肛交', '束縛', '催眠',
-  '藥物', '怪物', '異種姦', '奇幻', '科幻', '武俠', '競技', '遊戲',
-  '音聲', 'CG集', '漫畫', '短篇', '單本', '同人', '韓漫', '美漫'
-]
+export const POPULAR_TAGS: string[] = [...RECOMMENDATION_TAGS]
