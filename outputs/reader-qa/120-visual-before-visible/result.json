@@ -1,0 +1,79 @@
+{
+  "runId": "120-visual-before-visible",
+  "mode": "visible Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "visual measurements and screenshots captured",
+      "details": {
+        "themes": 2,
+        "violations": [
+          "light/672: adjacent settings share a divider",
+          "light/480: switch stays beside its description (界面动画页面、标签、分栏和控件的轻量过渡；遵循系)",
+          "light/480: switch stays beside its description (GPU 硬件加速让可用的图形硬件辅助渲染，兼容集)",
+          "light/480: adjacent settings share a divider",
+          "light/300: switch stays beside its description (Mica 云母材质Windows 11 半透明背)",
+          "light/300: switch stays beside its description (界面动画页面、标签、分栏和控件的轻量过渡；遵循系)",
+          "light/300: switch stays beside its description (GPU 硬件加速让可用的图形硬件辅助渲染，兼容集)",
+          "light/300: switch stays beside its description (下次启动恢复阅读标签恢复打开的漫画、标签名称、顺)",
+          "light/300: switch stays beside its description (手动代理覆盖系统代理，填写 HTTP/SOCKS)",
+          "light/300: switch stays beside its description (启动时自动续传打开应用后自动继续未完成（含上次中)",
+          "light/300: adjacent settings share a divider",
+          "dark/672: adjacent settings share a divider",
+          "dark/480: switch stays beside its description (界面动画页面、标签、分栏和控件的轻量过渡；遵循系)",
+          "dark/480: switch stays beside its description (GPU 硬件加速让可用的图形硬件辅助渲染，兼容集)",
+          "dark/480: adjacent settings share a divider",
+          "dark/300: switch stays beside its description (Mica 云母材质Windows 11 半透明背)",
+          "dark/300: switch stays beside its description (界面动画页面、标签、分栏和控件的轻量过渡；遵循系)",
+          "dark/300: switch stays beside its description (GPU 硬件加速让可用的图形硬件辅助渲染，兼容集)",
+          "dark/300: switch stays beside its description (下次启动恢复阅读标签恢复打开的漫画、标签名称、顺)",
+          "dark/300: switch stays beside its description (手动代理覆盖系统代理，填写 HTTP/SOCKS)",
+          "dark/300: switch stays beside its description (启动时自动续传打开应用后自动继续未完成（含上次中)",
+          "dark/300: adjacent settings share a divider",
+          "dark: tag 风景 contrast 2.42 must reach 4.5",
+          "dark: tag 旅途 contrast 2.42 must reach 4.5"
+        ]
+      }
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: Visual requirements must hold at all tested widths and themes\n+ actual - expected\n\n+ [\n+   'light/672: adjacent settings share a divider',\n+   'light/480: switch stays beside its description (界面动画页面、标签、分栏和控件的轻量过渡；遵循系)',\n+   'light/480: switch stays beside its description (GPU 硬件加速让可用的图形硬件辅助渲染，兼容集)',\n+   'light/480: adjacent settings share a divider',\n+   'light/300: switch stays beside its description (Mica 云母材质Windows 11 半透明背)',\n+   'light/300: switch stays beside its description (界面动画页面、标签、分栏和控件的轻量过渡；遵循系)',\n+   'light/300: switch stays beside its description (GPU 硬件加速让可用的图形硬件辅助渲染，兼容集)',\n+   'light/300: switch stays beside its description (下次启动恢复阅读标签恢复打开的漫画、标签名称、顺)',\n+   'light/300: switch stays beside its description (手动代理覆盖系统代理，填写 HTTP/SOCKS)',\n+   'light/300: switch stays beside its description (启动时自动续传打开应用后自动继续未完成（含上次中)',\n+   'light/300: adjacent settings share a divider',\n+   'dark/672: adjacent settings share a divider',\n+   'dark/480: switch stays beside its description (界面动画页面、标签、分栏和控件的轻量过渡；遵循系)',\n+   'dark/480: switch stays beside its description (GPU 硬件加速让可用的图形硬件辅助渲染，兼容集)',\n+   'dark/480: adjacent settings share a divider',\n+   'dark/300: switch stays beside its description (Mica 云母材质Windows 11 半透明背)',\n+   'dark/300: switch stays beside its description (界面动画页面、标签、分栏和控件的轻量过渡；遵循系)',\n+   'dark/300: switch stays beside its description (GPU 硬件加速让可用的图形硬件辅助渲染，兼容集)',\n+   'dark/300: switch stays beside its description (下次启动恢复阅读标签恢复打开的漫画、标签名称、顺)',\n+   'dark/300: switch stays beside its description (手动代理覆盖系统代理，填写 HTTP/SOCKS)',\n+   'dark/300: switch stays beside its description (启动时自动续传打开应用后自动继续未完成（含上次中)',\n+   'dark/300: adjacent settings share a divider',\n+   'dark: tag 风景 contrast 2.42 must reach 4.5',\n+   'dark: tag 旅途 contrast 2.42 must reach 4.5'\n+ ]\n- []\n\n    at module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\visual-style-smoke.cjs:102:10)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:304:5)"
+  ],
+  "network": {
+    "api": 8,
+    "image": 5,
+    "blocked": 13
+  },
+  "summaryQueries": 2,
+  "visual": {
+    "observations": "visual-observations.json",
+    "violations": [
+      "light/672: adjacent settings share a divider",
+      "light/480: switch stays beside its description (界面动画页面、标签、分栏和控件的轻量过渡；遵循系)",
+      "light/480: switch stays beside its description (GPU 硬件加速让可用的图形硬件辅助渲染，兼容集)",
+      "light/480: adjacent settings share a divider",
+      "light/300: switch stays beside its description (Mica 云母材质Windows 11 半透明背)",
+      "light/300: switch stays beside its description (界面动画页面、标签、分栏和控件的轻量过渡；遵循系)",
+      "light/300: switch stays beside its description (GPU 硬件加速让可用的图形硬件辅助渲染，兼容集)",
+      "light/300: switch stays beside its description (下次启动恢复阅读标签恢复打开的漫画、标签名称、顺)",
+      "light/300: switch stays beside its description (手动代理覆盖系统代理，填写 HTTP/SOCKS)",
+      "light/300: switch stays beside its description (启动时自动续传打开应用后自动继续未完成（含上次中)",
+      "light/300: adjacent settings share a divider",
+      "dark/672: adjacent settings share a divider",
+      "dark/480: switch stays beside its description (界面动画页面、标签、分栏和控件的轻量过渡；遵循系)",
+      "dark/480: switch stays beside its description (GPU 硬件加速让可用的图形硬件辅助渲染，兼容集)",
+      "dark/480: adjacent settings share a divider",
+      "dark/300: switch stays beside its description (Mica 云母材质Windows 11 半透明背)",
+      "dark/300: switch stays beside its description (界面动画页面、标签、分栏和控件的轻量过渡；遵循系)",
+      "dark/300: switch stays beside its description (GPU 硬件加速让可用的图形硬件辅助渲染，兼容集)",
+      "dark/300: switch stays beside its description (下次启动恢复阅读标签恢复打开的漫画、标签名称、顺)",
+      "dark/300: switch stays beside its description (手动代理覆盖系统代理，填写 HTTP/SOCKS)",
+      "dark/300: switch stays beside its description (启动时自动续传打开应用后自动继续未完成（含上次中)",
+      "dark/300: adjacent settings share a divider",
+      "dark: tag 风景 contrast 2.42 must reach 4.5",
+      "dark: tag 旅途 contrast 2.42 must reach 4.5"
+    ]
+  }
+}

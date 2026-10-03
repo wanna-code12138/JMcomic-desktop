@@ -1,0 +1,6 @@
+{
+  "assertions": [],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: the startup verification view remains available for the user\n    at D:\\soft\\Opencode\\JMComic\\scripts\\session-startup-smoke.cjs:31:10"
+  ]
+}

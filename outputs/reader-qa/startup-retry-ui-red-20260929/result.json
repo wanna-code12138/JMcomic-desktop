@@ -1,0 +1,14 @@
+{
+  "runId": "startup-retry-ui-red-20260929",
+  "mode": "visible Chromium / development StrictMode / synthetic network",
+  "assertions": [],
+  "errors": [
+    "Error: Timed out: visible verification retry after startup failure\nJMComic Desktop\n导航\n首页\n分类\n搜索\n收藏\n下载\n设置\n推荐\n最新\n热门\n换一批\n山间来信 · 合成阅读样章\n网络正常\nJMComic Desktop v43.2.0\n[]\n    at wait (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:166:11)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:182:5)"
+  ],
+  "network": {
+    "api": 5,
+    "image": 1,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

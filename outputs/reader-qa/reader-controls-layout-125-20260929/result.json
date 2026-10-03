@@ -1,0 +1,26 @@
+{
+  "runId": "reader-controls-layout-125-20260929",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "four window/theme layouts keep reader controls inside bounds at forced display scale",
+      "details": {
+        "scale": 1.25,
+        "themes": [
+          "rgba(249, 249, 249, 0.9)",
+          "rgba(39, 39, 39, 0.92)"
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

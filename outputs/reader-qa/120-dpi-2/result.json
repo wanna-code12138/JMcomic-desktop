@@ -1,0 +1,26 @@
+{
+  "runId": "120-dpi-2",
+  "mode": "visible Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "four window/theme layouts keep reader controls inside bounds at forced display scale",
+      "details": {
+        "scale": 2,
+        "themes": [
+          "#f7f8fa",
+          "#1b212b"
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

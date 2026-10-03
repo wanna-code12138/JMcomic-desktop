@@ -1,0 +1,4 @@
+
+QA PASS: real preload / IPC / encrypted API / jmimg / Chromium decode
+QA PASS: independent animation/GPU controls, restart state, persistent workspace, accessible divider
+QA RESULT=0 evidence=D:\soft\Opencode\JMComic\outputs\reader-qa\110-cold-restore

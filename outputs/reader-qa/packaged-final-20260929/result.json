@@ -1,0 +1,23 @@
+{
+  "runId": "packaged-final-20260929",
+  "mode": "hidden Chromium / synthetic network",
+  "assertions": [
+    {
+      "name": "runtime dependencies and SQL WebAssembly are present inside app.asar"
+    },
+    {
+      "name": "packaged main and preload: IPC download, exact 23-row Canvas golden, atomic lossless file, local protocol and archiver CBZ",
+      "details": {
+        "package": "work/package-qa/win-unpacked/resources/app.asar",
+        "pages": 1
+      }
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 5,
+    "image": 1,
+    "blocked": 3
+  },
+  "summaryQueries": 0
+}

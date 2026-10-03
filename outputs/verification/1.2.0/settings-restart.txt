@@ -1,0 +1,5 @@
+
+(node:17576) electron: Failed to load URL: https://18comic.vip/ with error: ERR_BLOCKED_BY_CLIENT
+(Use `electron --trace-warnings ...` to show where the warning was created)
+QA PASS: cold restart restores start/book tabs, pin, custom title and active selection; GPU preference applies at startup
+QA RESULT=0 evidence=D:\soft\Opencode\JMComic\outputs\reader-qa\120-settings

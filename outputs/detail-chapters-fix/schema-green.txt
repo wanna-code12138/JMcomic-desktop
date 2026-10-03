@@ -1,0 +1,9 @@
+  PASS: parseSettingPayload parses valid setting and rejects invalid versions
+  PASS: parseListPayload parses search fixture and passes card validation
+  PASS: parseListPayload rejects malformed items (missing title, invalid id, non-https)
+  PASS: parseAlbumPayload parses album fixture and passes detail validation
+  PASS: parseAlbumPayload maps an explicitly empty series to the single album chapter
+  PASS: parseAlbumPayload still rejects missing or malformed chapter data and invalid fields
+  PASS: parseComicReadPayload parses pages and passes page validation
+  PASS: parseComicReadPayload strictly rejects unordered or duplicate page indices without sorting
+All jmAppApiSchemas tests passed!

@@ -1,0 +1,22 @@
+{
+  "runId": "110-close-release",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "preference and final-save failures retain the window; IPC cancellation restores interaction; retry clears the error"
+    },
+    {
+      "name": "normal close after recovery persists the final page to disk"
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

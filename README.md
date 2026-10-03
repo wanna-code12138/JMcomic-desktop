@@ -10,51 +10,77 @@
 
 ---
 
-一个 Windows 上用的禁漫天堂客户端。界面不是网页套壳，数据由后台隐藏窗口抓取，再交给前端原生渲染，整体走 WinUI 3 风格：无边框窗口、Mica 材质、Fluent 控件，看着比较像 Windows 11 原生应用。
+一个 Windows 上用的禁漫天堂客户端。界面由 React 和 Fluent UI 构建，公开内容通过匿名 API 获取，必要时回退到直接网页解析或隐藏浏览器提取；在线收藏、历史、追更和互动使用独立账户会话。整体采用 WinUI 3 风格：自定义标题栏、Mica 材质和 Fluent 控件。
 
-便携版是单文件 exe，免安装，收藏、历史、下载记录等数据都存在 exe 同目录，删掉即清空，不往系统里留东西。
+便携版是单文件 exe，免安装。收藏、阅读进度、下载记录和设置保存在 exe 旁的 `JMComicData/jmcomic.db`；非便携运行使用 Electron 的 `userData` 目录。漫画默认下载到系统“下载”目录下的 `JMComic`，也可在设置中更改。迁移时需要保留数据目录和漫画文件，删除 exe 本身不会清空这些数据。
+
+> 当前版本 **1.3.4**，修复在线收藏、历史、追更封面空白，并包含此前的阅读标签、PDF 下载、外观优化、评论与在线账户功能。推荐从 [最新 Release](https://github.com/wanna-code12138/JMcomic-desktop/releases/latest) 下载；各阶段变更见 [更新日志](CHANGELOG.md) 和 [发布说明](docs/releases/v1.3.4.md)。1.3.1～1.3.3 有已知在线封面问题，请升级到 1.3.4。
 
 > 仅限成年人，请在合法合规的前提下使用。
 
 ## 功能
 
-- 首页：推荐 / 最新 / 热门三个 Tab，卡片分批加载，不会一次全卡住
+- 首页：推荐 / 最新 / 热门三个 Tab，卡片分批加载
 - 搜索：关键词、标签、历史记录，6~7 位车号直接跳详情页
 - 分类：类型 / 子类型 / 排序 / 时间筛选，附 38 个热门标签
-- 详情页：封面、章节列表、标签点击反查
-- 阅读器：滚动 / 单页两种模式，虚拟滚动，键盘翻页，图片缩放，可还原站点的反打乱图片
-- 下载：队列管理、失败一键重试、打开所在文件夹、下载完本地离线看
-- 收藏：网站收藏和本地浏览历史两个视图
-- 设置：代理、缓存、网络重探测、下载目录、数据导出 / 导入 / 清除
-- 隐私：浏览记录、收藏、下载状态全部只存本机，不上传
+- 详情页：封面、章节列表、标签点击反查、匿名评论分页、回复展开与剧透遮挡；登录后可明确发表和回复，内存草稿在退出后清除
+- 阅读工作区：浏览器式标签支持新建起始页、拖动排序、固定、重命名、批量关闭和恢复；中间保留浏览与详情，分隔条可拖动或键盘调整，可选启动恢复标签
+- 阅读器：连续滚动 / 单页模式，图片适配与缩放、键盘翻页、章节目录和附近页缩略图，保存阅读偏好及页内进度，可还原站点的反打乱图片
+- 下载：每次选择逐张图片或合并 PDF，也可保存默认格式。PDF 按所选章节顺序合并为一个文件，直接放在下载根目录；图片保留漫画/章节目录。队列支持取消、失败重试、缺页修复，图片可应用内离线阅读或导出 CBZ
+- 收藏：本地收藏和精确阅读历史无需登录；在线收藏支持收藏夹创建、改名、移动和删除空夹，在线历史支持确认后单条删除，追更独立展示
+- 在线账户：登录、加密记住会话、启动恢复和失败重试、概览、通知、我的评论、收藏标签及有限公开资料编辑
+- 账户活动：签到日历、明确点击的手动签到、历史活动月份和只读任务；详情支持在线收藏、追更和单向点赞，通知点击后才标记已读
+- 设置：动画即时开关、GPU 硬件加速开关（重启生效）、标签恢复、下载默认格式、代理、缓存、网络重探测、数据导出 / 导入 / 清除
+- 隐私：本地阅读进度、收藏、下载状态保存在本机；账户操作会请求在线服务。记住会话仅保存系统加密的会话文件，不保存密码，个人数据导出不包含该文件
 
 ## 架构上几个关键决定
 
-站点内容是 JS 渲染的，纯 HTTP 拿不到，所以用隐藏 BrowserWindow 跑 `executeJavaScript` 提取数据，再经 IPC 传给渲染进程；多个抓取用互斥锁串行，避免互相打断。图片 CDN 有防盗链，自定义了 `jmimg://` 协议，由主进程代请求（补 Referer / Cookie / UA），渲染进程不直连 CDN。数据库用 sql.js（SQLite/WASM）跑在内存里，任何写入后必须 `saveDatabase()` 落盘，否则重启丢失。启动时会先引导完成 Cloudflare 验证，验证通过前不会触发抓取。
+内容获取统一经过 `contentGateway`：优先使用匿名 API，失败、数据校验不通过或筛选条件不受支持时，依次尝试直接网页解析和隐藏 `BrowserWindow` 提取。直接网页路径只覆盖部分搜索、推荐列表和章节请求；浏览器提取使用互斥锁串行导航。应用先配置代理，再随主窗口启动网页验证；本地下载恢复与匿名 API 预热同时进行。验证失败后由首页“重新验证”入口恢复，后台请求不会在阅读中重新弹出验证视图。
+
+在线封面和漫画图片通过 `jmimg://` 交给主进程，复用图片缓存、请求优先级和并发调度。请求补充 Referer / UA，并用 `credentials: 'omit'` 省略凭据；离线漫画通过限定下载目录的 `jmlocal://` 读取。在线阅读与下载共用反打乱算法。
+
+阅读标签仅挂载当前章节，后台标签保留位置元数据；切换和关闭前等待进度与偏好保存，失败时保留当前阅读并提供重试。同一本书的在线和离线版本分开标记，重复打开不会增加标签。浏览导航不会关闭阅读区，隐藏或关闭最后一个标签后恢复用户原有导航选择。工作区最多 100 个标签，最近关闭保留 20 项；重启恢复默认关闭。
+
+常用快捷键：`Ctrl+T` 新建，`Ctrl+W` 关闭当前标签，`Ctrl+Shift+T` 恢复关闭，`Ctrl+Tab` / `Ctrl+Shift+Tab` 切换，`Ctrl+1…9` 定位，`Ctrl+Shift+PageUp/PageDown` 排序；标签还支持中键关闭和 `Shift+F10` 菜单。阅读工具仍使用 `H` 手动显隐。
+
+新下载按漫画和章节的稳定 ID 建立目录，旧记录继续使用原有标题目录。恢复下载、离线打开和 CBZ 导出共用页文件扫描，按原页号检查缺页；修复时重新取得章节清单并补齐缺失页，不重新编号现有页面。CBZ 导出只包含已完成且扫描齐全的章节。
+
+PDF 使用独立工作进程逐页生成，带章节书签；任务清单先落盘，暂存页放在应用数据目录，完成后通过同盘硬链接安全发布，不覆盖同名文件。下载磁盘需要支持硬链接（例如 NTFS）；不支持时保留可重试任务并提示。为限制解码峰值，单张 PNG 超过 16,777,216 像素时提示改用图片下载；取消和重试保留已下载页面，清除个人数据会停止任务并移除暂存页，已完成的 PDF 和图片保留。
+
+动画采用 CSS/WAAPI 短过渡并遵循系统减少动态效果。GPU 开关写入 `JMComicData/startup-preferences.json`，便携迁移时随数据目录保留；核显/独显采用 Chromium 的兼容性判断，不强制忽略驱动屏蔽列表。设置显示实际运行状态，不保证所有旧驱动都能启用硬件路径。
+
+sql.js 数据库保存在内存中，由异步写入协调器合并高频进度更新。收藏、设置等需要确认保存的操作等待落盘。正常关窗先等待阅读器保存进度和偏好，再停止下载与导出，最后刷新并关闭数据库；保存失败会保留窗口并显示原因。主库不可读时尝试经过完整性检查的备份，恢复时保留损坏原文件并提示用户，具体边界见架构文档。
 
 ```mermaid
 flowchart LR
-  R["Renderer（React + Fluent UI）"] -->|IPC| P["Preload（contextBridge）"]
+  R["Renderer（React + Fluent UI）"] --> P["Preload（contextBridge）"]
   P -->|IPC| M["Main（Electron 主进程）"]
-  M --> SW["ScraperWindow（隐藏浏览器，提取站点数据）"]
-  M --> IMG["jmimg:// 图片代理（Referer + Cookie）"]
-  M --> DB[("sql.js 本地数据库")]
-  M --> DL["下载队列 / 磁盘缓存"]
+  M --> G["内容网关与缓存"]
+  G --> API["匿名 API"]
+  API -->|失败或不支持| WEB["直接网页解析"]
+  WEB -->|失败或不支持| SW["隐藏浏览器回退"]
+  M --> IMG["jmimg:// 匿名图片请求 / jmlocal:// 离线读取"]
+  M --> DB[("sql.js + 异步持久化")]
+  M --> DL["下载队列 / 图片缓存"]
 ```
 
 更详细的模块说明见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
 
 ## 快速开始
 
-从 [Releases](../../releases/latest) 下载 `JMComic Desktop Portable <版本>.exe`，双击即用，无需安装。
+从 [Releases](https://github.com/wanna-code12138/JMcomic-desktop/releases/latest) 下载 Windows x64 便携版 `JMComic.Desktop.Portable.1.3.4.exe`，双击即用，无需安装。Release 同时提供 `SHA256SUMS.txt`；可用 PowerShell 的 `Get-FileHash -Algorithm SHA256` 核对下载文件。
+
+升级前正常退出旧程序，把新 EXE 放到原目录，保留同级 `JMComicData` 和下载的漫画文件。账户会话使用本机系统加密，迁移到另一台电脑可能需要重新登录；密码不保存在数据目录中。
+
+历史版本按演进顺序保留：[1.1.0](https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.1.0) → [1.2.0](https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.2.0) → [1.3.1](https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.3.1) → [1.3.2](https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.3.2) → [1.3.3](https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.3.3) → [1.3.4](https://github.com/wanna-code12138/JMcomic-desktop/releases/tag/v1.3.4)。1.0.6 是并入后续版本的开发节点，1.3.0 是设计阶段，二者没有独立便携发行版。
 
 ## 从源码构建
 
-需要 Node.js 18+ 与 npm：
+建议使用 Node.js 22 与 npm，与 CI 环境保持一致：
 
 ```powershell
 # 安装依赖
-npm install
+npm ci
 
 # 开发模式（Vite HMR + Electron），也可以双击 dev.bat
 npm run dev
@@ -74,31 +100,44 @@ src/
 │   ├── index.ts          # 入口：窗口、Mica 材质、协议注册、IPC 装配
 │   ├── scraperWindow.ts  # 隐藏浏览器内容提取引擎（带互斥锁）
 │   ├── contentApi.ts     # 首页 / 搜索 / 分类 / 详情 / 章节 IPC
+│   ├── contentGateway.ts # API → 直接网页 → 浏览器回退与结果校验
+│   ├── content/          # 匿名 API 的发现、传输与数据解析
+│   ├── account/          # 在线会话、资料库、账户活动及资料管理
+│   ├── comments/         # 评论读取、发表与回复
 │   ├── imageProtocol.ts  # jmimg:// 图片代理
-│   ├── imageLoader.ts    # 图片磁盘缓存 + 并发下载管线
-│   ├── downloadManager.ts# 下载队列与断点续传
-│   ├── database.ts       # sql.js 初始化、迁移、表结构
-│   ├── sessionWarmup.ts  # Cloudflare 会话预热
-│   └── __tests__/        # 核心逻辑单元测试（tsx 直跑）
+│   ├── imageNetwork.ts   # 图片请求调度、取消与重试
+│   ├── imageLoader.ts    # 图片磁盘缓存与下载加载器
+│   ├── downloadManager.ts# 下载队列、任务恢复与缺页补齐
+│   ├── downloadCore.ts   # 稳定目录、旧路径兼容与页文件扫描
+│   ├── downloadExport.ts # CBZ 导出入口（归档写入在 cbzExport.ts）
+│   ├── database.ts       # sql.js 初始化、迁移、异步持久化与恢复
+│   ├── shutdownController.ts # 渲染器保存、停止下载/导出、数据库关闭的顺序
+│   ├── sessionWarmup.ts  # 启动网页验证、会话状态与显式重试
+│   └── __tests__/        # 主进程与共享逻辑回归测试
 ├── preload/              # contextBridge，统一暴露 electronAPI
+├── shared/               # 阅读器契约、反打乱算法等跨进程逻辑
 └── renderer/             # React 18 + Fluent UI v9 + Tailwind
     └── src/
-        ├── pages/        # 首页 / 搜索 / 分类 / 详情 / 阅读器 / 下载 / 收藏 / 设置
-        ├── components/   # 漫画卡片、标题栏、登录弹窗、章节选择等
+        ├── pages/        # 首页 / 搜索 / 分类 / 详情 / 阅读器 / 下载 / 收藏 / 账户 / 设置
+        ├── reader/       # 阅读会话、图片、工具栏、布局计算与样式
+        ├── components/   # 漫画卡片、标题栏、章节选择等
         ├── stores/       # zustand 全局状态
-        └── theme/        # Aurora Clay 设计变量与样式
+        └── theme/        # WinUI 主题与语义样式
 ```
 
 ## 测试
 
-没有引入测试框架，用手写的 `test()` 辅助函数 + Node `assert`，通过 tsx 直接跑：
+统一测试入口递归发现 `src/` 和 `scripts/` 下的 `*.test.ts`、`*.test.mjs`。TypeScript 测试通过 `tsx` 执行，`.mjs` 测试使用 Node 测试运行器：
 
 ```powershell
-npx tsx src/main/__tests__/homepageLogic.test.ts
-npx tsx src/main/__tests__/homepageStream.test.ts
+npm test              # 全部自动化测试
+npm run typecheck     # TypeScript 类型检查
+npm run check         # 依次运行测试、类型检查和生产构建
 ```
 
-CI 在每次 push / PR 时自动跑全部测试和生产构建（见 [ci.yml](.github/workflows/ci.yml)）。
+CI 在向 `main` 推送和 Pull Request 时运行测试、类型检查与生产构建（见 [ci.yml](.github/workflows/ci.yml)）。阅读器交互、真实 Canvas 和网络回退仍需按改动范围补充 Electron 验收，记录实际环境与结果；历史性能报告不代表当前版本的测量值。
+
+`npm run package` 完成后会独立校验 ASAR 内运行依赖。交付前还必须直接运行生成的 EXE，验证主进程、preload、界面及正常关闭；加载 ASAR 的开发测试不能代替成品启动验收。阅读器同时覆盖开发 StrictMode 与生产页面，具体命令见 [贡献指南](CONTRIBUTING.md#electron-行为回归)。
 
 ## 贡献
 
@@ -106,12 +145,11 @@ CI 在每次 push / PR 时自动跑全部测试和生产构建（见 [ci.yml](.g
 
 ## Roadmap
 
-- 封面图统一走 `jmimg://` 图片代理，解决封面加载失败
-- 逆向站点数据接口，把页面加载从 3~15s 优化到 1s 内
-- 阅读器磁盘缓存预取、章节预加载
-- 下载导出 CBZ / ZIP 通用漫画格式
+- 持续测量不同内容路径的首屏、回退率和缓存命中，扩大经验证的 API / 直接网页覆盖范围
+- 评估下一章预加载的收益、取消行为和缓存成本
+- 完善长章节、混合尺寸图片、触控与无障碍阅读体验
 - 首页无限滚动
-- 多标签页浏览、触控手势
+- 扩大多显示器、触控和不同显卡/驱动的真实兼容性验证
 
 ## 免责声明
 

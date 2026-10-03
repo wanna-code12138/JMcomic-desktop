@@ -1,4 +1,8 @@
 import type { Database as SqlJsDatabase } from 'sql.js'
+import { randomUUID } from 'node:crypto'
+import { normalizeWorkspaceSnapshot, type WorkspaceSnapshot } from '../shared/workspaceSnapshot'
+import { preparePdfRequest, resolvePdfOutput, pdfIdentity } from './pdfDownloadCore'
+import type { PdfTask } from '../shared/pdfContracts'
 
 export const EXPORT_FORMAT = 'jmcomic-personal-data'
 export const EXPORT_VERSION = 1
@@ -12,6 +16,8 @@ export interface PersonalExport {
     readingHistory: Array<Record<string, unknown>>
     searchHistory: Array<Record<string, unknown>>
     downloads: Array<Record<string, unknown>>
+    pdfDownloads?: PdfTask[]
+    workspace?: WorkspaceSnapshot | null
   }
 }
 
@@ -62,9 +68,14 @@ export function exportPersonalData(db: SqlJsDatabase): PersonalExport {
     exportedAt: new Date().toISOString(),
     data: {
       favorites: queryAll(db, 'SELECT * FROM favorites ORDER BY added_at DESC'),
-      readingHistory: queryAll(db, 'SELECT * FROM reading_history ORDER BY read_at DESC'),
+      readingHistory: queryAll(db, 'SELECT * FROM reading_history ORDER BY read_at DESC').map(({ reader_session: _session, ...row }) => row),
       searchHistory: queryAll(db, 'SELECT * FROM search_history ORDER BY searched_at DESC'),
-      downloads: queryAll(db, 'SELECT * FROM downloads ORDER BY created_at DESC')
+      downloads: queryAll(db, 'SELECT * FROM downloads ORDER BY created_at DESC'),
+      pdfDownloads: queryAll(db, 'SELECT id,payload_json,status FROM pdf_downloads ORDER BY id DESC').map(row => ({ ...JSON.parse(String(row.payload_json)), id: row.id, status: row.status })),
+      workspace: (() => {
+        try { return normalizeWorkspaceSnapshot(JSON.parse(String(db.exec("SELECT value FROM settings WHERE key='readerWorkspaceSnapshot'")[0]?.values[0]?.[0] ?? 'null'))) }
+        catch { return null }
+      })()
     }
   }
 }
@@ -107,10 +118,11 @@ export function importPersonalData(db: SqlJsDatabase, payload: unknown): ImportS
     if (!mangaId || chapterIndex === null || pageIndex === null) { skipped++; continue }
     db.run(
       `INSERT OR IGNORE INTO reading_history
-         (manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, read_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url, page_index, total_pages, read_at, page_offset, is_local)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [mangaId, asString(raw.manga_title), chapterIndex, asString(raw.chapter_title),
-       asString(raw.chapter_url), asString(raw.cover_url), pageIndex, asNumber(raw.total_pages), asNumber(raw.read_at)]
+       asString(raw.chapter_url), asString(raw.cover_url), pageIndex, asNumber(raw.total_pages), asNumber(raw.read_at),
+       Math.max(0, Math.min(1, asNumber(raw.page_offset) ?? 0)), raw.is_local === 1 ? 1 : 0]
     )
     imported.readingHistory += db.getRowsModified()
   }
@@ -133,22 +145,46 @@ export function importPersonalData(db: SqlJsDatabase, payload: unknown): ImportS
     const id = asNumber(raw.id)
     const mangaId = asString(raw.manga_id)
     if (id === null || !mangaId) { skipped++; continue }
+    const chapterIndex = asNumber(raw.chapter_index) ?? 0
+    const existing = db.exec('SELECT id FROM downloads WHERE manga_id = ? AND chapter_index = ?', [mangaId, chapterIndex])
+    if (existing[0]?.values.length) continue
     // 待下载/下载中的任务在另一台机器上没有意义，导入后标记为失败，
     // 避免应用启动时按旧路径自动续传。
     const status = asString(raw.status) ?? 'failed'
     const safeStatus = status === 'pending' || status === 'downloading' ? 'failed' : status
     db.run(
       `INSERT OR IGNORE INTO downloads
-         (id, manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url,
-          status, total_pages, downloaded_pages, save_path, created_at)
+         (manga_id, manga_title, chapter_index, chapter_title, chapter_url, cover_url,
+          status, total_pages, downloaded_pages, save_path, created_at, storage_relpath)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, mangaId, asString(raw.manga_title), asNumber(raw.chapter_index), asString(raw.chapter_title),
+      [mangaId, asString(raw.manga_title), chapterIndex, asString(raw.chapter_title),
        asString(raw.chapter_url), asString(raw.cover_url),
-       safeStatus, asNumber(raw.total_pages), asNumber(raw.downloaded_pages), asString(raw.save_path), asNumber(raw.created_at)]
+       safeStatus, asNumber(raw.total_pages), asNumber(raw.downloaded_pages), asString(raw.save_path), asNumber(raw.created_at), asString(raw.storage_relpath)]
     )
     imported.downloads += db.getRowsModified()
   }
 
+  for (const raw of Array.isArray(data.pdfDownloads) ? data.pdfDownloads : []) {
+    const request = preparePdfRequest(raw)
+    if (!request || !isRecord(raw)) { skipped++; continue }
+    try {
+      const savePath = asString(raw.savePath), outputFile = asString(raw.outputFile)
+      if (!savePath || !outputFile) throw Error('missing path')
+      resolvePdfOutput(savePath, outputFile)
+      const identity = pdfIdentity(request, savePath)
+      if (db.exec('SELECT id FROM pdf_downloads WHERE identity=?', [identity])[0]?.values.length) continue
+      const completed = raw.status === 'completed' && typeof raw.checksum === 'string' && /^[a-f0-9]{64}$/.test(raw.checksum)
+      const task: Omit<PdfTask, 'id'> = { ...request, kind: 'pdf', identity, stagingId: randomUUID(), status: completed ? 'completed' : 'failed',
+        chapterIndex: request.chapters[0].index, chapterTitle: `${request.chapters.length} 章合并`, savePath, outputFile,
+        totalPages: Math.max(0, asNumber(raw.totalPages) ?? 0), downloadedPages: Math.max(0, asNumber(raw.downloadedPages) ?? 0), mergedPages: completed ? Math.max(0, asNumber(raw.totalPages) ?? 0) : 0,
+        checksum: completed ? String(raw.checksum) : undefined, createdAt: asNumber(raw.createdAt) ?? Math.floor(Date.now() / 1000),
+        error: completed ? '' : '导入的未完成任务不会自动运行，请确认下载目录后重试' }
+      db.run('INSERT INTO pdf_downloads (manga_id,identity,status,payload_json) VALUES (?,?,?,?)', [task.mangaId, identity, task.status, JSON.stringify(task)])
+      imported.downloads++
+    } catch { skipped++ }
+  }
+  const workspace = normalizeWorkspaceSnapshot(data.workspace)
+  if (workspace) db.run("INSERT OR IGNORE INTO settings (key,value) VALUES ('readerWorkspaceSnapshot',?)", [JSON.stringify(workspace)])
   return { imported, skipped }
 }
 
@@ -170,5 +206,7 @@ export function clearPersonalData(db: SqlJsDatabase): ClearCounts {
     db.run(sqlMap[table])
     counts[table] = db.getRowsModified()
   }
+  db.run('DELETE FROM pdf_downloads'); counts.downloads += db.getRowsModified()
+  db.run("DELETE FROM settings WHERE key IN ('readerWorkspaceSnapshot','readerWorkspaceRecovery')")
   return counts
 }

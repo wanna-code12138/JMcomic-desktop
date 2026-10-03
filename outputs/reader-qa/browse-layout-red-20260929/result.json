@@ -1,0 +1,18 @@
+{
+  "runId": "browse-layout-red-20260929",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    }
+  ],
+  "errors": [
+    "AssertionError [ERR_ASSERTION]: settings scrollbar must return to the browse pane's right edge after hiding the reader: {\"browse\":{\"left\":64,\"right\":1280,\"width\":1216},\"scroll\":{\"left\":64,\"right\":784,\"width\":720},\"windowWidth\":1280,\"scrollTop\":0,\"horizontalOverflow\":0,\"readerWidth\":0,\"sameReader\":true}\n    at module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\browse-layout-smoke.cjs:30:12)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:308:5)"
+  ],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 7
+  },
+  "summaryQueries": 0
+}

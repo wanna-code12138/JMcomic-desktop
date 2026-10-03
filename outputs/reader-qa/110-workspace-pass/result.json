@@ -1,0 +1,21 @@
+{
+  "runId": "110-workspace-pass",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "manual docked tools reclaim space; sidebar visibility preserves tabs, session, focus and reading position"
+    }
+  ],
+  "errors": [
+    "Error: Timed out: keyboard return tab\nJMComic Desktop\n返回\n海边日记 · 合成阅读样章\n车牌号: JM102\n✍️ 阅读体验实验室\n风景\n旅途\n用于测试长图、横图与章节切换的合成内容。\n开始阅读\n下载\n选择格式…\n章节列表 (2)\n倒序\n1\n第一章 · 出发\n2\n第二章 · 抵达\n山间来信 · 合成阅读样章\n海边日记 · 合成阅读样章\n11 / 36\n[{\"src\":\"jmimg://img/aHR0cHM6Ly9jZG4tbXNwLjE4Y29taWMudmlwL21lZGlhL3Bob3Rvcy8yMDQvNy5wbmc?p=near\",\"complete\":true,\"width\":720,\"status\":\"ready\"},{\"src\":\"jmimg://img/aHR0cHM6Ly9jZG4tbXNwLjE4Y29taWMudmlwL21lZGlhL3Bob3Rvcy8yMDQvOC5wbmc?p=near\",\"complete\":true,\"width\":720,\"status\":\"ready\"},{\"src\":\"jmimg://img/aHR0cHM6Ly9jZG4tbXNwLjE4Y29taWMudmlwL21lZGlhL3Bob3Rvcy8yMDQvOS5wbmc?p=near\",\"complete\":true,\"width\":720,\"status\":\"ready\"},{\"src\":\"jmimg://img/aHR0cHM6Ly9jZG4tbXNwLjE4Y29taWMudmlwL21lZGlhL3Bob3Rvcy8yMDQvMTAucG5n?p=critical\",\"complete\":true,\"width\":720,\"status\":\"ready\"},{\"src\":\"jmimg://img/aHR0cHM6Ly9jZG4tbXNwLjE4Y29taWMudmlwL21lZGlhL3Bob3Rvcy8yMDQvMTEucG5n?p=near\",\"complete\":true,\"width\":720,\"status\":\"ready\"},{\"src\":\"jmimg://img/aHR0cHM6Ly9jZG4tbXNwLjE4Y29taWMudmlwL21lZGlhL3Bob3Rvcy8yMDQvMTIucG5n?p=near\",\"complete\":true,\"width\":720,\"status\":\"ready\"}]\n    at wait (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:170:11)\n    at async module.exports (D:\\soft\\Opencode\\JMComic\\scripts\\reader-workspace-smoke.cjs:109:3)\n    at async run (D:\\soft\\Opencode\\JMComic\\scripts\\reader-smoke.cjs:338:5)"
+  ],
+  "network": {
+    "api": 9,
+    "image": 30,
+    "blocked": 4
+  },
+  "summaryQueries": 0
+}

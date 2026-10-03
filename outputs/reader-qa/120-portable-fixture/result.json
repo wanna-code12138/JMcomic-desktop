@@ -1,0 +1,38 @@
+{
+  "executable": "D:\\soft\\Opencode\\JMComic\\outputs\\releases\\1.2.0\\JMComic Desktop Portable 1.2.0.exe",
+  "sha256": "37df45f0ec6fbf8de145443bf24bddb58add87a292ccd0cf2ecdeb2baaf350fd",
+  "mode": "direct packaged EXE / synthetic network and save dialog",
+  "assertions": [
+    "delivered EXE loads packaged main, preload, renderer and isolated data without a development loader",
+    "actual EXE accepts empty-series standalone albums and opens their detail from the category card",
+    "actual EXE downloads, descrambles all 23 golden rows, decodes jmlocal and exports CBZ with packaged archiver",
+    "actual pointer input opens the downloaded chapter and its first page is visible in the production reader",
+    "actual EXE has manual docked tools, preserves its book while hidden and closes its last tab with X",
+    "actual EXE launches its packaged PDF worker, restores scrambled pixels, and publishes a root-level PDF with packaged PDFKit",
+    "normal window close completes and exits the actual EXE with code 0"
+  ],
+  "errors": [],
+  "runtime": {
+    "packaged": true,
+    "version": "1.2.0",
+    "appPath": "C:\\Users\\David\\AppData\\Local\\Temp\\3K8nSwheY6BqprlZO0S01q2yIYL\\resources\\app.asar",
+    "userData": "D:\\soft\\Opencode\\JMComic\\work\\120-portable-fixture\\profile",
+    "electron": "43.2.0",
+    "node": "24.18.0"
+  },
+  "appArchiveSha256": "f9000fc7b2cff94e3e064f559717fc8e75212955dfa4d0a41da244a4a9992155",
+  "warmupAtStartup": {
+    "phase": "verifying",
+    "attempt": 1,
+    "reason": "startup",
+    "startedAt": 1790948117146
+  },
+  "workerInspections": [
+    {
+      "workerId": "1",
+      "type": "worker",
+      "title": "[worker 1] WorkerThread",
+      "url": "file:///C:/Users/David/AppData/Local/Temp/3K8nSwheY6BqprlZO0S01q2yIYL/resources/app.asar/out/main/pdfWorker.js"
+    }
+  ]
+}

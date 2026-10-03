@@ -1,0 +1,676 @@
+{
+  "runId": "110-resource-50-gpu-on-motion-off",
+  "mode": "hidden Chromium / production / synthetic network",
+  "assertions": [
+    {
+      "name": "real preload / IPC / encrypted API / jmimg / Chromium decode"
+    },
+    {
+      "name": "GPU startup preference, animation independence, one active reader, bounded images and zero idle animations",
+      "details": {
+        "gpu": {
+          "requested": true,
+          "runningPreference": true,
+          "restartRequired": false,
+          "initialized": true,
+          "hardwareActive": true,
+          "compositor": "enabled"
+        },
+        "motion": false,
+        "peakPrivateMB": 593.99609375
+      }
+    }
+  ],
+  "errors": [],
+  "network": {
+    "api": 7,
+    "image": 5,
+    "blocked": 7
+  },
+  "summaryQueries": 0,
+  "resourceMatrix": {
+    "scope": "Isolated hidden Electron, synthetic content, 50 new/close/hide/show cycles and 30000ms idle. Includes test fixture memory; CPU is an instantaneous process sample, not a GPU utilization or presented-FPS measurement.",
+    "cycles": 50,
+    "idleMs": 30000,
+    "gpu": {
+      "requested": true,
+      "runningPreference": true,
+      "restartRequired": false,
+      "initialized": true,
+      "hardwareActive": true,
+      "compositor": "enabled"
+    },
+    "motion": false,
+    "elapsedMs": 39469,
+    "samples": [
+      {
+        "phase": "before",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 161432,
+            "cpu": 0
+          },
+          {
+            "type": "GPU",
+            "privateKB": 327840,
+            "cpu": 0
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11872,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 74560,
+            "cpu": 0
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 6,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-1",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 161756,
+            "cpu": 1.5278951445371642
+          },
+          {
+            "type": "GPU",
+            "privateKB": 315252,
+            "cpu": 4.900111793806447
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11872,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 79072,
+            "cpu": 6.47239486588082
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 6,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-4",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 162644,
+            "cpu": 1.1287217675164405
+          },
+          {
+            "type": "GPU",
+            "privateKB": 315252,
+            "cpu": 0.12280551677285771
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11872,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 84368,
+            "cpu": 3.463999295683187
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 0,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-7",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 163848,
+            "cpu": 0.7759599930716958
+          },
+          {
+            "type": "GPU",
+            "privateKB": 315256,
+            "cpu": 0.1184515549504442
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11872,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 89628,
+            "cpu": 2.485873558403055
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 6,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-10",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 164972,
+            "cpu": 0.6408777783212926
+          },
+          {
+            "type": "GPU",
+            "privateKB": 313896,
+            "cpu": 0.19106663338146193
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11872,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 94964,
+            "cpu": 2.3508855154965214
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 6,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-13",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 165696,
+            "cpu": 1.0060096544783501
+          },
+          {
+            "type": "GPU",
+            "privateKB": 313692,
+            "cpu": 0.12816796580529374
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11872,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 96580,
+            "cpu": 2.012323515849372
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 6,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-16",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 167708,
+            "cpu": 0.9004762065374577
+          },
+          {
+            "type": "GPU",
+            "privateKB": 313692,
+            "cpu": 0.12060504364653579
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11872,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 98328,
+            "cpu": 2.500158099434004
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 0,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-19",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 168816,
+            "cpu": 0.7505389580270004
+          },
+          {
+            "type": "GPU",
+            "privateKB": 311424,
+            "cpu": 0.154352720908309
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11872,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 104948,
+            "cpu": 1.8461128930486908
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 6,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-22",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 170060,
+            "cpu": 0.7588630585957999
+          },
+          {
+            "type": "GPU",
+            "privateKB": 311424,
+            "cpu": 0.12088291071122752
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11872,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 114896,
+            "cpu": 2.071903172792604
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 6,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-25",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 171360,
+            "cpu": 0.9184145605528098
+          },
+          {
+            "type": "GPU",
+            "privateKB": 308416,
+            "cpu": 0.16316485094971878
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11872,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 115768,
+            "cpu": 2.1978723969400766
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 6,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-28",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 172460,
+            "cpu": 0.8593167162318218
+          },
+          {
+            "type": "GPU",
+            "privateKB": 308416,
+            "cpu": 0.13178172572232125
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11872,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 114564,
+            "cpu": 1.9693563980035236
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 6,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-31",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 163668,
+            "cpu": 1.3286831685412785
+          },
+          {
+            "type": "GPU",
+            "privateKB": 308644,
+            "cpu": 0.24476120581523628
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11884,
+            "cpu": 0.05824195026116196
+          },
+          {
+            "type": "Tab",
+            "privateKB": 115856,
+            "cpu": 2.5796147060045866
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 0,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-34",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 164296,
+            "cpu": 0.6024390313905463
+          },
+          {
+            "type": "GPU",
+            "privateKB": 308648,
+            "cpu": 0.10587884554119562
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11884,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 116428,
+            "cpu": 1.3365727487318568
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 0,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-37",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 165396,
+            "cpu": 0.6222372860667672
+          },
+          {
+            "type": "GPU",
+            "privateKB": 308680,
+            "cpu": 0.16302253523091462
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11884,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 116144,
+            "cpu": 1.4098201581854704
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 6,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-40",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 166640,
+            "cpu": 0.7968077202421978
+          },
+          {
+            "type": "GPU",
+            "privateKB": 308680,
+            "cpu": 0.09615598416107234
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11888,
+            "cpu": 0.0005211556777710658
+          },
+          {
+            "type": "Tab",
+            "privateKB": 118184,
+            "cpu": 2.039284721578801
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 6,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-43",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 167692,
+            "cpu": 0.5726505991079072
+          },
+          {
+            "type": "GPU",
+            "privateKB": 278820,
+            "cpu": 0.13932793740247346
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11888,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 118448,
+            "cpu": 1.4659175356779577
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 0,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-46",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 168776,
+            "cpu": 0.6316616183546429
+          },
+          {
+            "type": "GPU",
+            "privateKB": 276780,
+            "cpu": 0.15641975872944436
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11888,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 120720,
+            "cpu": 1.593199950071377
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 0,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "cycle-49",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 169884,
+            "cpu": 0.5540852846111152
+          },
+          {
+            "type": "GPU",
+            "privateKB": 276780,
+            "cpu": 0.0980418830260253
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11888,
+            "cpu": 0
+          },
+          {
+            "type": "Tab",
+            "privateKB": 122028,
+            "cpu": 1.9896747182565409
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 6,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      },
+      {
+        "phase": "settled",
+        "processes": [
+          {
+            "type": "Browser",
+            "privateKB": 152256,
+            "cpu": 0.191957307619114
+          },
+          {
+            "type": "GPU",
+            "privateKB": 216264,
+            "cpu": 0.15140810777264668
+          },
+          {
+            "type": "Utility",
+            "privateKB": 11820,
+            "cpu": 0.00010816383140843425
+          },
+          {
+            "type": "Tab",
+            "privateKB": 87468,
+            "cpu": 0.4143824962797394
+          }
+        ],
+        "renderer": {
+          "readers": 1,
+          "images": 6,
+          "tabs": 1,
+          "animations": 0,
+          "animationDetails": [],
+          "heap": 17100000
+        }
+      }
+    ],
+    "peakPrivateMB": 593.99609375
+  }
+}

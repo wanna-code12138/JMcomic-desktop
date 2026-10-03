@@ -1,10 +1,11 @@
-import { app, BrowserWindow, shell, ipcMain } from 'electron'
+import { app, BrowserWindow, dialog, shell, ipcMain } from 'electron'
+import { randomUUID } from 'crypto'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
-import { registerIpcHandlers } from './ipc'
-import { closeDatabase } from './database'
+import { registerIpcHandlers, waitForPersonalDataClear } from './ipc'
+import { registerPerformanceDiagnosticsIpc } from './performanceDiagnosticsIpc'
+import { closeDatabase, getDatabaseRecoveryNotice } from './database'
 import { startPeriodicProbe, applyManualProxy } from './networkProbe'
-import { warmupSession } from './sessionWarmup'
 import { registerImageProtocol, registerImageScheme } from './imageProtocol'
 import { registerLocalImageProtocol, registerLocalImageScheme } from './localImageProtocol'
 import { setImageCacheLimit } from './imageLoader'
@@ -12,10 +13,64 @@ import { getSettings } from './settingsStore'
 import type { AppSettings } from './settingsCore'
 import { applyWindowBackground, backgroundMaterialFor, windowBackgroundColorFor } from './windowChrome'
 import './downloadManager'
-import { initDownloadManager } from './downloadManager'
-import './contentApi'
+import { initDownloadManager, stopDownloadManager, resumeDownloadManager } from './downloadManager'
+import { createShutdownController } from './shutdownController'
+import { registerDownloadExport, stopDownloadExports, resumeDownloadExports } from './downloadExport'
+import { warmAnonymousContentProvider } from './contentApi'
+import { warmupSession } from './sessionWarmup'
+import { getAppDataDir, getPortableDir } from './dataPaths'
+import { readStartupPreferences, writeStartupPreferences } from './startupPreferences'
+import type { GraphicsStatus } from '../shared/graphicsContracts'
+import { registerPdfDownloads, initPdfDownloads, stopPdfDownloads, resumePdfDownloads } from './pdfDownloadManager'
+import { initializeAccount, closeOnlineAccount } from './account/accountRuntime'
+import { registerCommentIpc } from './comments/commentIpc'
+import { lockAccountDataDirectory } from './account/accountInstance'
+
+if (!lockAccountDataDirectory(app, getAppDataDir())) app.exit(0)
+
+const startupFile = join(getAppDataDir(), 'startup-preferences.json')
+const runningGraphics = readStartupPreferences(startupFile).hardwareAcceleration
+let requestedGraphics = runningGraphics
+let gpuInitialized = false
+if (!runningGraphics) app.disableHardwareAcceleration()
+app.on('gpu-info-update', () => {
+  gpuInitialized = true
+  for (const window of BrowserWindow.getAllWindows()) window.webContents.send('graphics:changed', graphicsStatus())
+})
+const graphicsStatus = (): GraphicsStatus => ({ requested: requestedGraphics, runningPreference: runningGraphics,
+  restartRequired: requestedGraphics !== runningGraphics, initialized: gpuInitialized,
+  hardwareActive: gpuInitialized ? app.isHardwareAccelerationEnabled() : null,
+  compositor: gpuInitialized ? app.getGPUFeatureStatus().gpu_compositing : 'initializing' })
 
 let mainWindow: BrowserWindow | null = null
+app.on('second-instance', () => {
+  if (mainWindow?.isMinimized()) mainWindow.restore()
+  mainWindow?.focus()
+})
+let shutdownComplete = false
+let shutdownRunning = false
+let restartRequested = false
+
+function saveRendererBeforeClose(): Promise<void> {
+  const contents = mainWindow?.webContents
+  if (!contents || contents.isDestroyed()) return Promise.resolve()
+  return new Promise((resolve, reject) => {
+    const id = randomUUID()
+    const cleanup = (): void => { clearTimeout(timer); ipcMain.removeListener('window:ready-close', ready) }
+    const ready = (event: Electron.IpcMainEvent, requestId: string, error?: string): void => {
+      if (event.sender !== contents || requestId !== id) return
+      cleanup()
+      if (error) reject(new Error(error)); else resolve()
+    }
+    const timer = setTimeout(() => { cleanup(); reject(new Error('阅读器尚未完成保存，请稍后重试关闭')) }, 5000)
+    ipcMain.on('window:ready-close', ready)
+    contents.send('window:prepare-close', id)
+  })
+}
+
+const shutdown = createShutdownController({ saveRenderer: saveRendererBeforeClose,
+  stopWork: async () => { await waitForPersonalDataClear(); await Promise.all([stopDownloadManager(), stopDownloadExports(), stopPdfDownloads()]) }, closeDatabase: () => closeDatabase(5000),
+  resumeWork: () => { resumeDownloadExports(); resumeDownloadManager(); resumePdfDownloads() } })
 
 // 必须在 app.ready 之前注册自定义协议为 standard scheme，
 // 否则 jmimg:// 的 URL 解析行为不确定，会导致图片加载失败。
@@ -58,6 +113,9 @@ function createWindow(settings: AppSettings): void {
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show()
   })
+  mainWindow.on('close', (event) => {
+    if (!shutdownComplete) { event.preventDefault(); app.quit() }
+  })
 
   mainWindow.on('maximize', () => {
     mainWindow?.webContents.send('window:maximizeChange', true)
@@ -70,6 +128,9 @@ function createWindow(settings: AppSettings): void {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (url !== mainWindow?.webContents.getURL()) event.preventDefault()
+  })
 
   // Dev or production
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -81,48 +142,71 @@ function createWindow(settings: AppSettings): void {
 
 app.whenReady().then(async () => {
   registerIpcHandlers()
+  registerDownloadExport()
+  registerPdfDownloads()
+  registerPerformanceDiagnosticsIpc()
   registerImageProtocol()
   registerLocalImageProtocol()
   startPeriodicProbe()
 
   const settings = await getSettings()
   setImageCacheLimit(settings.cacheLimitMb * 1024 * 1024)
-
-  createWindow(settings)
-  applyWindowBackground(settings)
   await applyManualProxy(settings.proxyEnabled, settings.proxyUrl)
 
-  // Warm up session in background — bypass Cloudflare
-  // 主窗口必须先创建，warmup 会把验证视图内嵌到主窗口内容区
-  if (mainWindow) {
-    warmupSession(mainWindow).then(() => {
-      // 会话就绪后再恢复未完成任务，避免续传时抓取失败
-      initDownloadManager()
-      // Send status update to renderer
-      BrowserWindow.getAllWindows().forEach((w) => {
-        w.webContents.send('app:warmupDone')
-      })
-    })
-  } else {
-    initDownloadManager()
-  }
+  createWindow(settings)
+  initializeAccount(() => mainWindow?.webContents)
+  registerCommentIpc(() => mainWindow?.webContents)
+  if (mainWindow) void warmupSession(mainWindow).catch(error => console.error('[startup] verification failed:', error))
+  const recoveryNotice = getDatabaseRecoveryNotice()
+  if (recoveryNotice) void dialog.showMessageBox({ type: 'info', title: '个人数据已恢复', message: recoveryNotice })
+  applyWindowBackground(settings)
+  // Verification starts with the window; local task recovery remains independent.
+  void warmAnonymousContentProvider()
+  initDownloadManager()
+  initPdfDownloads()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       getSettings().then((s) => createWindow(s))
     }
   })
+}).catch((error) => {
+  dialog.showErrorBox('无法读取个人数据', error instanceof Error ? error.message : String(error))
+  app.exit(1)
 })
 
-app.on('window-all-closed', () => {
-  closeDatabase()
-  if (process.platform !== 'darwin') {
+app.on('before-quit', (event) => {
+  if (shutdownComplete) return
+  event.preventDefault()
+  if (shutdownRunning) return
+  shutdownRunning = true
+  void shutdown.prepare().then(async () => {
+    await closeOnlineAccount().catch(() => {})
+    shutdownComplete = true
+    if (restartRequested) {
+      const portableFile = process.env.PORTABLE_EXECUTABLE_FILE
+      app.relaunch(portableFile && getPortableDir() ? { execPath: portableFile, args: [] } : undefined)
+    }
     app.quit()
-  }
+  }).catch((error) => {
+    shutdownRunning = false
+    restartRequested = false
+    mainWindow?.webContents.send('window:close-cancelled')
+    void dialog.showMessageBox({ type: 'error', title: '尚未完成保存', message: String(error), detail: '窗口已保留，请检查磁盘空间后重新关闭。' })
+  })
 })
+
+app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit() })
 
 // Window control IPC
 ipcMain.handle('window:minimize', () => mainWindow?.minimize())
+ipcMain.handle('graphics:get', graphicsStatus)
+ipcMain.handle('graphics:set', async (_event, enabled: boolean) => {
+  await writeStartupPreferences(startupFile, enabled)
+  requestedGraphics = enabled
+  return graphicsStatus()
+})
+ipcMain.handle('app:restart', () => { restartRequested = true; app.quit() })
 ipcMain.handle('window:maximize', () => {
   if (mainWindow?.isMaximized()) {
     mainWindow.unmaximize()

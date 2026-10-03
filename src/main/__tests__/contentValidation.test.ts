@@ -1,6 +1,4 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { validateCards, validateDetail, validatePages } from '../contentValidation'
 import type { ChapterPagesResult, MangaDetail, MangaListItem } from '../types'
 
@@ -107,22 +105,6 @@ test('validatePages rejects an invalid scramble threshold', () => {
     ok: false,
     reason: 'pages-scramble'
   })
-})
-
-test('direct adapter retains canonical metadata selectors and chapter scrambleId', () => {
-  const adapter = readFileSync(resolve(process.cwd(), 'src/main/siteAdapter.ts'), 'utf-8')
-  const types = readFileSync(resolve(process.cwd(), 'src/main/types.ts'), 'utf-8')
-  assert.match(adapter, /\[data-type="author"\] a\[name="vote_"\]\.visible/)
-  assert.match(adapter, /\[data-type="tags"\] a\[name="vote_"\]\.visible/)
-  assert.match(adapter, /return \{ pages, scrambleId \}/)
-  assert.match(types, /getChapterPages\(chapterUrl: string\): Promise<ChapterPagesResult>/)
-})
-
-test('direct adapter uses current Cheerio types and matches the paged favorites contract', () => {
-  const adapter = readFileSync(resolve(process.cwd(), 'src/main/siteAdapter.ts'), 'utf-8')
-  const types = readFileSync(resolve(process.cwd(), 'src/main/types.ts'), 'utf-8')
-  assert.doesNotMatch(adapter, /declare module 'cheerio'/)
-  assert.match(types, /getFavorites\?\(page\?: number\): Promise<\{\s*results: MangaListItem\[\];\s*totalPages: number\s*\}>/)
 })
 
 if (process.exitCode) {

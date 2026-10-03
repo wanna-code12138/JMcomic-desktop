@@ -1,0 +1,670 @@
+{
+  "verifiedAtUtc": "2026-09-29T10:20:00.311549+00:00",
+  "status": "pass",
+  "pdfSha256": "0d1e0b9d702f58f4ecc319f0eab05131215c26b1e3beb8795748371cc3554e01",
+  "pdfBytes": 161996,
+  "writerObservedSha256": "3ace50df729ded3095d8c215fb8b9a2062f5538d0f979a48cb4c6de09d51b6a2",
+  "writerLastModifiedUtc": "2026-09-29T09:36:58.135914+00:00",
+  "pageCount": 3,
+  "outline": [
+    {
+      "title": "01 Landscape JPEG",
+      "page": 1
+    },
+    {
+      "title": "02 Transparent PNG",
+      "page": 2
+    },
+    {
+      "title": "03 EXIF orientation 6 JPEG",
+      "page": 3
+    }
+  ],
+  "pages": [
+    {
+      "page": 1,
+      "filename": "landscape.jpg",
+      "encodedPixels": [
+        1200,
+        600
+      ],
+      "mode": "RGB",
+      "exifOrientation": null,
+      "expectedDisplayPixels": [
+        1200,
+        600
+      ],
+      "expectedPagePoints": [
+        900,
+        450
+      ],
+      "pagePoints": [
+        900.0,
+        450.0
+      ],
+      "renderedPixels": [
+        1200,
+        600
+      ],
+      "cropEqualsMedia": true,
+      "pageRotate": 0,
+      "pageContent": "1 0 0 -1 0 450 cm\nq\n900 0 0 -450 0 450 cm\n/I1 Do\nQ\n",
+      "meanAbsoluteRenderChannelDifference": [
+        1.353475,
+        1.272536111111111,
+        1.2272041666666667
+      ],
+      "flatRegionAndBorderProbes": [
+        {
+          "xy": [
+            50,
+            45
+          ],
+          "actualRGB": [
+            222,
+            59,
+            54
+          ],
+          "expectedRGB": [
+            222,
+            59,
+            54
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            1150,
+            45
+          ],
+          "actualRGB": [
+            35,
+            170,
+            104
+          ],
+          "expectedRGB": [
+            35,
+            170,
+            104
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            50,
+            550
+          ],
+          "actualRGB": [
+            40,
+            109,
+            204
+          ],
+          "expectedRGB": [
+            40,
+            109,
+            204
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            1150,
+            550
+          ],
+          "actualRGB": [
+            232,
+            177,
+            50
+          ],
+          "expectedRGB": [
+            232,
+            177,
+            50
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            600,
+            250
+          ],
+          "actualRGB": [
+            115,
+            60,
+            205
+          ],
+          "expectedRGB": [
+            115,
+            60,
+            205
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            2,
+            300
+          ],
+          "actualRGB": [
+            23,
+            27,
+            36
+          ],
+          "expectedRGB": [
+            23,
+            27,
+            36
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            1197,
+            300
+          ],
+          "actualRGB": [
+            23,
+            27,
+            36
+          ],
+          "expectedRGB": [
+            23,
+            27,
+            36
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            600,
+            2
+          ],
+          "actualRGB": [
+            23,
+            27,
+            36
+          ],
+          "expectedRGB": [
+            23,
+            27,
+            36
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            600,
+            597
+          ],
+          "actualRGB": [
+            23,
+            27,
+            36
+          ],
+          "expectedRGB": [
+            23,
+            27,
+            36
+          ],
+          "maxDelta": 0
+        }
+      ],
+      "jpegSourceBytesPreserved": true
+    },
+    {
+      "page": 2,
+      "filename": "transparent.png",
+      "encodedPixels": [
+        800,
+        1000
+      ],
+      "mode": "RGBA",
+      "exifOrientation": null,
+      "expectedDisplayPixels": [
+        800,
+        1000
+      ],
+      "expectedPagePoints": [
+        600,
+        750
+      ],
+      "pagePoints": [
+        600.0,
+        750.0
+      ],
+      "renderedPixels": [
+        800,
+        1000
+      ],
+      "cropEqualsMedia": true,
+      "pageRotate": 0,
+      "pageContent": "1 0 0 -1 0 750 cm\nq\n600 0 0 -750 0 750 cm\n/I2 Do\nQ\n",
+      "meanAbsoluteRenderChannelDifference": [
+        2.15524375,
+        2.038065,
+        1.94853375
+      ],
+      "flatRegionAndBorderProbes": [
+        {
+          "xy": [
+            40,
+            160
+          ],
+          "actualRGB": [
+            255,
+            255,
+            255
+          ],
+          "expectedRGB": [
+            255,
+            255,
+            255
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            400,
+            770
+          ],
+          "actualRGB": [
+            255,
+            255,
+            255
+          ],
+          "expectedRGB": [
+            255,
+            255,
+            255
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            400,
+            980
+          ],
+          "actualRGB": [
+            255,
+            255,
+            255
+          ],
+          "expectedRGB": [
+            255,
+            255,
+            255
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            180,
+            300
+          ],
+          "actualRGB": [
+            220,
+            40,
+            40
+          ],
+          "expectedRGB": [
+            220,
+            40,
+            40
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            400,
+            300
+          ],
+          "actualRGB": [
+            40,
+            180,
+            70
+          ],
+          "expectedRGB": [
+            40,
+            180,
+            70
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            620,
+            300
+          ],
+          "actualRGB": [
+            40,
+            85,
+            220
+          ],
+          "expectedRGB": [
+            40,
+            85,
+            220
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            180,
+            600
+          ],
+          "actualRGB": [
+            237,
+            147,
+            147
+          ],
+          "expectedRGB": [
+            237,
+            147,
+            147
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            400,
+            600
+          ],
+          "actualRGB": [
+            147,
+            217,
+            162
+          ],
+          "expectedRGB": [
+            147,
+            217,
+            162
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            620,
+            600
+          ],
+          "actualRGB": [
+            147,
+            170,
+            237
+          ],
+          "expectedRGB": [
+            147,
+            170,
+            237
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            0,
+            500
+          ],
+          "actualRGB": [
+            23,
+            28,
+            36
+          ],
+          "expectedRGB": [
+            23,
+            28,
+            36
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            799,
+            500
+          ],
+          "actualRGB": [
+            23,
+            28,
+            36
+          ],
+          "expectedRGB": [
+            23,
+            28,
+            36
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            400,
+            0
+          ],
+          "actualRGB": [
+            23,
+            28,
+            36
+          ],
+          "expectedRGB": [
+            23,
+            28,
+            36
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            400,
+            999
+          ],
+          "actualRGB": [
+            23,
+            28,
+            36
+          ],
+          "expectedRGB": [
+            23,
+            28,
+            36
+          ],
+          "maxDelta": 0
+        }
+      ],
+      "allRgbPixelsPreserved": true,
+      "allAlphaPixelsPreserved": true
+    },
+    {
+      "page": 3,
+      "filename": "orientation6.jpg",
+      "encodedPixels": [
+        900,
+        600
+      ],
+      "mode": "RGB",
+      "exifOrientation": 6,
+      "expectedDisplayPixels": [
+        600,
+        900
+      ],
+      "expectedPagePoints": [
+        450,
+        675
+      ],
+      "pagePoints": [
+        450.0,
+        675.0
+      ],
+      "renderedPixels": [
+        600,
+        900
+      ],
+      "cropEqualsMedia": true,
+      "pageRotate": 0,
+      "pageContent": "1 0 0 -1 0 675 cm\nq\n0 1 -1 0 0 0 cm\n675 0 0 -450 0 0 cm\n/I3 Do\nQ\n",
+      "meanAbsoluteRenderChannelDifference": [
+        0.5613648148148148,
+        0.5609185185185185,
+        0.47601481481481484
+      ],
+      "flatRegionAndBorderProbes": [
+        {
+          "xy": [
+            50,
+            45
+          ],
+          "actualRGB": [
+            222,
+            59,
+            54
+          ],
+          "expectedRGB": [
+            222,
+            59,
+            54
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            550,
+            45
+          ],
+          "actualRGB": [
+            35,
+            170,
+            104
+          ],
+          "expectedRGB": [
+            35,
+            170,
+            104
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            50,
+            850
+          ],
+          "actualRGB": [
+            40,
+            109,
+            204
+          ],
+          "expectedRGB": [
+            40,
+            109,
+            204
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            550,
+            850
+          ],
+          "actualRGB": [
+            232,
+            177,
+            50
+          ],
+          "expectedRGB": [
+            232,
+            177,
+            50
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            300,
+            400
+          ],
+          "actualRGB": [
+            115,
+            60,
+            205
+          ],
+          "expectedRGB": [
+            115,
+            60,
+            205
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            2,
+            450
+          ],
+          "actualRGB": [
+            23,
+            27,
+            36
+          ],
+          "expectedRGB": [
+            23,
+            27,
+            36
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            597,
+            450
+          ],
+          "actualRGB": [
+            23,
+            27,
+            36
+          ],
+          "expectedRGB": [
+            23,
+            27,
+            36
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            300,
+            2
+          ],
+          "actualRGB": [
+            23,
+            27,
+            36
+          ],
+          "expectedRGB": [
+            23,
+            27,
+            36
+          ],
+          "maxDelta": 0
+        },
+        {
+          "xy": [
+            300,
+            897
+          ],
+          "actualRGB": [
+            23,
+            27,
+            36
+          ],
+          "expectedRGB": [
+            23,
+            27,
+            36
+          ],
+          "maxDelta": 0
+        }
+      ],
+      "jpegSourceBytesPreserved": true
+    }
+  ],
+  "limits": [
+    "Writer invoked directly using installed tsx and current source.",
+    "This is not download manager, worker, WebP decoder, or UI end-to-end verification.",
+    "Only EXIF orientation 6 was covered, not the other EXIF orientations.",
+    "No large image memory or GPU performance claim is made."
+  ]
+}

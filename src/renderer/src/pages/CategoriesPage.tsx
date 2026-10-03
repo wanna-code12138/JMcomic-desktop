@@ -6,9 +6,11 @@ import {
 } from '@fluentui/react-components'
 import {
   ArrowPrevious20Regular, ArrowNext20Regular,
-  Dismiss20Regular, Search20Regular
+  Dismiss20Regular, Search20Regular, Warning20Regular, Library20Regular
 } from '@fluentui/react-icons'
 import { MangaCard, type MangaCardData } from '../components'
+import { usePageSnapshot } from '../navigation/pageStateCache'
+import { pageTitle, emptyState } from '../theme/surfaceStyles'
 import {
   CATEGORIES, ORDERS, TIMES, POPULAR_TAGS,
   type CategoryOption
@@ -16,7 +18,7 @@ import {
 
 const useStyles = makeStyles({
   root: { padding: '24px', height: '100%', overflow: 'auto' },
-  title: { marginBottom: '16px', display: 'block', color: 'var(--ui-text-primary)' },
+  title: { ...pageTitle, marginBottom: '20px' },
   filterBar: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -34,7 +36,7 @@ const useStyles = makeStyles({
     fontSize: '12px',
     color: 'var(--ui-text-secondary)',
     fontWeight: 600,
-    paddingLeft: '4px'
+    lineHeight: 'var(--ui-line-caption)'
   },
   tagSection: { marginBottom: '16px' },
   tagHeader: {
@@ -57,7 +59,7 @@ const useStyles = makeStyles({
     gap: '4px',
     height: '30px',
     padding: '0 12px',
-    borderRadius: 'var(--ui-radius-lg)',
+    borderRadius: 'var(--ui-radius-md)',
     backgroundColor: 'var(--ui-bg-card)',
     border: '1px solid var(--ui-stroke-card)',
     color: 'var(--ui-text-secondary)',
@@ -122,15 +124,7 @@ const useStyles = makeStyles({
     gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
     gap: '16px'
   },
-  statusMsg: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '60px 0',
-    color: 'var(--ui-text-tertiary)',
-    gap: '12px'
-  },
+  statusMsg: emptyState,
   pagination: {
     display: 'flex',
     alignItems: 'center',
@@ -186,6 +180,16 @@ export default function CategoriesPage(): JSX.Element {
   const [page, setPage] = React.useState(1)
   const [totalPages, setTotalPages] = React.useState(1)
   const [hasSearched, setHasSearched] = React.useState(false)
+  const rootRef = React.useRef<HTMLDivElement | null>(null)
+
+  usePageSnapshot('categories', rootRef, () => ({ category, subCategory, order, time, selectedTag, page }), (filters: any) => {
+    if (filters?.category) setCategory(filters.category)
+    if (filters?.subCategory !== undefined) setSubCategory(filters.subCategory)
+    if (filters?.order) setOrder(filters.order)
+    if (filters?.time) setTime(filters.time)
+    if (filters?.selectedTag !== undefined) setSelectedTag(filters.selectedTag)
+    if (typeof filters?.page === 'number') setPage(filters.page)
+  })
 
   const currentCat: CategoryOption | undefined = CATEGORIES.find((c) => c.value === category)
   const showSubCategory = !!(currentCat?.subCategories && currentCat.subCategories.length > 0)
@@ -275,8 +279,8 @@ export default function CategoriesPage(): JSX.Element {
   }
 
   return (
-    <div className={styles.root}>
-      <Text size={600} weight="semibold" className={styles.title}>分类浏览</Text>
+    <div className={styles.root} ref={rootRef}>
+      <Text size={600} weight="semibold" className={`${styles.title} ui-page-title`}>分类浏览</Text>
 
       <div className={styles.filterBar}>
         <div className={styles.filterItem}>
@@ -387,7 +391,8 @@ export default function CategoriesPage(): JSX.Element {
 
       {!loading && error && (
         <div className={styles.statusMsg}>
-          <Text size={500} weight="semibold">⚠️ {error === '当前筛选条件下没有漫画' ? '暂无漫画' : '加载出错'}</Text>
+          <Warning20Regular aria-hidden="true" />
+          <Text size={400} weight="semibold">{error === '当前筛选条件下没有漫画' ? '暂无漫画' : '加载出错'}</Text>
           <Text size={300} style={{ maxWidth: '600px', textAlign: 'center' }}>{error}</Text>
         </div>
       )}
@@ -428,8 +433,9 @@ export default function CategoriesPage(): JSX.Element {
 
       {!loading && !error && hasSearched && results.length === 0 && (
         <div className={styles.statusMsg}>
+          <Library20Regular aria-hidden="true" />
           <Text size={400}>当前筛选条件下没有漫画</Text>
-          <Text size={200} style={{ opacity: 0.6 }}>试试切换类型或清除标签</Text>
+          <Text size={200}>试试切换类型或清除标签</Text>
         </div>
       )}
     </div>

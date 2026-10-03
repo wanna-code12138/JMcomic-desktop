@@ -2,35 +2,13 @@ import React from 'react'
 import { makeStyles, mergeClasses } from '@fluentui/react-components'
 import { Heart20Regular, Heart20Filled } from '@fluentui/react-icons'
 import { useAppStore } from '../stores/appStore'
-import { toJmImg } from '../utils/image'
-
-// ── 模块级收藏缓存 ──
-// 避免了在漫画网格中，每个 MangaCard 都单独发起一次 IPC 查询收藏列表。
-// 首次加载时发起一次请求，后续组件共享同一结果。增删收藏时清空缓存。
-let _favIdsCache: string[] | null = null
-let _favIdsLoading: Promise<string[]> | null = null
-
-async function getFavoriteIds(): Promise<string[]> {
-  if (_favIdsCache) return _favIdsCache
-  if (_favIdsLoading) return _favIdsLoading
-
-  _favIdsLoading = (async () => {
-    const list = await window.electronAPI?.favoritesList()
-    _favIdsCache = (list ?? []).map((f: any) => f.manga_id)
-    return _favIdsCache
-  })()
-  return _favIdsLoading
-}
-
-function invalidateFavCache(): void {
-  _favIdsCache = null
-  _favIdsLoading = null
-}
-
-// ── 样式 ──────────────────────────────────────────────────
+import { useFavoritesStore, useIsFavorite } from '../stores/favoritesStore'
+import { toProxyUrl } from '../utils/image'
+import { caption } from '../theme/surfaceStyles'
 
 const useStyles = makeStyles({
   card: {
+    position: 'relative',
     cursor: 'pointer',
     borderRadius: 'var(--ui-radius-lg)',
     transition: 'background-color var(--ui-motion-fast) ease-out, opacity var(--ui-motion-fast) ease-out',
@@ -75,20 +53,16 @@ const useStyles = makeStyles({
     justifyContent: 'center',
     backgroundColor: 'var(--ui-bg-dialog)',
     border: '1px solid var(--ui-stroke-card)',
-    color: 'var(--ui-danger)',
+    color: 'var(--ui-favorite)',
     cursor: 'pointer',
-    opacity: 0,
-    transition: 'opacity var(--ui-motion-fast) ease-out, background-color var(--ui-motion-fast) ease-out',
     zIndex: 2,
     ':hover': {
       backgroundColor: 'var(--ui-bg-hover)'
     },
     ':focus': {
-      opacity: 1
+      outline: '2px solid var(--ui-brand)',
+      outlineOffset: '2px'
     }
-  },
-  favBtnVisible: {
-    opacity: 1
   },
   cardTitle: {
     fontSize: '14px',
@@ -103,13 +77,10 @@ const useStyles = makeStyles({
     color: 'var(--ui-text-primary)'
   },
   cardMeta: {
-    fontSize: '12px',
-    color: 'var(--ui-text-tertiary)',
+    ...caption,
     marginTop: '4px'
   }
 })
-
-// ── 组件 ──────────────────────────────────────────────────
 
 export interface MangaCardData {
   id: string
@@ -119,73 +90,68 @@ export interface MangaCardData {
   latestChapter?: string
 }
 
-export default function MangaCard({ manga, onClick }: { manga: MangaCardData; onClick?: (id: string) => void; index?: number }): JSX.Element {
+export default function MangaCard({
+  manga,
+  onClick
+}: {
+  manga: MangaCardData
+  onClick?: (id: string) => void
+  index?: number
+}): JSX.Element {
   const styles = useStyles()
   const setCurrentMangaId = useAppStore((s) => s.setCurrentMangaId)
-
-  const [liked, setLiked] = React.useState(false)
-  const [hovered, setHovered] = React.useState(false)
+  const isFavorite = useIsFavorite(manga.id)
+  const toggleFavorite = useFavoritesStore((s) => s.toggleFavorite)
   const [imgLoaded, setImgLoaded] = React.useState(false)
 
+  // 挂载时触发一次单实例异步初始化
   React.useEffect(() => {
-    let cancelled = false
-    async function check(): Promise<void> {
-      const ids = await getFavoriteIds()
-      if (!cancelled) setLiked(ids.includes(manga.id))
-    }
-    check()
-    return () => { cancelled = true }
-  }, [manga.id])
+    void useFavoritesStore.getState().initialize()
+  }, [])
 
-  const handleFavClick = async (e: React.MouseEvent): Promise<void> => {
+  const handleFavClick = async (e: React.MouseEvent | React.KeyboardEvent): Promise<void> => {
     e.stopPropagation()
-    if (!window.electronAPI) return
-    const wasLiked = liked
-    setLiked(!wasLiked)
-    invalidateFavCache()
-    try {
-      if (wasLiked) {
-        await window.electronAPI.favoritesRemove(manga.id)
-      } else {
-        await window.electronAPI.favoritesAdd({
-          mangaId: manga.id,
-          title: manga.title,
-          coverUrl: manga.coverUrl
-        })
-      }
-    } catch {
-      setLiked(wasLiked)
-      invalidateFavCache()
-    }
+    await toggleFavorite({
+      mangaId: manga.id,
+      title: manga.title,
+      coverUrl: manga.coverUrl
+    })
   }
 
   return (
     <div
-      className={styles.card}
+      className={mergeClasses(styles.card, 'manga-card')}
       role="button"
       tabIndex={0}
-      onClick={() => onClick ? onClick(manga.id) : setCurrentMangaId(manga.id)}
-      onKeyDown={(e) => { if (e.key === 'Enter') onClick ? onClick(manga.id) : setCurrentMangaId(manga.id) }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onClick={() => (onClick ? onClick(manga.id) : setCurrentMangaId(manga.id))}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          onClick ? onClick(manga.id) : setCurrentMangaId(manga.id)
+        }
+      }}
     >
       <div className={styles.imageWrap}>
         <img
           className={mergeClasses(styles.cardImage, imgLoaded && styles.cardImageLoaded)}
-          src={toJmImg(manga.coverUrl)}
+          src={toProxyUrl(manga.coverUrl, 'visible-grid')}
           alt={manga.title}
           loading="lazy"
           onLoad={() => setImgLoaded(true)}
         />
-        <div
-          className={mergeClasses(styles.favBtn, (hovered || liked) && styles.favBtnVisible)}
+        <button
+          type="button"
+          aria-label={isFavorite ? '取消收藏' : '收藏'}
+          className={mergeClasses(styles.favBtn, 'manga-card-fav-btn', isFavorite && 'is-active')}
           onClick={handleFavClick}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); void handleFavClick(e as unknown as React.MouseEvent) } }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.stopPropagation()
+              void handleFavClick(e)
+            }
+          }}
         >
-          {liked ? <Heart20Filled style={{ color: '#ff4d4f' }} /> : <Heart20Regular />}
-        </div>
+          {isFavorite ? <Heart20Filled /> : <Heart20Regular />}
+        </button>
       </div>
       <div className={styles.cardTitle}>{manga.title}</div>
       <div className={styles.cardMeta}>

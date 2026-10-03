@@ -1,0 +1,6 @@
+
+(node:3776) electron: Failed to load URL: https://18comic.vip/ with error: ERR_BLOCKED_BY_CLIENT
+(Use `electron --trace-warnings ...` to show where the warning was created)
+QA PASS: real preload / IPC / encrypted API / jmimg / Chromium decode
+QA PASS: four window/theme layouts keep reader controls inside bounds at forced display scale
+QA RESULT=0 evidence=D:\soft\Opencode\JMComic\outputs\reader-qa\120-dpi-1.25

@@ -6,6 +6,7 @@ out/
 dist/
 dist-electron/
 release/
+outputs/releases/
 
 # IDE
 .vscode/
