@@ -1,0 +1,68 @@
+{
+  "main_sha": "574e19d8e3b4d20b45d04ea5b39822c81aa420c4",
+  "pull_requests": [
+    {
+      "number": 1,
+      "state": "closed",
+      "merged": false,
+      "merged_at": null,
+      "merge_commit_sha": "7a7dc2fd2158e27479901af1eae240466f0e38c0",
+      "branch": "dependabot/npm_and_yarn/multi-d8ec5a502f",
+      "url": "https://github.com/wanna-code12138/JMcomic-desktop/pull/1"
+    },
+    {
+      "number": 2,
+      "state": "closed",
+      "merged": true,
+      "merged_at": "2026-10-03T13:16:47Z",
+      "merge_commit_sha": "574e19d8e3b4d20b45d04ea5b39822c81aa420c4",
+      "branch": "dependabot/npm_and_yarn/autoprefixer-10.5.4",
+      "url": "https://github.com/wanna-code12138/JMcomic-desktop/pull/2"
+    },
+    {
+      "number": 3,
+      "state": "closed",
+      "merged": true,
+      "merged_at": "2026-10-03T13:16:47Z",
+      "merge_commit_sha": "574e19d8e3b4d20b45d04ea5b39822c81aa420c4",
+      "branch": "dependabot/npm_and_yarn/socks-proxy-agent-10.1.0",
+      "url": "https://github.com/wanna-code12138/JMcomic-desktop/pull/3"
+    },
+    {
+      "number": 4,
+      "state": "closed",
+      "merged": false,
+      "merged_at": null,
+      "merge_commit_sha": null,
+      "branch": "dependabot/npm_and_yarn/multi-9b1536b8cd",
+      "url": "https://github.com/wanna-code12138/JMcomic-desktop/pull/4"
+    },
+    {
+      "number": 5,
+      "state": "closed",
+      "merged": true,
+      "merged_at": "2026-10-03T13:16:47Z",
+      "merge_commit_sha": "574e19d8e3b4d20b45d04ea5b39822c81aa420c4",
+      "branch": "dependabot/npm_and_yarn/electron-vite-5.0.0",
+      "url": "https://github.com/wanna-code12138/JMcomic-desktop/pull/5"
+    },
+    {
+      "number": 6,
+      "state": "closed",
+      "merged": true,
+      "merged_at": "2026-10-03T13:16:47Z",
+      "merge_commit_sha": "574e19d8e3b4d20b45d04ea5b39822c81aa420c4",
+      "branch": "dependabot/github_actions/actions/setup-node-7",
+      "url": "https://github.com/wanna-code12138/JMcomic-desktop/pull/6"
+    },
+    {
+      "number": 7,
+      "state": "closed",
+      "merged": true,
+      "merged_at": "2026-10-03T13:16:47Z",
+      "merge_commit_sha": "574e19d8e3b4d20b45d04ea5b39822c81aa420c4",
+      "branch": "dependabot/github_actions/actions/checkout-7",
+      "url": "https://github.com/wanna-code12138/JMcomic-desktop/pull/7"
+    }
+  ]
+}
