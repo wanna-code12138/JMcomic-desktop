@@ -1,0 +1,205 @@
+[
+  {
+    "number": 1,
+    "title": "chore(deps-dev): bump react-dom and @types/react-dom",
+    "state": "closed",
+    "merged": false,
+    "sha": "ff1b52f2ad020c1adc16f18687aee09f218574e9",
+    "base": "bb84e76d8a3af41f9deb523ff8b34fcbaeb20971",
+    "mergeable": null,
+    "mergeable_state": "unknown",
+    "files": [
+      {
+        "file": "package-lock.json",
+        "changes": 34
+      },
+      {
+        "file": "package.json",
+        "changes": 4
+      }
+    ],
+    "checks": [
+      {
+        "id": 97235498876,
+        "name": "test-and-build",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/wanna-code12138/JMcomic-desktop/actions/runs/32656312970/job/97235498876"
+      }
+    ]
+  },
+  {
+    "number": 2,
+    "title": "chore(deps-dev): bump autoprefixer from 10.5.2 to 10.5.4",
+    "state": "open",
+    "merged": false,
+    "sha": "a65e11027c474234219aaebc9720dadf8885bd98",
+    "base": "d1c0c27f5e8f04241ee8f5c5b791c6bf5fd6f7d6",
+    "mergeable": true,
+    "mergeable_state": "clean",
+    "files": [
+      {
+        "file": "package-lock.json",
+        "changes": 58
+      },
+      {
+        "file": "package.json",
+        "changes": 2
+      }
+    ],
+    "checks": [
+      {
+        "id": 111200955610,
+        "name": "test-and-build",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/wanna-code12138/JMcomic-desktop/actions/runs/37122402776/job/111200955610"
+      }
+    ]
+  },
+  {
+    "number": 3,
+    "title": "chore(deps): bump socks-proxy-agent from 8.0.5 to 10.1.0",
+    "state": "open",
+    "merged": false,
+    "sha": "2c42cf94c1ab0e9eb749a2323f6935964a650380",
+    "base": "d1c0c27f5e8f04241ee8f5c5b791c6bf5fd6f7d6",
+    "mergeable": true,
+    "mergeable_state": "clean",
+    "files": [
+      {
+        "file": "package-lock.json",
+        "changes": 21
+      },
+      {
+        "file": "package.json",
+        "changes": 2
+      }
+    ],
+    "checks": [
+      {
+        "id": 111201931296,
+        "name": "test-and-build",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/wanna-code12138/JMcomic-desktop/actions/runs/37122744989/job/111201931296"
+      }
+    ]
+  },
+  {
+    "number": 4,
+    "title": "chore(deps-dev): bump react and @types/react",
+    "state": "closed",
+    "merged": false,
+    "sha": "b3b53f388c455dd3e8d2295b779e12599b7edfb6",
+    "base": "bb84e76d8a3af41f9deb523ff8b34fcbaeb20971",
+    "mergeable": null,
+    "mergeable_state": "unknown",
+    "files": [
+      {
+        "file": "package-lock.json",
+        "changes": 1248
+      },
+      {
+        "file": "package.json",
+        "changes": 4
+      }
+    ],
+    "checks": [
+      {
+        "id": 97235571741,
+        "name": "test-and-build",
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/wanna-code12138/JMcomic-desktop/actions/runs/32656344315/job/97235571741"
+      }
+    ]
+  },
+  {
+    "number": 5,
+    "title": "chore(deps-dev): bump electron-vite from 2.3.0 to 5.0.0",
+    "state": "open",
+    "merged": false,
+    "sha": "718c0ef9e0e1777e38f0d02351d41b73e305a9b2",
+    "base": "d1c0c27f5e8f04241ee8f5c5b791c6bf5fd6f7d6",
+    "mergeable": true,
+    "mergeable_state": "clean",
+    "files": [
+      {
+        "file": "package-lock.json",
+        "changes": 506
+      },
+      {
+        "file": "package.json",
+        "changes": 2
+      }
+    ],
+    "checks": [
+      {
+        "id": 111202961118,
+        "name": "test-and-build",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/wanna-code12138/JMcomic-desktop/actions/runs/37123112196/job/111202961118"
+      }
+    ]
+  },
+  {
+    "number": 6,
+    "title": "chore(deps): bump actions/setup-node from 4 to 7",
+    "state": "open",
+    "merged": false,
+    "sha": "d4543034918b91b90c792a38ac5ac8ccac96bec9",
+    "base": "d1c0c27f5e8f04241ee8f5c5b791c6bf5fd6f7d6",
+    "mergeable": true,
+    "mergeable_state": "clean",
+    "files": [
+      {
+        "file": ".github/workflows/ci.yml",
+        "changes": 2
+      },
+      {
+        "file": ".github/workflows/release.yml",
+        "changes": 2
+      }
+    ],
+    "checks": [
+      {
+        "id": 111203057404,
+        "name": "test-and-build",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/wanna-code12138/JMcomic-desktop/actions/runs/37123146163/job/111203057404"
+      }
+    ]
+  },
+  {
+    "number": 7,
+    "title": "chore(deps): bump actions/checkout from 4 to 7",
+    "state": "open",
+    "merged": false,
+    "sha": "3fb53bca8aabb412b1d11c7072a11bd72a74224a",
+    "base": "d1c0c27f5e8f04241ee8f5c5b791c6bf5fd6f7d6",
+    "mergeable": true,
+    "mergeable_state": "clean",
+    "files": [
+      {
+        "file": ".github/workflows/ci.yml",
+        "changes": 2
+      },
+      {
+        "file": ".github/workflows/release.yml",
+        "changes": 2
+      }
+    ],
+    "checks": [
+      {
+        "id": 111203081785,
+        "name": "test-and-build",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/wanna-code12138/JMcomic-desktop/actions/runs/37123153676/job/111203081785"
+      }
+    ]
+  }
+]

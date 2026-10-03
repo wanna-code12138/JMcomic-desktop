@@ -1,0 +1,6 @@
+{
+  "archive": "D:\\soft\\Opencode\\JMComic\\work\\dependabot-pr5-package\\win-unpacked\\resources\\app.asar",
+  "packages": 251,
+  "requiredDependencyEdges": 859,
+  "errors": []
+}

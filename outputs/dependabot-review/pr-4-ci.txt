@@ -1,0 +1,196 @@
+﻿2026-08-23T17:54:39.0300737Z Current runner version: '2.336.0'
+2026-08-23T17:54:39.0360126Z ##[group]Runner Image Provisioner
+2026-08-23T17:54:39.0361455Z Hosted Compute Agent
+2026-08-23T17:54:39.0362466Z Version: 20260729.566
+2026-08-23T17:54:39.0363570Z Commit: cf7153fe6e25b664e8693c24944bf2b00355d109
+2026-08-23T17:54:39.0364836Z Build Date: 2026-07-29T19:17:02Z
+2026-08-23T17:54:39.0366062Z Worker ID: {4d6d4578-5f2b-4483-8ae5-3bc8780f1fef}
+2026-08-23T17:54:39.0367354Z Azure Region: eastus
+2026-08-23T17:54:39.0368284Z ##[endgroup]
+2026-08-23T17:54:39.0370808Z ##[group]Operating System
+2026-08-23T17:54:39.0371897Z Microsoft Windows Server 2025
+2026-08-23T17:54:39.0372911Z 10.0.26100
+2026-08-23T17:54:39.0373822Z Datacenter
+2026-08-23T17:54:39.0374646Z ##[endgroup]
+2026-08-23T17:54:39.0376121Z ##[group]Runner Image
+2026-08-23T17:54:39.0377136Z Image: windows-2025-vs2026
+2026-08-23T17:54:39.0378169Z Version: 20260818.207.1
+2026-08-23T17:54:39.0380718Z Included Software: https://github.com/actions/runner-images/blob/win25-vs2026/20260818.207/images/windows/Windows2025-VS2026-Readme.md
+2026-08-23T17:54:39.0383787Z Image Release: https://github.com/actions/runner-images/releases/tag/win25-vs2026%2F20260818.207
+2026-08-23T17:54:39.0385581Z ##[endgroup]
+2026-08-23T17:54:39.0387753Z ##[group]GITHUB_TOKEN Permissions
+2026-08-23T17:54:39.0390662Z Contents: read
+2026-08-23T17:54:39.0391654Z Metadata: read
+2026-08-23T17:54:39.0392631Z Packages: read
+2026-08-23T17:54:39.0393588Z ##[endgroup]
+2026-08-23T17:54:39.0398218Z Secret source: Dependabot
+2026-08-23T17:54:39.0400026Z Prepare workflow directory
+2026-08-23T17:54:39.0955315Z Prepare all required actions
+2026-08-23T17:54:39.1031573Z Getting action download info
+2026-08-23T17:54:39.2794049Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-08-23T17:54:39.4993833Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-08-23T17:54:40.0453039Z Complete job name: test-and-build
+2026-08-23T17:54:40.9431444Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-23T17:54:40.9443471Z ##[group]Run actions/checkout@v4
+2026-08-23T17:54:40.9444790Z with:
+2026-08-23T17:54:40.9445749Z   repository: wanna-code12138/JMcomic-desktop
+2026-08-23T17:54:40.9455730Z   token: ***
+2026-08-23T17:54:40.9456634Z   ssh-strict: true
+2026-08-23T17:54:40.9457515Z   ssh-user: git
+2026-08-23T17:54:40.9458411Z   persist-credentials: true
+2026-08-23T17:54:40.9459390Z   clean: true
+2026-08-23T17:54:40.9460268Z   sparse-checkout-cone-mode: true
+2026-08-23T17:54:40.9461324Z   fetch-depth: 1
+2026-08-23T17:54:40.9462176Z   fetch-tags: false
+2026-08-23T17:54:40.9463073Z   show-progress: true
+2026-08-23T17:54:40.9463990Z   lfs: false
+2026-08-23T17:54:40.9464895Z   submodules: false
+2026-08-23T17:54:40.9465810Z   set-safe-directory: true
+2026-08-23T17:54:40.9466855Z   allow-unsafe-pr-checkout: false
+2026-08-23T17:54:40.9468198Z ##[endgroup]
+2026-08-23T17:54:41.2205860Z Syncing repository: wanna-code12138/JMcomic-desktop
+2026-08-23T17:54:41.2210321Z ##[group]Getting Git version info
+2026-08-23T17:54:41.2212280Z Working directory is 'D:\a\JMcomic-desktop\JMcomic-desktop'
+2026-08-23T17:54:41.5839378Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-08-23T17:54:45.3495276Z git version 2.55.0.windows.4
+2026-08-23T17:54:45.3548426Z ##[endgroup]
+2026-08-23T17:54:45.3570748Z Temporarily overriding HOME='D:\a\_temp\b7a0a871-52db-4e30-927d-f92650b6de94' before making global git config changes
+2026-08-23T17:54:45.3572094Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-23T17:54:45.3583064Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\JMcomic-desktop\JMcomic-desktop
+2026-08-23T17:54:45.8694030Z Deleting the contents of 'D:\a\JMcomic-desktop\JMcomic-desktop'
+2026-08-23T17:54:45.8753177Z ##[group]Initializing the repository
+2026-08-23T17:54:45.8755843Z [command]"C:\Program Files\Git\bin\git.exe" init D:\a\JMcomic-desktop\JMcomic-desktop
+2026-08-23T17:54:47.1111322Z Initialized empty Git repository in D:/a/JMcomic-desktop/JMcomic-desktop/.git/
+2026-08-23T17:54:47.1171369Z [command]"C:\Program Files\Git\bin\git.exe" remote add origin https://github.com/wanna-code12138/JMcomic-desktop
+2026-08-23T17:54:47.1821343Z ##[endgroup]
+2026-08-23T17:54:47.1822613Z ##[group]Disabling automatic garbage collection
+2026-08-23T17:54:47.1833157Z [command]"C:\Program Files\Git\bin\git.exe" config --local gc.auto 0
+2026-08-23T17:54:47.2163047Z ##[endgroup]
+2026-08-23T17:54:47.2163700Z ##[group]Setting up auth
+2026-08-23T17:54:47.2177992Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-08-23T17:54:47.2521555Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-08-23T17:54:52.1045041Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-23T17:54:52.1338047Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-08-23T17:54:52.6456136Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-23T17:54:52.6761745Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-08-23T17:54:53.1361843Z [command]"C:\Program Files\Git\bin\git.exe" config --local http.https://github.com/.extraheader "AUTHORIZATION: basic ***"
+2026-08-23T17:54:53.1660954Z ##[endgroup]
+2026-08-23T17:54:53.1661445Z ##[group]Fetching the repository
+2026-08-23T17:54:53.1674332Z [command]"C:\Program Files\Git\bin\git.exe" -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +9f1d743762c00bd7fa998ffbb47d6c606efe0833:refs/remotes/pull/4/merge
+2026-08-23T17:54:54.0691925Z From https://github.com/wanna-code12138/JMcomic-desktop
+2026-08-23T17:54:54.0692998Z  * [new ref]         9f1d743762c00bd7fa998ffbb47d6c606efe0833 -> pull/4/merge
+2026-08-23T17:54:54.0730290Z ##[endgroup]
+2026-08-23T17:54:54.0730948Z ##[group]Determining the checkout info
+2026-08-23T17:54:54.0734548Z ##[endgroup]
+2026-08-23T17:54:54.0749451Z [command]"C:\Program Files\Git\bin\git.exe" sparse-checkout disable
+2026-08-23T17:54:54.1182414Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all extensions.worktreeConfig
+2026-08-23T17:54:54.1476579Z ##[group]Checking out the ref
+2026-08-23T17:54:54.1485638Z [command]"C:\Program Files\Git\bin\git.exe" checkout --progress --force refs/remotes/pull/4/merge
+2026-08-23T17:54:54.2374703Z Note: switching to 'refs/remotes/pull/4/merge'.
+2026-08-23T17:54:54.2375178Z 
+2026-08-23T17:54:54.2375500Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-08-23T17:54:54.2376346Z changes and commit them, and you can discard any commits you make in this
+2026-08-23T17:54:54.2377098Z state without impacting any branches by switching back to a branch.
+2026-08-23T17:54:54.2377564Z 
+2026-08-23T17:54:54.2377900Z If you want to create a new branch to retain commits you create, you may
+2026-08-23T17:54:54.2378355Z do so (now or later) by using -c with the switch command. Example:
+2026-08-23T17:54:54.2378626Z 
+2026-08-23T17:54:54.2378724Z   git switch -c <new-branch-name>
+2026-08-23T17:54:54.2378897Z 
+2026-08-23T17:54:54.2378997Z Or undo this operation with:
+2026-08-23T17:54:54.2379176Z 
+2026-08-23T17:54:54.2380125Z   git switch -
+2026-08-23T17:54:54.2380252Z 
+2026-08-23T17:54:54.2380468Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-08-23T17:54:54.2380771Z 
+2026-08-23T17:54:54.2381150Z HEAD is now at 9f1d743 Merge b3b53f388c455dd3e8d2295b779e12599b7edfb6 into bb84e76d8a3af41f9deb523ff8b34fcbaeb20971
+2026-08-23T17:54:54.2525523Z ##[endgroup]
+2026-08-23T17:54:54.2930312Z [command]"C:\Program Files\Git\bin\git.exe" log -1 --format=%H
+2026-08-23T17:54:54.3183002Z 9f1d743762c00bd7fa998ffbb47d6c606efe0833
+2026-08-23T17:54:54.3643464Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-23T17:54:54.3645803Z ##[group]Run actions/setup-node@v4
+2026-08-23T17:54:54.3646090Z with:
+2026-08-23T17:54:54.3646330Z   node-version: 22
+2026-08-23T17:54:54.3646577Z   cache: npm
+2026-08-23T17:54:54.3646791Z   always-auth: false
+2026-08-23T17:54:54.3647032Z   check-latest: false
+2026-08-23T17:54:54.3650487Z   token: ***
+2026-08-23T17:54:54.3650699Z ##[endgroup]
+2026-08-23T17:54:54.5541479Z Found in cache @ C:\hostedtoolcache\windows\node\22.23.2\x64
+2026-08-23T17:54:54.5548986Z (node:5988) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-08-23T17:54:54.5550724Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-08-23T17:54:54.5554546Z ##[group]Environment details
+2026-08-23T17:54:59.2861831Z node: v22.23.2
+2026-08-23T17:54:59.2862100Z npm: 10.9.8
+2026-08-23T17:54:59.2862285Z yarn: 1.22.22
+2026-08-23T17:54:59.2863281Z ##[endgroup]
+2026-08-23T17:54:59.3820056Z [command]C:\Windows\system32\cmd.exe /D /S /C "C:\hostedtoolcache\windows\node\22.23.2\x64\npm.cmd config get cache"
+2026-08-23T17:54:59.9147376Z C:\npm\cache
+2026-08-23T17:55:00.1759640Z npm cache is not found
+2026-08-23T17:55:00.2068143Z ##[group]Run npm ci
+2026-08-23T17:55:00.2068472Z [36;1mnpm ci[0m
+2026-08-23T17:55:00.4250171Z shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+2026-08-23T17:55:00.4250566Z ##[endgroup]
+2026-08-23T17:55:03.7354567Z npm error code ERESOLVE
+2026-08-23T17:55:03.7355193Z npm error ERESOLVE could not resolve
+2026-08-23T17:55:03.7355647Z npm error
+2026-08-23T17:55:03.7356173Z npm error While resolving: @types/react-dom@18.3.7
+2026-08-23T17:55:03.7356788Z npm error Found: @types/react@19.2.18
+2026-08-23T17:55:03.7357337Z npm error node_modules/@types/react
+2026-08-23T17:55:03.7357984Z npm error   dev @types/react@"^19.2.18" from the root project
+2026-08-23T17:55:03.7358956Z npm error   peer @types/react@">=16.14.0 <20.0.0" from @fluentui/react-accordion@9.12.2
+2026-08-23T17:55:03.7359815Z npm error   node_modules/@fluentui/react-accordion
+2026-08-23T17:55:03.7360748Z npm error     @fluentui/react-accordion@"^9.12.1" from @fluentui/react-components@9.74.2
+2026-08-23T17:55:03.7361786Z npm error     node_modules/@fluentui/react-components
+2026-08-23T17:55:03.7362636Z npm error       @fluentui/react-components@"^9.54.0" from the root project
+2026-08-23T17:55:03.7363893Z npm error   63 more (@fluentui/react-alert, @fluentui/react-aria, ...)
+2026-08-23T17:55:03.7364515Z npm error
+2026-08-23T17:55:03.7364929Z npm error Could not resolve dependency:
+2026-08-23T17:55:03.7365649Z npm error peer @types/react@"^18.0.0" from @types/react-dom@18.3.7
+2026-08-23T17:55:03.7366341Z npm error node_modules/@types/react-dom
+2026-08-23T17:55:03.7367027Z npm error   dev @types/react-dom@"^18.3.1" from the root project
+2026-08-23T17:55:03.7368011Z npm error   peer @types/react-dom@">=16.9.0 <20.0.0" from @fluentui/react-accordion@9.12.2
+2026-08-23T17:55:03.7368897Z npm error   node_modules/@fluentui/react-accordion
+2026-08-23T17:55:03.7369833Z npm error     @fluentui/react-accordion@"^9.12.1" from @fluentui/react-components@9.74.2
+2026-08-23T17:55:03.7371203Z npm error     node_modules/@fluentui/react-components
+2026-08-23T17:55:03.7372030Z npm error       @fluentui/react-components@"^9.54.0" from the root project
+2026-08-23T17:55:03.7372943Z npm error   59 more (@fluentui/react-alert, @fluentui/react-aria, ...)
+2026-08-23T17:55:03.7373526Z npm error
+2026-08-23T17:55:03.7374043Z npm error Conflicting peer dependency: @types/react@18.3.31
+2026-08-23T17:55:03.7374694Z npm error node_modules/@types/react
+2026-08-23T17:55:03.7375369Z npm error   peer @types/react@"^18.0.0" from @types/react-dom@18.3.7
+2026-08-23T17:55:03.7376053Z npm error   node_modules/@types/react-dom
+2026-08-23T17:55:03.7376746Z npm error     dev @types/react-dom@"^18.3.1" from the root project
+2026-08-23T17:55:03.7377743Z npm error     peer @types/react-dom@">=16.9.0 <20.0.0" from @fluentui/react-accordion@9.12.2
+2026-08-23T17:55:03.7378644Z npm error     node_modules/@fluentui/react-accordion
+2026-08-23T17:55:03.7379589Z npm error       @fluentui/react-accordion@"^9.12.1" from @fluentui/react-components@9.74.2
+2026-08-23T17:55:03.7380545Z npm error       node_modules/@fluentui/react-components
+2026-08-23T17:55:03.7381436Z npm error         @fluentui/react-components@"^9.54.0" from the root project
+2026-08-23T17:55:03.7382363Z npm error     59 more (@fluentui/react-alert, @fluentui/react-aria, ...)
+2026-08-23T17:55:03.7382936Z npm error
+2026-08-23T17:55:03.7383236Z npm error Fix the upstream dependency conflict, or retry
+2026-08-23T17:55:03.7384087Z npm error this command with --force or --legacy-peer-deps
+2026-08-23T17:55:03.7384635Z npm error to accept an incorrect (and potentially broken) dependency resolution.
+2026-08-23T17:55:03.7385020Z npm error
+2026-08-23T17:55:03.7385184Z npm error
+2026-08-23T17:55:03.7385410Z npm error For a full report see:
+2026-08-23T17:55:03.7385819Z npm error C:\npm\cache\_logs\2026-08-23T17_55_01_168Z-eresolve-report.txt
+2026-08-23T17:55:03.7386484Z npm error A complete log of this run can be found in: C:\npm\cache\_logs\2026-08-23T17_55_01_168Z-debug-0.log
+2026-08-23T17:55:05.2946744Z ##[error]Process completed with exit code 1.
+2026-08-23T17:55:05.3192797Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-23T17:55:05.3194146Z Post job cleanup.
+2026-08-23T17:55:05.5209574Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-08-23T17:55:05.5506192Z git version 2.55.0.windows.4
+2026-08-23T17:55:05.5580910Z Temporarily overriding HOME='D:\a\_temp\e4c09df9-997f-4514-aac0-dec83fc9311a' before making global git config changes
+2026-08-23T17:55:05.5582403Z Adding repository directory to the temporary git global config as a safe directory
+2026-08-23T17:55:05.5592178Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\JMcomic-desktop\JMcomic-desktop
+2026-08-23T17:55:05.5923765Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-08-23T17:55:05.6238838Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-08-23T17:55:06.1523164Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-08-23T17:55:06.1770490Z http.https://github.com/.extraheader
+2026-08-23T17:55:06.1809636Z [command]"C:\Program Files\Git\bin\git.exe" config --local --unset-all http.https://github.com/.extraheader
+2026-08-23T17:55:06.2152329Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-08-23T17:55:06.7520445Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-08-23T17:55:06.7803461Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-08-23T17:55:07.2962259Z Cleaning up orphan processes
+2026-08-23T17:55:07.3427257Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
