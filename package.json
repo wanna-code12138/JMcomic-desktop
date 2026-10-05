@@ -34,7 +34,7 @@
     "pdfkit": "0.20.2",
     "socks-proxy-agent": "^10.1.0",
     "sql.js": "^1.11.0",
-    "zustand": "^5.0.0"
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@electron-toolkit/preload": "^3.0.1",
