@@ -24,7 +24,7 @@
     "postpackage": "node scripts/verify-package.cjs"
   },
   "dependencies": {
-    "@fluentui/react-components": "^9.54.0",
+    "@fluentui/react-components": "^9.74.9",
     "@tanstack/react-virtual": "^3.11.0",
     "archiver": "7.0.1",
     "cheerio": "^1.0.0",
